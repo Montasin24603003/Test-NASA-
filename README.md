@@ -1,6 +1,6 @@
 # Mars Survival Map
 
-I want to make a website for nasa space app challange our challange is Interplanetary Survival Guide: Martian Map
+This website was created for the NASA Space Apps Challenge. Our challenge is **Interplanetary Survival Guide: Martian Map**.
 
 This project was built with [Lovable](https://lovable.dev).
 
@@ -60,9 +60,23 @@ npm run build
 1. Open **Mission Map**.
 2. Rotate the 3D Mars model and select a candidate sector.
 3. Toggle terrain / hazard / resource / rover / route layers.
-4. Open **NASA Data** to show provenance and the data-fusion pipeline.
-5. Open **Survival Simulator** and change crew, duration, water, power, shielding and dust conditions.
-6. Use the existing **Marswalk** presentation mode for the final judging story.
+4. Open **Clock & Compass** (`/mars-clock`) to view real-time Martian solar time, Sol counters, analog dial, and 3D planetary compass.
+5. Open **NASA Data** to show provenance and the data-fusion pipeline.
+6. Open **Survival Simulator** and change crew, duration, water, power, shielding and dust conditions.
+7. Use the existing **Marswalk** presentation mode for the final judging story.
+
+### Mars Local Time Clock & 3D Compass
+
+This project implements a scientific Martian chronometer and navigation system:
+- **Mars Sol Date (MSD) & Sol Number**: Continuous count of Martian solar days (epoch MSD 44796.0 at Jan 6 2000 00:00:00 TT).
+- **Martian Sol Day Length**: Calibrated to 24 hours, 39 minutes, and 35.244 seconds (88,775.244s, ratio 1.027491252 to Earth solar day).
+- **MTC, LMST, and LTST**: Coordinated Mars Time at Airy-0 meridian (0° lon), Local Mean Solar Time, and Local True Solar Time (sundial time) calculated via the Allison & McEwen (2000) NASA Mars24 formulation.
+- **Equation of Time (EOT)**: Compensates for Mars's high orbital eccentricity ($e = 0.0934$) and axial tilt ($25.19^\circ$), shifting true solar noon by up to 51 Martian minutes.
+- **Solar Longitude ($L_s$) & Martian Seasons**: Tracks North Spring Equinox ($0^\circ$), North Summer Solstice ($90^\circ$), North Autumn Equinox ($180^\circ$), and North Winter Solstice ($270^\circ$).
+- **Dual Analog & Digital Display**: High-precision 24-hour and 12-hour analog solar dial with day/night illumination arc and digital telemetry.
+- **Interactive 3D Mars Compass**: Three.js WebGL compass with touch/mouse rotation, digital bearing, degree slider, step adjustment, and reset-to-north.
+- **Planetary Magnetism Distinction**: Clearly differentiates True Geographic North (Mars spin axis) from localized crustal remnant paleomagnetic anomalies (MGS/MAVEN data), explaining why Earth-style magnetic needles fail on Mars.
+- **Shared Location Selector**: Connects landing sites (Jezero, Gale, Olympus Mons, Valles Marineris, etc.) or custom coordinates to both time and compass navigation.
 
 ### Asset provenance
 

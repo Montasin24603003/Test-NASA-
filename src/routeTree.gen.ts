@@ -11,10 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as HazardLayersRouteImport } from './routes/hazard-layers'
+import { Route as MarsClockRouteImport } from './routes/mars-clock'
 import { Route as MissionLabRouteImport } from './routes/mission-lab'
+import { Route as MlTerrainLabRouteImport } from './routes/ml-terrain-lab'
+import { Route as PlanetaryMapRouteImport } from './routes/planetary-map'
 import { Route as ProtocolsRouteImport } from './routes/protocols'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as SolBySolRouteImport } from './routes/sol-by-sol'
+import { Route as ApiHfInferenceRouteImport } from './routes/api/hf-inference'
 import { Route as ApiMarsAdvisorRouteImport } from './routes/api/mars-advisor'
 
 const IndexRoute = IndexRouteImport.update({
@@ -27,9 +31,24 @@ const HazardLayersRoute = HazardLayersRouteImport.update({
   path: '/hazard-layers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MarsClockRoute = MarsClockRouteImport.update({
+  id: '/mars-clock',
+  path: '/mars-clock',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MissionLabRoute = MissionLabRouteImport.update({
   id: '/mission-lab',
   path: '/mission-lab',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MlTerrainLabRoute = MlTerrainLabRouteImport.update({
+  id: '/ml-terrain-lab',
+  path: '/ml-terrain-lab',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanetaryMapRoute = PlanetaryMapRouteImport.update({
+  id: '/planetary-map',
+  path: '/planetary-map',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtocolsRoute = ProtocolsRouteImport.update({
@@ -47,6 +66,11 @@ const SolBySolRoute = SolBySolRouteImport.update({
   path: '/sol-by-sol',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHfInferenceRoute = ApiHfInferenceRouteImport.update({
+  id: '/api/hf-inference',
+  path: '/api/hf-inference',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiMarsAdvisorRoute = ApiMarsAdvisorRouteImport.update({
   id: '/api/mars-advisor',
   path: '/api/mars-advisor',
@@ -56,29 +80,41 @@ const ApiMarsAdvisorRoute = ApiMarsAdvisorRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/hazard-layers': typeof HazardLayersRoute
+  '/mars-clock': typeof MarsClockRoute
   '/mission-lab': typeof MissionLabRoute
+  '/ml-terrain-lab': typeof MlTerrainLabRoute
+  '/planetary-map': typeof PlanetaryMapRoute
   '/protocols': typeof ProtocolsRoute
   '/resources': typeof ResourcesRoute
   '/sol-by-sol': typeof SolBySolRoute
+  '/api/hf-inference': typeof ApiHfInferenceRoute
   '/api/mars-advisor': typeof ApiMarsAdvisorRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/hazard-layers': typeof HazardLayersRoute
+  '/mars-clock': typeof MarsClockRoute
   '/mission-lab': typeof MissionLabRoute
+  '/ml-terrain-lab': typeof MlTerrainLabRoute
+  '/planetary-map': typeof PlanetaryMapRoute
   '/protocols': typeof ProtocolsRoute
   '/resources': typeof ResourcesRoute
   '/sol-by-sol': typeof SolBySolRoute
+  '/api/hf-inference': typeof ApiHfInferenceRoute
   '/api/mars-advisor': typeof ApiMarsAdvisorRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/hazard-layers': typeof HazardLayersRoute
+  '/mars-clock': typeof MarsClockRoute
   '/mission-lab': typeof MissionLabRoute
+  '/ml-terrain-lab': typeof MlTerrainLabRoute
+  '/planetary-map': typeof PlanetaryMapRoute
   '/protocols': typeof ProtocolsRoute
   '/resources': typeof ResourcesRoute
   '/sol-by-sol': typeof SolBySolRoute
+  '/api/hf-inference': typeof ApiHfInferenceRoute
   '/api/mars-advisor': typeof ApiMarsAdvisorRoute
 }
 export interface FileRouteTypes {
@@ -86,38 +122,54 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/hazard-layers'
+    | '/mars-clock'
     | '/mission-lab'
+    | '/ml-terrain-lab'
+    | '/planetary-map'
     | '/protocols'
     | '/resources'
     | '/sol-by-sol'
+    | '/api/hf-inference'
     | '/api/mars-advisor'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/hazard-layers'
+    | '/mars-clock'
     | '/mission-lab'
+    | '/ml-terrain-lab'
+    | '/planetary-map'
     | '/protocols'
     | '/resources'
     | '/sol-by-sol'
+    | '/api/hf-inference'
     | '/api/mars-advisor'
   id:
     | '__root__'
     | '/'
     | '/hazard-layers'
+    | '/mars-clock'
     | '/mission-lab'
+    | '/ml-terrain-lab'
+    | '/planetary-map'
     | '/protocols'
     | '/resources'
     | '/sol-by-sol'
+    | '/api/hf-inference'
     | '/api/mars-advisor'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HazardLayersRoute: typeof HazardLayersRoute
+  MarsClockRoute: typeof MarsClockRoute
   MissionLabRoute: typeof MissionLabRoute
+  MlTerrainLabRoute: typeof MlTerrainLabRoute
+  PlanetaryMapRoute: typeof PlanetaryMapRoute
   ProtocolsRoute: typeof ProtocolsRoute
   ResourcesRoute: typeof ResourcesRoute
   SolBySolRoute: typeof SolBySolRoute
+  ApiHfInferenceRoute: typeof ApiHfInferenceRoute
   ApiMarsAdvisorRoute: typeof ApiMarsAdvisorRoute
 }
 
@@ -137,11 +189,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HazardLayersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mars-clock': {
+      id: '/mars-clock'
+      path: '/mars-clock'
+      fullPath: '/mars-clock'
+      preLoaderRoute: typeof MarsClockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mission-lab': {
       id: '/mission-lab'
       path: '/mission-lab'
       fullPath: '/mission-lab'
       preLoaderRoute: typeof MissionLabRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ml-terrain-lab': {
+      id: '/ml-terrain-lab'
+      path: '/ml-terrain-lab'
+      fullPath: '/ml-terrain-lab'
+      preLoaderRoute: typeof MlTerrainLabRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planetary-map': {
+      id: '/planetary-map'
+      path: '/planetary-map'
+      fullPath: '/planetary-map'
+      preLoaderRoute: typeof PlanetaryMapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/protocols': {
@@ -165,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolBySolRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/hf-inference': {
+      id: '/api/hf-inference'
+      path: '/api/hf-inference'
+      fullPath: '/api/hf-inference'
+      preLoaderRoute: typeof ApiHfInferenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/mars-advisor': {
       id: '/api/mars-advisor'
       path: '/api/mars-advisor'
@@ -178,10 +258,14 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HazardLayersRoute: HazardLayersRoute,
+  MarsClockRoute: MarsClockRoute,
   MissionLabRoute: MissionLabRoute,
+  MlTerrainLabRoute: MlTerrainLabRoute,
+  PlanetaryMapRoute: PlanetaryMapRoute,
   ProtocolsRoute: ProtocolsRoute,
   ResourcesRoute: ResourcesRoute,
   SolBySolRoute: SolBySolRoute,
+  ApiHfInferenceRoute: ApiHfInferenceRoute,
   ApiMarsAdvisorRoute: ApiMarsAdvisorRoute,
 }
 export const routeTree = rootRouteImport

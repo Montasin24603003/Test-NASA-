@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Atom,
   Box,
+  BrainCircuit,
   CheckCircle2,
   Compass,
   Crosshair,
@@ -26,10 +27,11 @@ import {
   Wind,
   Wrench,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { MarsExplorer } from "@/components/MarsExplorer";
 import { SurvivalSimulator } from "@/components/SurvivalSimulator";
+import { MlTerrainLab } from "@/components/MlTerrainLab/MlTerrainLab";
 
 export const Route = createFileRoute("/mission-lab")({
   head: () => ({
@@ -47,6 +49,7 @@ export const Route = createFileRoute("/mission-lab")({
 
 type LabPage =
   | "overview"
+  | "ml-lab"
   | "terrain"
   | "simulation"
   | "regions"
@@ -56,6 +59,7 @@ type LabPage =
 
 const navItems: { id: LabPage; label: string; icon: typeof Globe2; short: string }[] = [
   { id: "overview", label: "Overview", icon: Gauge, short: "OPS" },
+  { id: "ml-lab", label: "ML Terrain Lab", icon: BrainCircuit, short: "ML" },
   { id: "terrain", label: "3D Terrain", icon: Box, short: "3D" },
   { id: "simulation", label: "Survival Sim", icon: Play, short: "SIM" },
   { id: "regions", label: "Region Library", icon: Layers3, short: "GEO" },
@@ -182,6 +186,7 @@ function MissionLab() {
 
       <div className={page === "terrain" ? "" : "mx-auto w-full max-w-[1720px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7"}>
         {page === "overview" && <Overview onNavigate={setPage} />}
+        {page === "ml-lab" && <MlTerrainLab />}
         {page === "terrain" && <TerrainPage />}
         {page === "simulation" && <SimulationPage />}
         {page === "regions" && <RegionsPage onNavigate={setPage} />}
@@ -199,7 +204,8 @@ function Eyebrow({ children }: { children: ReactNode }) {
 
 function Overview({ onNavigate }: { onNavigate: (page: LabPage) => void }) {
   const cards: { id: LabPage; title: string; description: string; icon: typeof Globe2; accent: string; meta: string }[] = [
-    { id: "terrain", title: "3D Terrain Explorer", description: "Inspect regional terrain models, volcanic provinces, basins and polar surfaces.", icon: Globe2, accent: "cyan", meta: "07 REGIONAL DATASETS" },
+    { id: "ml-lab", title: "ML Terrain & Risk Lab", description: "HistGradientBoosting hazard surrogate, K-Means 4-class terrain clustering, and Dijkstra/A* risk-aware rover routes for Jezero Crater.", icon: BrainCircuit, accent: "cyan", meta: "SCIKIT-LEARN ML PIPELINE" },
+    { id: "terrain", title: "3D Terrain Explorer", description: "Inspect regional terrain models, volcanic provinces, basins, polar surfaces, and global maps.", icon: Globe2, accent: "cyan", meta: "12 3D PLANETARY MODELS" },
     { id: "simulation", title: "Survival Simulator", description: "Run a mission scenario and monitor crew resources, system health and risk.", icon: Activity, accent: "amber", meta: "SOL-BY-SOL OPERATIONS" },
     { id: "regions", title: "Geology Library", description: "Browse the core terrain collection and compare geological environments.", icon: Mountain, accent: "rose", meta: "PLANETARY GEOLOGY" },
     { id: "landing", title: "Landing Site Atlas", description: "Review candidate destinations and notable robotic exploration sites.", icon: MapPinned, accent: "mint", meta: "SITE INTELLIGENCE" },
@@ -245,7 +251,7 @@ function Overview({ onNavigate }: { onNavigate: (page: LabPage) => void }) {
           </div>
         </div>
         <div className="relative z-10 mt-9 grid grid-cols-2 gap-3 border-t border-line/80 pt-5 md:grid-cols-4">
-          <Metric icon={Globe2} label="Terrain datasets" value="07" note="Regional models" />
+          <Metric icon={Globe2} label="Terrain datasets" value="12" note="3D models ready" />
           <Metric icon={MapPinned} label="Exploration sites" value="06" note="Reference locations" />
           <Metric icon={ShieldCheck} label="Mission systems" value="NOMINAL" note="Workspace status" />
           <Metric icon={Activity} label="Planning mode" value="ACTIVE" note="Decision support" />
@@ -338,7 +344,7 @@ function RegionsPage({ onNavigate }: { onNavigate: (page: LabPage) => void }) {
   const visible = category === "All" ? terrainLibrary : terrainLibrary.filter((item) => item.category === category);
   return (
     <div className="space-y-6 rise-in">
-      <PageHeading eyebrow="Geological index · 46 visuals" title="Mars Terrain Library" description="Browse the complete image library by geological family. These visual references complement the seven bundled 3D regional models." icon={Layers3} />
+      <PageHeading eyebrow="Geological index · 46 visuals" title="Mars Terrain Library" description="Browse the complete image library by geological family. These visual references complement the twelve bundled 3D planetary and regional models." icon={Layers3} />
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-panel p-4">
         <div className="flex flex-wrap gap-2">
           {categories.map((item) => (
@@ -484,4 +490,4 @@ function InfoTile({ icon: Icon, title, text }: { icon: typeof Globe2; title: str
 function SmallMetric({ icon: Icon, label, value, detail }: { icon: typeof Globe2; label: string; value: string; detail: string }) { return <div className="flex items-center gap-3 rounded-xl border border-line bg-panel p-4"><div className="grid size-10 place-items-center rounded-lg bg-amber/10 text-amber"><Icon className="size-4" /></div><div><p className="font-mono text-[9px] uppercase tracking-[.12em] text-fog">{label}</p><p className="mt-1 text-sm font-bold text-bright">{value}</p><p className="text-[10px] text-fog">{detail}</p></div></div>; }
 function Field({ label, children }: { label: string; children: ReactNode }) { return <label className="block"><span className="mb-2 block font-mono text-[10px] font-semibold uppercase tracking-[.12em] text-fog">{label}</span>{children}</label>; }
 function SummaryBox({ label, value }: { label: string; value: string }) { return <div className="rounded-xl border border-line bg-panel p-3"><p className="font-mono text-[9px] uppercase tracking-[.12em] text-fog">{label}</p><p className="mt-1 break-words font-display text-sm font-bold text-bright">{value}</p></div>; }
-function accentClasses(accent: string) { const map: Record<string, string> = { cyan: "border-cyan/25 bg-cyan/10 text-cyan", amber: "border-amber/25 bg-amber/10 text-amber", rose: "border-rose/25 bg-rose/10 text-rose", mint: "border-mint/25 bg-mint/10 text-mint" }; return map[accent] ?? map.amber; }
+function accentClasses(accent: string) { const map: Record<string, string> = { cyan: "border-cyan/25 bg-cyan/10 text-cyan", amber: "border-amber/25 bg-amber/10 text-amber", rose: "border-rose/25 bg-rose/10 text-rose", mint: "border-mint/25 bg-mint/10 text-mint" }; return map[accent] ?? map["amber"]; }

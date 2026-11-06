@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight, Layers, ShieldAlert, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/hazard-layers")({
   head: () => ({
@@ -76,41 +77,67 @@ const hazards = [
     value: "M < 2.0 typical",
     range: "Up to M 4.0 (rare)",
     description:
-      "InSight recorded ~1,300 marsquakes over 4 years. Most are minor; tectonic faults near Tharsis and Cerberus Fossa show higher activity. Habitat foundations designed for M 5.0 tolerance.",
+      "InSight recorded ~1,300 marsquakes over 4 years. Most are minor; tectonic faults near Tharsis and Cerberus Fossae show higher activity. Habitat foundations designed for M 5.0 tolerance.",
   },
 ];
 
 function HazardLayersPage() {
   return (
-    <div className="rise-in">
-      <div className="mb-6">
-        <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-fog">
-          Surface hazard overlays
-        </p>
-        <h1 className="mt-1 font-display text-3xl font-bold tracking-tight text-balance">
-          Hazard Layers
-        </h1>
-        <p className="mt-2 max-w-lg text-[15px] text-fog">
-          Six hazard categories mapped across the survey region. Each layer can be toggled on the
-          main map — severity colors indicate current readings at the Jezero Sector reference point.
-        </p>
+    <div className="rise-in space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-rose/15 text-rose">
+              <ShieldAlert className="size-4" />
+            </span>
+            <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-fog">
+              Surface hazard overlays · Calibrated Mars Data
+            </p>
+          </div>
+          <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-balance">
+            Scientific Hazard Analysis
+          </h1>
+          <p className="mt-2 max-w-xl text-[14px] text-fog leading-relaxed">
+            Multi-mission hazard intelligence combining MOLA laser altimetry slopes, Odyssey MARIE and MSL RAD
+            ionizing radiation baselines, THEMIS night-time thermal inertia, and TES atmospheric dust opacity.
+          </p>
+        </div>
+
+        <Link
+          to="/"
+          hash="mission-map"
+          className="inline-flex items-center gap-2 rounded-xl bg-amber px-4 py-2.5 font-display text-xs font-semibold text-ink shadow-sm transition hover:bg-amber/90"
+        >
+          <Layers className="size-3.5" /> Open on Planetary Map <ArrowRight className="size-3.5" />
+        </Link>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         {hazards.map((h) => (
           <div
             key={h.name}
-            className="rounded-xl border border-line/70 bg-panel/40 p-5 backdrop-blur-xl"
+            className="rounded-xl border border-line/70 bg-white/80 p-5 shadow-sm backdrop-blur-xl flex flex-col justify-between"
           >
-            <div className="flex items-center justify-between">
-              <h3 className="font-display text-lg font-semibold">{h.name}</h3>
-              <span className={`font-mono text-[11px] ${h.severityColor}`}>{h.severity}</span>
+            <div>
+              <div className="flex items-center justify-between">
+                <h3 className="font-display text-lg font-semibold text-bright">{h.name}</h3>
+                <span className={`font-mono text-[11px] font-bold ${h.severityColor}`}>{h.severity}</span>
+              </div>
+              <div className="mt-3 flex items-baseline gap-4">
+                <p className="font-display text-2xl font-bold text-bright">{h.value}</p>
+                <p className="font-mono text-[11px] text-fog">Range: {h.range}</p>
+              </div>
+              <p className="mt-3 text-[13px] leading-relaxed text-fog">{h.description}</p>
             </div>
-            <div className="mt-3 flex items-baseline gap-4">
-              <p className="font-display text-2xl font-bold text-bright">{h.value}</p>
-              <p className="font-mono text-[11px] text-fog">Range: {h.range}</p>
+            <div className="mt-4 pt-3 border-t border-line/60 flex items-center justify-between">
+              <span className="font-mono text-[10px] text-fog">Calibrated layer available on Map</span>
+              <a
+                href="/#mission-map"
+                className="font-mono text-[11px] font-semibold text-amber hover:underline inline-flex items-center gap-1"
+              >
+                Inspect layer →
+              </a>
             </div>
-            <p className="mt-3 text-[13px] leading-relaxed text-fog">{h.description}</p>
           </div>
         ))}
       </div>

@@ -5,71 +5,1146 @@
     <meta charset="utf-8">
     <title>Sol by Sol · Mars Survival Simulator</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <link rel="stylesheet" href="/sol-simulator/styles.css">
+    <!-- Leaflet.js Mapping Library for Google Mars Navigation -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        :root {
+            --bg: #F5F0E6;
+            --panel: #FBF8F1;
+            --panel-sub: #EAE3D2;
+            --ink: #141A0C;
+            --ink-dim: #2B331D;
+            --mute: #454B33;
+            --line: #CFC5AB;
+            --line-light: rgba(127, 140, 106, 0.55);
+            --acc: #7F8C6A;
+            --acc-text: #3A4627;
+            --on-acc: #10160A;
+            --acc-glow: rgba(127, 140, 106, 0.45);
+            --ok: #2C6A28;
+            --bad: #9A2E1F;
+            --warn: #85570A;
+            --c1: #3B6EA5;
+            --c2: #2F8F86;
+            --c3: #B7791F;
+            --c4: #B3402F;
+            color-scheme: light;
+            box-sizing: border-box;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        html {
+            scroll-padding-top: env(safe-area-inset-top, 0px);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font: 14px/1.5 "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            letter-spacing: -0.01em;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(127, 140, 106, 0.20) 0%, transparent 65%),
+                linear-gradient(to bottom, #F5F0E6, #ECE5D3);
+            min-height: 100vh;
+        }
+
+        main {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 18px 16px 52px;
+        }
+
+        /* Top Mission Control Header */
+        header.app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 12px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .header-title-group h1 {
+            font: 700 clamp(22px, 3.8vw, 32px)/1.1 "Fraunces", Georgia, serif;
+            margin: 0;
+            letter-spacing: -.02em;
+            color: var(--ink);
+        }
+
+        .tagline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .15em;
+            color: var(--acc-text);
+            margin-bottom: 2px;
+        }
+
+        .tagline::before {
+            content: "";
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--acc);
+            box-shadow: 0 0 8px var(--acc);
+        }
+
+        .header-status-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 20px rgba(70, 60, 30, 0.10);
+        }
+
+        .grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        }
+
+        label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--mute);
+            margin-bottom: 5px;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+            color: var(--ink);
+            font: inherit;
+            transition: border-color .15s, box-shadow .15s;
+        }
+
+        select:focus,
+        input:focus {
+            outline: none;
+            border-color: var(--acc);
+            box-shadow: 0 0 10px var(--acc-glow);
+        }
+
+        .desc {
+            font-size: 11.5px;
+            color: var(--mute);
+            margin-top: 5px;
+            min-height: 34px;
+            line-height: 1.4;
+        }
+
+        button {
+            font: 600 13px inherit;
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: 1px solid var(--line);
+            background: var(--panel-sub);
+            color: var(--ink);
+            cursor: pointer;
+            transition: transform .08s ease, filter .15s ease, background-color .15s ease;
+        }
+
+        button:hover {
+            filter: brightness(1.15);
+            border-color: var(--mute);
+        }
+
+        button.p {
+            background: var(--acc);
+            color: var(--on-acc);
+            border-color: var(--acc);
+            box-shadow: 0 2px 10px var(--acc-glow);
+        }
+
+        #pp,
+        [data-sp],
+        #skip,
+        #chg,
+        #cmp,
+        #rnd,
+        #live {
+            background: var(--acc);
+            color: var(--on-acc);
+            border-color: var(--acc);
+        }
+
+        button:active {
+            transform: translateY(1.5px);
+            filter: brightness(0.85);
+        }
+
+        /* Currently selected simulation speed */
+        [data-sp].act {
+            background: var(--acc-text);
+            color: #fff;
+            border-color: var(--acc-text);
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        /* ========================================================
+           PERMANENT DUAL-SPLIT LANDSCAPE VIEWPORTS
+           Left: CAM-01 Surface Optical Feed (Atmospheric HD Canvas)
+           Right: NASA Google Mars Navigation Map (Leaflet.js + NASA Satellite)
+           ======================================================== */
+        .dual-viewport-card {
+            padding: 0;
+            overflow: hidden;
+            border: 1px solid var(--line-light);
+            border-radius: 10px;
+            background: #000;
+            margin-bottom: 14px;
+            box-shadow: 0 8px 28px rgba(70, 60, 30, 0.22);
+            position: relative;
+        }
+
+        .vp-top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--panel-sub);
+            border-bottom: 1px solid var(--line);
+            padding: 8px 14px;
+            font-size: 11px;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+
+        .vp-top-header b {
+            color: var(--ink);
+        }
+
+        .dual-screen-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: 420px;
+            background: #000;
+            position: relative;
+        }
+
+        .viewport-screen {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #030202;
+        }
+
+        .viewport-screen.left-screen {
+            border-right: 1px solid var(--line);
+        }
+
+        #surfaceCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #marsLeafletMap {
+            width: 100%;
+            height: 100%;
+            background: #1a0b06;
+            z-index: 1;
+        }
+
+        /* Corner Reticles */
+        .reticle-corner {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-color: rgba(255, 255, 255, 0.35);
+            pointer-events: none;
+            z-index: 5;
+        }
+        .reticle-tl { top: 8px; left: 8px; border-top: 1.5px solid; border-left: 1.5px solid; }
+        .reticle-tr { top: 8px; right: 8px; border-top: 1.5px solid; border-right: 1.5px solid; }
+        .reticle-bl { bottom: 8px; left: 8px; border-bottom: 1.5px solid; border-left: 1.5px solid; }
+        .reticle-br { bottom: 8px; right: 8px; border-bottom: 1.5px solid; border-right: 1.5px solid; }
+
+        /* Optical HUD Overlay */
+        .screen-hud {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.45);
+            z-index: 4;
+        }
+
+        .hud-tag {
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(14, 8, 5, 0.88);
+            border: 1px solid rgba(226, 88, 34, 0.35);
+            color: #fff;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hud-tag.storm {
+            background: rgba(184, 43, 24, 0.92);
+            border-color: #ff6b5e;
+            color: #fff;
+        }
+
+        .hud-tag.sep {
+            background: rgba(201, 138, 11, 0.92);
+            border-color: #f6e05e;
+            color: #110c09;
+        }
+
+        .hud-tag.fatal {
+            background: #9b2c2c;
+            border-color: #feb2b2;
+            color: #fff;
+            animation: danger-pulse 0.8s infinite alternate;
+        }
+
+        .hud-pill-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--ok);
+        }
+
+        .hud-tag.storm .hud-pill-dot {
+            background: #fff;
+            animation: pulse-dot .8s infinite alternate;
+        }
+
+        .hud-tag.sep .hud-pill-dot {
+            background: #110c09;
+            animation: pulse-dot .6s infinite alternate;
+        }
+
+        .hud-tag.fatal .hud-pill-dot {
+            background: #fff;
+            animation: pulse-dot .4s infinite alternate;
+        }
+
+        @keyframes pulse-dot {
+            from { opacity: 0.3; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1.3); }
+        }
+
+        /* Google Maps Navigation Card Overlay on Map */
+        .gmap-nav-card {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            background: rgba(18, 10, 7, 0.92);
+            border: 1px solid rgba(226, 88, 34, 0.4);
+            border-radius: 8px;
+            padding: 8px 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            max-width: 290px;
+            pointer-events: auto;
+        }
+
+        .gmap-nav-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--mute);
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .gmap-dest-name {
+            font-weight: 700;
+            color: #fff;
+            font-size: 12.5px;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .gmap-nav-metrics {
+            font-family: ui-monospace, monospace;
+            font-size: 11px;
+            color: var(--ink-dim);
+            margin-top: 4px;
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+        .gmap-nav-metrics b {
+            color: var(--ok);
+        }
+
+        .gmap-nav-metrics.halted b {
+            color: var(--bad);
+        }
+
+        /* Telemetry Bar below dual viewports */
+        .vp-telemetry-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border-top: 1px solid var(--line);
+            background: var(--panel-sub);
+            gap: 1px;
+            background-color: var(--line);
+        }
+
+        .tel-block {
+            background: var(--panel);
+            padding: 9px 12px;
+        }
+
+        .tel-block span {
+            display: block;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--mute);
+            margin-bottom: 2px;
+        }
+
+        .tel-block b {
+            font-size: 13.5px;
+            color: var(--ink);
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+
+        .provenance-bar {
+            padding: 6px 12px;
+            font-size: 10.5px;
+            color: var(--mute);
+            background: var(--panel-sub);
+            border-top: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .provenance-bar b {
+            color: var(--ink-dim);
+        }
+
+        .hazard-vignette {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            box-shadow: inset 0 0 0px rgba(255, 0, 0, 0);
+            transition: box-shadow .4s ease;
+            z-index: 10;
+        }
+
+        .hazard-vignette.danger {
+            animation: danger-pulse 1.2s infinite alternate ease-in-out;
+        }
+
+        @keyframes danger-pulse {
+            0% { box-shadow: inset 0 0 25px 6px rgba(220, 38, 38, 0.45); }
+            100% { box-shadow: inset 0 0 70px 22px rgba(220, 38, 38, 0.85); }
+        }
+
+        /* ========================================================
+           CREW ROSTER WITH PHASED CASUALTIES & MEDICAL REASONS
+           ======================================================== */
+        .roster-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+        }
+
+        .roster-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--mute);
+            font-weight: 700;
+        }
+
+        .roster-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+            gap: 8px;
+        }
+
+        .roster-badge {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 11px;
+            transition: border-color .2s, background-color .2s;
+        }
+
+        .roster-badge.eva-active {
+            border-color: var(--acc);
+            background: rgba(127, 140, 106, 0.20);
+        }
+
+        .roster-badge.sheltered {
+            border-color: var(--warn);
+        }
+
+        .roster-badge.casualty {
+            border-color: #D98A7E;
+            background: rgba(179, 64, 47, 0.12);
+        }
+
+        .roster-role {
+            font-size: 9.5px;
+            color: var(--mute);
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            display: block;
+        }
+
+        .roster-name {
+            font-weight: 700;
+            color: var(--ink);
+            display: block;
+            margin: 1px 0 3px;
+        }
+
+        .roster-tag {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            padding: 2px 5px;
+            border-radius: 3px;
+            background: var(--panel-sub);
+            color: var(--mute);
+            font-family: ui-monospace, monospace;
+        }
+
+        .roster-tag.eva {
+            background: var(--acc);
+            color: var(--on-acc);
+        }
+
+        .roster-tag.shelter {
+            background: var(--warn);
+            color: #110906;
+        }
+
+        .roster-tag.dead {
+            background: #9b2c2c;
+            color: #fff;
+            font-weight: 800;
+        }
+
+        /* ========================================================
+           RESOURCE GAUGES & CHARTS
+           ======================================================== */
+        .g {
+            margin-bottom: 10px;
+        }
+
+        .g .t {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12.5px;
+            margin-bottom: 4px;
+        }
+
+        .bar {
+            height: 8px;
+            background: #E6DFCB;
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .bar i {
+            display: block;
+            height: 100%;
+            width: 0;
+            background: var(--ok);
+            transition: width .1s ease-out;
+        }
+
+        .logc {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 0;
+            align-self: start;
+            height: 548px;
+        }
+
+        .logw {
+            flex: 1;
+            position: relative;
+            min-height: 260px;
+        }
+
+        #feed {
+            position: absolute;
+            inset: 0;
+            overflow-y: auto;
+            font-size: 13px;
+            padding-right: 4px;
+        }
+
+        #feed div {
+            padding: 6px 0;
+            border-bottom: 1px solid var(--line);
+            line-height: 1.4;
+        }
+
+        #feed b {
+            color: var(--acc-text);
+            font-family: ui-monospace, monospace;
+            font-size: 12px;
+        }
+
+        #feed .fatal {
+            color: var(--bad);
+            font-weight: 700;
+        }
+
+        #feed .sep {
+            color: var(--warn);
+        }
+
+        svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .leg {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 11.5px;
+            color: var(--mute);
+            margin-top: 8px;
+        }
+
+        .leg span:before {
+            content: "";
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            border-radius: 2px;
+            margin-right: 5px;
+            background: var(--x);
+        }
+
+        .two {
+            display: grid;
+            gap: 14px;
+            grid-template-columns: 1.6fr 1fr;
+        }
+
+        @media(max-width:880px) {
+            .dual-screen-grid {
+                grid-template-columns: 1fr;
+                height: 600px;
+            }
+            .viewport-screen.left-screen {
+                border-right: none;
+                border-bottom: 1px solid var(--line);
+            }
+            .two {
+                grid-template-columns: 1fr;
+            }
+            .logw {
+                min-height: 0;
+            }
+            #feed {
+                position: static;
+                max-height: 260px;
+            }
+            .vp-telemetry-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .verdict {
+            font: 700 clamp(24px, 5vw, 36px)/1.1 "Fraunces", Georgia, serif;
+            margin-bottom: 6px;
+        }
+
+        .ok { color: var(--ok); }
+        .bad { color: var(--bad); }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin: 14px 0;
+        }
+
+        .stats div {
+            border-left: 3px solid var(--line);
+            padding-left: 10px;
+            font-size: 12.5px;
+            color: var(--mute);
+        }
+
+        .stats b {
+            display: block;
+            font-size: 18px;
+            color: var(--ink);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+            margin-top: 10px;
+        }
+
+        td, th {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        details.live {
+            margin-top: 12px;
+            font-size: 13.5px;
+        }
+
+        summary {
+            cursor: pointer;
+            color: var(--acc-text);
+            font-weight: 600;
+        }
+
+        footer {
+            font-size: 11.5px;
+            color: var(--mute);
+            line-height: 1.5;
+        }
+
+        .hide {
+            display: none !important;
+        }
+
+        /* Custom Leaflet Marker Styling */
+        .gmap-marker-pin {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            color: #fff;
+            font-weight: 800;
+            font-size: 11px;
+            font-family: -apple-system, system-ui, sans-serif;
+        }
+        .gmap-marker-pin span {
+            transform: rotate(45deg);
+        }
+        .pin-start { background: #38a169; }
+        .pin-end { background: #e53e3e; }
+
+        .rover-gps-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #3182ce;
+            border: 2.5px solid #fff;
+            box-shadow: 0 0 10px #3182ce;
+            animation: rover-pulse 1.2s infinite alternate;
+        }
+        @keyframes rover-pulse {
+            from { transform: scale(0.9); box-shadow: 0 0 6px #3182ce; }
+            to { transform: scale(1.3); box-shadow: 0 0 16px #63b3ed; }
+        }
+
+        .casualty-incident-pin {
+            width: 26px;
+            height: 26px;
+            background: #e53e3e;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 14px;
+            box-shadow: 0 0 14px #e53e3e;
+            animation: casualty-flash 0.8s infinite alternate;
+        }
+        @keyframes casualty-flash {
+            0% { transform: scale(1.0); }
+            100% { transform: scale(1.35); box-shadow: 0 0 24px #ff0000; }
+        }
+
+        @media(prefers-reduced-motion:reduce) {
+            .bar i { transition: none; }
+            .hazard-vignette.danger, .hud-tag.storm .hud-pill-dot, .hud-tag.sep .hud-pill-dot { animation: none; }
+        }
+    
+        /* Narrative Journey HUD Badge */
+        .hud-stage-badge {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(14, 7, 5, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 4px 14px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            pointer-events: none;
+            z-index: 6;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(6px);
+            text-align: center;
+        }
+        #hudStageTitle {
+            font-size: 10.5px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #00f0ff;
+        }
+        #hudStageSub {
+            font-size: 9px;
+            color: #cbd5e0;
+            margin-top: 1px;
+            font-family: ui-monospace, monospace;
+        }
+
+        /* Leaflet Google Mars Layer Control Styling */
+        .leaflet-control-layers {
+            background: rgba(18, 9, 6, 0.92) !important;
+            backdrop-filter: blur(8px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.22) !important;
+            color: #edf2f7 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6) !important;
+            padding: 6px 10px !important;
+            font-family: inherit !important;
+        }
+        .leaflet-control-layers label {
+            color: #cbd5e0 !important;
+            cursor: pointer !important;
+            margin: 4px 0 !important;
+            font-size: 11px !important;
+            font-weight: 600 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+        }
+        .leaflet-control-layers input[type="radio"] {
+            accent-color: #7F8C6A !important;
+            margin: 0 !important;
+            cursor: pointer !important;
+        }
+        .leaflet-control-zoom a {
+            background: rgba(18, 9, 6, 0.88) !important;
+            color: #edf2f7 !important;
+            border-color: rgba(255, 255, 255, 0.2) !important;
+        }
+
+    
+        /* Overlays that sit on the dark camera/map imagery keep light-on-dark colours */
+        .screen-hud, .gmap-nav-card, .hud-tag, .hud-stage-badge {
+            --ink: #f7ebe1;
+            --ink-dim: #cfb9a8;
+            --mute: #a99483;
+            --ok: #48bb78;
+            --bad: #f56565;
+            --warn: #ecc94b;
+            --c3: #ecc94b;
+        }
+        .hud-tag { border-color: rgba(245, 240, 230, 0.28); }
+    </style>
 </head>
 
 <body>
     <main>
-        <h1>Sol by sol</h1>
-        <p class="sub">Pick a site, a crew and a habitat. Then watch 500 sols on Mars, with real NASA solar particle
-            events and dust storms testing your choice.</p>
-
-        <section id="setup" class="card">
-            <div class="grid">
-                <div><label for="site">Landing site</label><select id="site"></select>
-                    <div class="desc" id="sd"></div>
+        <!-- Top Application Header -->
+        <header class="app-header">
+            <div class="header-title-group">
+                <span class="tagline">Martian Map Project · Mission Operations</span>
+                <h1>Sol by sol · Mars Survival Simulator</h1>
+            </div>
+            <div class="header-status-group">
+                <div class="hud-tag" id="mainStatusBadge">
+                    <span class="hud-pill-dot"></span>
+                    <span>MISSION READY</span>
                 </div>
-                <div><label for="crew">Crew size</label><select id="crew"></select>
-                    <div class="desc">Life support is sized for 5. Larger crews drain reserves.</div>
-                </div>
-                <div><label for="hab">Habitat</label><select id="hab"></select>
-                    <div class="desc" id="hd"></div>
-                </div>
-                <div><label for="seed">Seed</label>
-                    <div class="row"><input id="seed" type="number" value="1" min="1"><button id="rnd"
-                            type="button">Random</button></div>
-                    <div class="desc">Same seed, same storms and flares.</div>
+                <div class="hud-tag" style="font-family:ui-monospace, monospace;" id="clockSol">
+                    SOL 001 / 500
                 </div>
             </div>
+        </header>
+
+        <!-- Mission Setup & Launch Card -->
+        <section id="setup" class="card">
+            <div class="grid">
+                <div>
+                    <label for="site">Landing Site</label>
+                    <select id="site"></select>
+                    <div class="desc" id="sd"></div>
+                </div>
+                <div>
+                    <label for="crew">Crew Size (2 to 8)</label>
+                    <select id="crew"></select>
+                    <div class="desc">Life support is sized for 5 crew. Larger crews deplete water and oxygen faster.</div>
+                </div>
+                <div>
+                    <label for="hab">Habitat Architecture</label>
+                    <select id="hab"></select>
+                    <div class="desc" id="hd"></div>
+                </div>
+                <div>
+                    <label for="seed">Simulation Seed</label>
+                    <div class="row">
+                        <input id="seed" type="number" value="1" min="1">
+                        <button id="rnd" type="button">Random</button>
+                    </div>
+                    <div class="desc">Deterministic pseudo-random seed. Identical seed yields identical storms and flares.</div>
+                </div>
+            </div>
+
+            <!-- Optional Live NASA DONKI API Integration -->
             <details class="live">
-                <summary>Live NASA data (optional)</summary>
+                <summary>NASA DONKI Live Space Weather Feed (Optional)</summary>
                 <div class="grid" style="margin-top:10px">
-                    <div><label for="key">NASA API key (free at api.nasa.gov)</label><input id="key" type="password"
-                            placeholder="DEMO_KEY" autocomplete="off"></div>
-                    <div><label for="yr">Year of solar events</label><select id="yr">
+                    <div>
+                        <label for="key">NASA API Key (free at api.nasa.gov)</label>
+                        <input id="key" type="password" placeholder="DEMO_KEY" autocomplete="off">
+                    </div>
+                    <div>
+                        <label for="yr">Solar Event Catalogue Year</label>
+                        <select id="yr">
                             <option>2025</option>
                             <option selected>2024</option>
                             <option>2023</option>
-                        </select></div>
+                        </select>
+                    </div>
                 </div>
-                <div class="row" style="margin-top:8px"><button type="button" id="live">Refresh from NASA DONKI</button>
+                <div class="row" style="margin-top:8px">
+                    <button type="button" id="live">Query NASA DONKI API</button>
                 </div>
-                <p class="desc" id="lst" aria-live="polite">Using bundled NASA DONKI 2024 snapshot.</p>
+                <p class="desc" id="lst" aria-live="polite">Using bundled NASA DONKI 2024 snapshot (25 solar particle episodes).</p>
             </details>
-            <div class="row" style="margin-top:12px"><button class="p" id="go">Launch mission</button></div>
+
+            <div class="row" style="margin-top:12px">
+                <button class="p" id="go">Launch 500-Sol Expedition</button>
+            </div>
         </section>
 
+        <!-- Active Mission Execution Console -->
         <section id="run" class="hide">
-            <div class="two">
-                <div>
-                    <div class="card">
-                        <div class="row" style="justify-content:space-between">
-                            <h2 id="solc">Sol 1 / 500</h2>
-                            <div class="row"><button id="pp">Pause</button><button data-sp="1">x1</button><button
-                                    data-sp="5">x5</button><button data-sp="20">x20</button><button id="skip">Skip to
-                                    result</button></div>
-                        </div>
-                        <div id="gauges"></div>
+            <!-- ========================================================
+                 HERO SECTION: PERMANENT DUAL-SPLIT LANDSCAPE VIEWPORTS
+                 Left: CAM-01 Surface Optical Feed (Atmospheric HD Canvas)
+                 Right: NASA Google Mars Satellite Map (Leaflet.js + NASA Imagery)
+                 ======================================================== -->
+            <div class="dual-viewport-card">
+                <!-- Top Header Bar -->
+                <div class="vp-top-header">
+                    <div>
+                        <span>SITE: <b id="vpSiteHeader">Jezero Crater</b></span>
+                        <span style="color:var(--mute); margin-left:8px;" id="vpCoordsHeader">18.38°N 77.58°E</span>
                     </div>
-                    <div class="card"><svg id="ch" viewBox="0 0 600 200" role="img"
-                            aria-label="Resources over time"></svg>
-                        <div class="leg"><span style="--x:var(--c1)">Oxygen</span><span
-                                style="--x:var(--c2)">Water</span><span style="--x:var(--c3)">Power</span><span
-                                style="--x:var(--c4)">Radiation dose</span></div>
+                    <div>
+                        <span>HABITAT: <b id="vpHabHeader">Surface Module</b></span>
+                        <span style="color:var(--mute); margin-left:8px;" id="vpPowerHeader">GRID 100%</span>
                     </div>
                 </div>
+
+                <!-- Dual Viewports Side-by-Side in Landscape -->
+                <div class="dual-screen-grid">
+                    <!-- Left: CAM-01 Surface Optical Feed -->
+                    <div class="viewport-screen left-screen">
+                        <canvas id="surfaceCanvas" width="600" height="420"></canvas>
+                        <div class="reticle-corner reticle-tl"></div>
+                        <div class="reticle-corner reticle-tr"></div>
+                        <div class="reticle-corner reticle-bl"></div>
+                        <div class="reticle-corner reticle-br"></div>
+                        
+                                                <!-- Dynamic Mission Narrative Stage Badge -->
+                        <div class="hud-stage-badge" id="hudStageBadge">
+                            <span id="hudStageTitle">STAGE 1: BASE DEPLOYMENT</span>
+                            <span id="hudStageSub">Solar Array Assembly & Comms Uplink (Sol 1–50)</span>
+                        </div>
+                        <div class="screen-hud">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div class="hud-tag">
+                                    <span class="hud-pill-dot"></span>
+                                    <span>CAM-01 · SURFACE OPTICAL</span>
+                                </div>
+                                <div class="hud-tag hide" id="vpHudAlert"></div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                                <div class="hud-tag" style="font-size:10px;">
+                                    <span style="color:var(--mute)">SOL TRANSIT: </span>
+                                    <b id="hudSunTransit" style="color:#fff">MIDDAY SUN</b>
+                                </div>
+                                <div class="hud-tag" style="font-family:ui-monospace, monospace; font-size:10px;">
+                                    <span style="color:var(--mute)">CREW: </span>
+                                    <b id="hudEvaStatus" style="color:var(--ok)">ON SURVEY</b>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: NASA Google Mars Satellite Map (Leaflet.js) -->
+                    <div class="viewport-screen right-screen">
+                        <!-- Real Interactive NASA Mars Map -->
+                        <div id="marsLeafletMap"></div>
+
+                        <!-- Google Maps Navigation Overlay Card -->
+                        <div class="gmap-nav-card">
+                            <div class="gmap-nav-title">
+                                <span>🚀 EXPEDITION NAVIGATION</span>
+                            </div>
+                            <span class="gmap-dest-name" id="gmapDestName">Target: Delta Scarp Rim Outpost</span>
+                            <div class="gmap-nav-metrics" id="gmapMetrics">
+                                <span class="gmap-live">Traversed: <b id="gmapKmDone">0.0 km</b></span>
+                                <span class="gmap-live">Rem: <b id="gmapKmRem">24.5 km</b></span>
+                                <span class="hide" id="gmapHalted"><b style="color:var(--bad)"></b></span>
+                            </div>
+                        </div>
+
+                        <div class="reticle-corner reticle-tl"></div>
+                        <div class="reticle-corner reticle-tr"></div>
+                        <div class="reticle-corner reticle-bl"></div>
+                        <div class="reticle-corner reticle-br"></div>
+                    </div>
+
+                    <!-- Red Alert Vignette Flash -->
+                    <div id="hazardVignette" class="hazard-vignette"></div>
+                </div>
+
+                <!-- Telemetry Bar -->
+                <div class="vp-telemetry-bar">
+                    <div class="tel-block">
+                        <span>Dust Optical Depth (&tau;)</span>
+                        <b id="telTau">0.60</b>
+                    </div>
+                    <div class="tel-block">
+                        <span>Solar Power Yield</span>
+                        <b id="telSun">100% (100% dem)</b>
+                    </div>
+                    <div class="tel-block">
+                        <span>Daily Radiation Dose</span>
+                        <b id="telRad">0.61 mSv/sol</b>
+                    </div>
+                    <div class="tel-block">
+                        <span>NASA DONKI SEP Status</span>
+                        <b id="telSep">NOMINAL (CALM)</b>
+                    </div>
+                </div>
+
+                <!-- Provenance Footer -->
+                <div class="provenance-bar">
+                    <span><b>Data Provenance:</b> <span id="provenanceDonki">NASA DONKI 2024 Bundled</span> · <span id="provenanceModel">Modeled Dust &tau; & Life Support</span></span>
+                    <span>Basemap: <b>NASA MOLA / USGS / OpenPlanetary Mars Imagery</b></span>
+                </div>
+            </div>
+
+            <!-- Active Crew Telemetry Roster with Phased Casualties -->
+            <div class="roster-card">
+                <div class="roster-header">
+                    <span>Active Expedition Crew Telemetry (<span id="crewCountLabel">4</span> Astronauts)</span>
+                    <span style="color:var(--mute); font-family:ui-monospace, monospace;" id="crewEvSummary">NOMINAL EVA ROTATION</span>
+                </div>
+                <div class="roster-grid" id="crewGrid"></div>
+            </div>
+
+            <!-- Simulation Controls & Bottom Two-Column Consoles -->
+            <div class="two">
+                <div>
+                    <!-- Sol Controls & Gauges -->
+                    <div class="card">
+                        <div class="row" style="justify-content:space-between">
+                            <h2 id="solc" style="margin:0">Sol 1 / 500</h2>
+                            <div class="row">
+                                <button id="pp">Pause</button>
+                                <button data-sp="0.1">0.1x</button>
+                                <button data-sp="0.5">0.5x</button>
+                                <button data-sp="2">2x</button>
+                                <button data-sp="5">5x</button>
+                                <button data-sp="10">10x</button>
+                                <button id="skip">Skip to Result</button>
+                            </div>
+                        </div>
+                        <div id="gauges" style="margin-top:12px"></div>
+                    </div>
+
+                    <!-- Resource Trajectory Chart -->
+                    <div class="card">
+                        <svg id="ch" viewBox="0 0 600 200" role="img" aria-label="Resources over time"></svg>
+                        <div class="leg">
+                            <span style="--x:var(--c1)">Oxygen</span>
+                            <span style="--x:var(--c2)">Water</span>
+                            <span style="--x:var(--c3)">Power fraction</span>
+                            <span style="--x:var(--c4)">Radiation dose</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mission Telemetry Log Feed -->
                 <div class="card logc">
-                    <h2>Mission log</h2>
+                    <h2>Mission Telemetry Log</h2>
                     <div class="logw">
                         <div id="feed"></div>
                     </div>
@@ -77,39 +1152,1784 @@
             </div>
         </section>
 
+        <!-- Final Report Section -->
         <section id="rep" class="hide"></section>
 
-        <section id="ai-advisor" class="card" aria-labelledby="ai-title">
-            <div class="row" style="justify-content:space-between">
-                <div>
-                    <p style="margin:0;color:var(--acc);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Mission intelligence</p>
-                    <h2 id="ai-title" style="margin-top:4px">AI Mission Advisor</h2>
-                </div>
-                <span id="ai-status" class="desc" style="min-height:0;margin:0">Local rules + optional OpenAI Responses API</span>
-            </div>
-            <p class="desc" style="margin-top:8px">Ask the advisor to explain a simulation result, compare habitats, or identify the next mitigation step. The browser never receives your model API key.</p>
-            <div class="grid" style="margin-top:10px">
-                <div style="grid-column:1/-1">
-                    <label for="ai-question">Mission question</label>
-                    <textarea id="ai-question" rows="3" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit;resize:vertical" placeholder="Example: Which habitat should I choose for this mission and why?"></textarea>
-                </div>
-            </div>
-            <div class="row" style="margin-top:8px">
-                <button class="p" type="button" id="ai-ask">Ask mission advisor</button>
-                <button type="button" id="ai-clear">Clear</button>
-            </div>
-            <div id="ai-answer" class="desc" style="margin-top:12px;white-space:pre-wrap;min-height:54px" aria-live="polite">Advisor ready. Run a mission first for result-aware guidance.</div>
-        </section>
-
-        <footer class="card"><b>Data sources.</b> Radiation baseline: NASA Curiosity RAD (Gale Crater, 0.64 mSv/day).
+        <!-- Documented Data Sources Footer -->
+        <footer class="card">
+            <b>Data sources.</b> Radiation baseline: NASA Curiosity RAD (Gale Crater, 0.64 mSv/day).
             Dose limit: NASA-STD-3001 career limit of 600 mSv. Oxygen (0.84 kg) and water (4.35 kg) per crew member per
             day: NASA Life Support Baseline Values and Assumptions Document (BVAD). Solar particle events: NASA DONKI
             catalogue of 2024 episodes, replayed with a 50% chance each to reflect that Mars does not always face the
             same part of the Sun as Earth. Dust storm shape: published Curiosity and JPL optical depth records. Site
             values, dose spike multipliers, power budgets, plant sizing and starting reserves are model assumptions, not
-            mission requirements.</footer>
+            mission requirements.
+        </footer>
     </main>
-    <script src="/sol-simulator/app.js" defer></script>
+
+    <script>
+        // ---- DATA (site/habitat values are approximate model inputs) ----
+        // Enhanced with real geographical Mars coordinates, specific start bases, and end objectives!
+        const SITES = {
+            jezero: {
+                n: 'Jezero Crater', rad: .95, ice: .55, sol: .9, lat: 18.38, lon: 77.58,
+                coords: '18.38°N 77.58°E · ELEV -2.5 km',
+                startName: 'Base Alpha (Octavia E. Butler Landing)',
+                endName: 'Delta Scarp Rim Outpost',
+                targetKm: 24.5,
+                zoom: 8,
+                geology: 'Layered deltaic clay fan & ancient river lakebed'
+            },
+            gale: {
+                n: 'Gale Crater', rad: 1, ice: .4, sol: .95, lat: -5.40, lon: 137.81,
+                coords: '5.40°S 137.81°E · ELEV -4.5 km',
+                startName: 'Bradbury Landing Base Camp',
+                endName: 'Mount Sharp Upper Sulphate Unit',
+                targetKm: 21.0,
+                zoom: 8,
+                geology: 'Mount Sharp central peak foothills & Bagnold sand dunes'
+            },
+            utopia: {
+                n: 'Utopia Planitia', rad: 1, ice: .9, sol: .7, lat: 46.70, lon: 117.50,
+                coords: '46.70°N 117.50°E · ELEV -4.0 km',
+                startName: 'Zhurong Basin Research Station',
+                endName: 'Subsurface Permafrost Ice Reserve',
+                targetKm: 18.0,
+                zoom: 7,
+                geology: 'Polygonal permafrost fissures & scalloped depression ice'
+            },
+            arcadia: {
+                n: 'Arcadia Planitia', rad: 1.1, ice: .85, sol: .7, lat: 39.20, lon: -170.30,
+                coords: '39.20°N 189.70°E · ELEV -3.0 km',
+                startName: 'Elysium Foreland Outpost',
+                endName: 'Sheet Glacial Escarpment Target',
+                targetKm: 22.0,
+                zoom: 7,
+                geology: 'Smooth volcanic lava flows with buried permafrost sheet'
+            },
+            hellas: {
+                n: 'Hellas Basin', rad: .85, ice: .5, sol: .9, lat: -42.40, lon: 70.50,
+                coords: '42.40°S 70.50°E · ELEV -7.1 km',
+                startName: 'Deep Floor Base (-7.1 km)',
+                endName: 'Southern Massif Impact Melt Ridge',
+                targetKm: 26.0,
+                zoom: 6,
+                geology: 'Dense atmospheric deep basin with wind-sculpted yardangs'
+            }
+        };
+
+        const HABS = {
+            surface: {n: 'Surface Module', sh: .10, pw: 90},
+            regolith: {n: 'Regolith-Covered Habitat', sh: .40, pw: 110},
+            lava: {n: 'Lava Tube Shelter', sh: .70, pw: 150}
+        };
+
+        const CREW_ROLES = [
+            {code: 'CDR', title: 'Mission Commander'},
+            {code: 'SCI', title: 'Astrobiologist'},
+            {code: 'ENG', title: 'Life Support Lead'},
+            {code: 'SYS', title: 'Power / Avionics'},
+            {code: 'MED', title: 'Flight Surgeon'},
+            {code: 'OPS', title: 'EVA Specialist'},
+            {code: 'GEO', title: 'Field Geologist'},
+            {code: 'NAV', title: 'Traverse Navigator'}
+        ];
+
+        // K sources: dose = NASA Curiosity RAD baseline (mSv/sol); o2 = NASA BVAD 0.84 kg/crew/day; h2o = NASA BVAD 4.35 kg/crew/day; limit = NASA-STD-3001 career limit 600 mSv.
+        // Everything else (power, plant sizing, start reserves, spike multipliers) is a MODEL ASSUMPTION.
+        const K = {dose: .64, o2: .84, h2o: 4.35, crewPw: 12, panel: 320, plant: 5, bat: 3, limit: 600, start: 90, startCrew: 4, tau0: .6};
+
+        // NASA DONKI 2024 solar particle episodes as [day-of-year, tier]
+        let SEPSRC = 'NASA DONKI 2024 (bundled snapshot)';
+        let SEP = [[2, 2], [22, 1], [29, 2], [37, 1], [40, 2], [43, 3], [75, 2], [83, 2], [130, 3], [134, 2], [160, 3], [164, 2], [205, 3], [213, 1], [218, 1], [245, 1], [249, 1], [253, 2], [261, 2], [283, 3], [300, 2], [326, 3], [343, 1], [353, 1], [356, 1]];
+        const MULT = {1: 1, 2: 4, 3: 12}, TIER = {1: 'minor', 2: 'moderate', 3: 'severe'};
+
+        function rng(a) {
+            return () => {
+                a |= 0;
+                a = a + 0x6D2B79F5 | 0;
+                let t = Math.imul(a ^ a >>> 15, 1 | a);
+                t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+                return ((t ^ t >>> 14) >>> 0) / 4294967296;
+            };
+        }
+
+        function simulate({site, crew, hab, seed}) {
+            const S = SITES[site], H = HABS[hab], R = rng(seed), N = 500, ev = [], log = [], storms = [], sp = {};
+            const nr = 2 + Math.floor(R() * 2);
+            for (let i = 0; i < nr; i++) storms.push({s: 5 + Math.floor(R() * 470), pk: 2 + R() * 2, g: 0});
+            if (R() < .25) storms.push({s: 80 + Math.floor(R() * 270), pk: 5 + R() * 3.5, g: 1});
+            for (const w of storms) ev.push({sol: w.s, msg: w.g ? `A planet-encircling dust storm begins, peaking near optical depth ${w.pk.toFixed(1)}.` : `A regional dust storm rolls in, peaking near optical depth ${w.pk.toFixed(1)}.`, k: 'dust'});
+            
+            const tau = t => {
+                let m = K.tau0;
+                for (const w of storms) {
+                    const d = t - w.s;
+                    if (d < 0) continue;
+                    const f = d < 12 ? d / 12 : d < 33 ? 1 : Math.exp(-(d - 33) / 43);
+                    m = Math.max(m, K.tau0 + (w.pk - K.tau0) * f);
+                }
+                return m;
+            };
+
+            const off = Math.floor(R() * 366);
+            for (const [d, t] of SEP) {
+                if (R() < .5) {
+                    const b = (d - off + 366) % 366 + 1;
+                    for (const s of [b, b + 366]) {
+                        if (s <= N) {
+                            sp[s] = Math.max(sp[s] || 0, MULT[t]);
+                            sp[s + 1] = Math.max(sp[s + 1] || 0, MULT[t]);
+                            ev.push({sol: s, msg: `A ${TIER[t]} solar particle event sweeps the site; crew dose rate climbs for 2 sols.`, k: 'sep', tier: t});
+                        }
+                    }
+                }
+            }
+
+            const dem = H.pw + K.crewPw * crew, cap = dem * K.bat, o2s = K.start * K.o2 * K.startCrew, ws = K.start * K.h2o * K.startCrew;
+            let o2 = o2s, w = ws, bat = cap, dose = 0, dry = 0, red = 0, none = 0, maxTau = K.tau0, pfs = [], dead = null, half = 0, warn = 0, s = 0;
+            
+            const trR = rng(seed + 99);
+            let curTraverseKm = 0;
+
+            for (s = 1; s <= N; s++) {
+                const t = tau(s);
+                maxTau = Math.max(maxTau, t);
+                const gen = K.panel * S.sol * Math.exp(-(t - K.tau0)), net = gen - dem;
+                let pf;
+                if (net >= 0) {
+                    bat = Math.min(cap, bat + net);
+                    pf = 1;
+                } else {
+                    const u = Math.min(bat, -net);
+                    bat -= u;
+                    pf = (gen + u) / dem;
+                }
+                pfs.push(pf);
+                if (pf < .6) red++;
+                if (pf < .05) none++;
+
+                const th = .25 + .75 * pf;
+                w = Math.min(ws * 1.5, w + K.plant * K.h2o * (.85 + .3 * S.ice) * th - crew * K.h2o);
+                o2 = Math.min(o2s * 1.5, o2 + K.plant * K.o2 * th - crew * K.o2);
+
+                const dailyDose = K.dose * S.rad * (1 - H.sh) * (1 + (sp[s] || 0));
+                dose += dailyDose;
+
+                if (w <= 0) { w = 0; dry++; } else dry = 0;
+                if (o2 < 0) o2 = 0;
+
+                // Traverse progress: halts during storm or high radiation
+                const evaActive = (t < 1.8 && (sp[s] || 0) === 0 && pf > 0.4);
+                if (evaActive) {
+                    curTraverseKm = Math.min(S.targetKm, curTraverseKm + 0.05 + trR() * 0.08);
+                }
+
+                log.push({
+                    s, o2, w, pf, dose, tau: t,
+                    dailyDose,
+                    sepMult: sp[s] || 0,
+                    genYield: Math.min(1, Math.exp(-(t - K.tau0))),
+                    evaActive,
+                    traverseKm: curTraverseKm
+                });
+
+                if (!half && dose >= K.limit / 2) {
+                    half = 1;
+                    ev.push({sol: s, msg: 'Each crew member has now absorbed half of NASA’s 600 mSv career dose limit.', k: 'warn'});
+                }
+                if (!warn && w < 10 * crew * K.h2o) {
+                    warn = 1;
+                    ev.push({sol: s, msg: 'Water reserves fall below ten sols of supply.', k: 'warn'});
+                }
+
+                const rec = pfs.slice(-15), avg = rec.reduce((a, b) => a + b, 0) / rec.length, storm = avg < .6;
+                const pct = Math.round(avg * 100), tx = t.toFixed(1);
+                if (o2 <= 0) dead = storm ? `A dust storm (optical depth ${tx}) cut solar power to ${pct}% of demand, oxygen generation stalled, and the crew ran out of breathable air on sol ${s}.` : `Oxygen generation could not keep up with ${crew} crew members; reserves ran out and the crew suffocated on sol ${s}.`;
+                else if (dry >= 3) dead = storm ? `A dust storm (optical depth ${tx}) cut solar power to ${pct}% of demand, water extraction stalled, and the crew died of dehydration on sol ${s}.` : `Water production could not keep up with ${crew} crew members; reserves ran out and the crew died of dehydration on sol ${s}.`;
+                else if (dose >= K.limit) dead = `Accumulated radiation passed NASA’s 600 mSv career limit on sol ${s}, so the mission was aborted.`;
+                if (dead) {
+                    ev.push({sol: s, msg: dead, k: 'fatal'});
+                    break;
+                }
+            }
+
+            const ok = !dead, run = Math.min(s, N);
+            let score;
+            if (ok) {
+                const fr = Math.min(1, (o2 / o2s + w / ws) / 2);
+                score = Math.round(Math.min(95, 100 - dose / K.limit * 30 - (1 - fr) * 20 - Math.min(20, red * .1)));
+            } else {
+                score = Math.round(run / N * 40);
+            }
+
+            ev.sort((a, b) => a.sol - b.sol);
+            return {
+                ok, score, cause: dead, run, log, ev, dose, maxTau, red, none, o2, w,
+                sepCount: ev.filter(e => e.k === 'sep').length,
+                site: S.n, hab: H.n, crew, seed, sh: H.sh,
+                siteKey: site, habKey: hab, targetKm: S.targetKm
+            };
+        }
+
+        function toEpisodes(raw) {
+            const rs = raw.map(r => ({t: Date.parse(r.eventTime), hard: (r.instruments || []).some(i => String(i.displayName).includes('>100 MeV'))})).filter(r => !isNaN(r.t)).sort((a, b) => a.t - b.t);
+            const cs = [];
+            for (const r of rs) {
+                const l = cs[cs.length - 1];
+                if (l && r.t - l[l.length - 1].t <= 48 * 36e5) l.push(r);
+                else cs.push([r]);
+            }
+            return cs.map(c => {
+                const d = new Date(c[0].t), y = d.getUTCFullYear();
+                return [Math.round((Date.UTC(y, d.getUTCMonth(), d.getUTCDate()) - Date.UTC(y, 0, 0)) / 864e5), c.some(r => r.hard) ? 3 : c.length >= 4 ? 2 : 1];
+            });
+        }
+
+        const $ = id => document.getElementById(id);
+        const SD = {
+            jezero: 'Ancient river delta. Good sunlight, moderate ice. Prominent layered delta scarp and crater walls.',
+            gale: 'Curiosity’s home. Our measured radiation baseline. Little ice. Flanked by Mount Sharp massif.',
+            utopia: 'Rich subsurface sheet ice, weaker sunlight. Expansive flat northern polygon plains.',
+            arcadia: 'Ice-rich northern plain, weaker sunlight. Flat volcanic lava sheet with permafrost polygons.',
+            hellas: 'Deepest impact basin (-7 km). Thicker air shields radiation. Heavy atmospheric dust haze.'
+        };
+        const HD = {
+            surface: 'Light shielding (10%), lowest power demand (90 W). Inflatable/rigid surface habitat module.',
+            regolith: 'Covered in 3D-sintered regolith shielding (40%), moderate power (110 W). Resists storms & radiation.',
+            lava: 'Natural volcanic basalt roof shielding (70%), highest power demand (150 W). Heavily subterranean.'
+        };
+
+        $('site').innerHTML = Object.entries(SITES).map(([k, v]) => `<option value="${k}">${v.n}</option>`).join('');
+        $('hab').innerHTML = Object.entries(HABS).map(([k, v]) => `<option value="${k}">${v.n}</option>`).join('');
+        $('crew').innerHTML = [2, 3, 4, 5, 6, 7, 8].map(n => `<option ${n == 4 ? 'selected' : ''}>${n}</option>`).join('');
+        
+        const upd = () => {
+            $('sd').textContent = SD[$('site').value];
+            $('hd').textContent = HD[$('hab').value];
+        };
+        $('site').onchange = $('hab').onchange = upd;
+        upd();
+
+        $('live').onclick = async () => {
+            const st = $('lst'), key = $('key').value.trim() || 'DEMO_KEY', y = $('yr').value;
+            st.textContent = 'Contacting NASA DONKI catalogue API…';
+            try {
+                const r = await fetch(`https://api.nasa.gov/DONKI/SEP?startDate=${y}-01-01&endDate=${y}-12-31&api_key=${encodeURIComponent(key)}`);
+                if (!r.ok) {
+                    if (r.status === 429) throw new Error('API rate limit reached, please provide a free key from api.nasa.gov');
+                    if (r.status === 503) throw new Error('NASA DONKI upstream server temporarily unavailable (HTTP 503)');
+                    throw new Error('HTTP ' + r.status);
+                }
+                const j = await r.json();
+                if (!Array.isArray(j) || !j.length) throw new Error('No SEP events recorded for this year');
+                SEP = toEpisodes(j);
+                SEPSRC = `NASA DONKI ${y} (Live, ${SEP.length} episodes)`;
+                st.textContent = `Successfully retrieved ${j.length} records, processed into ${SEP.length} solar particle episodes from NASA DONKI ${y}. New runs will use this catalogue.`;
+                $('provenanceDonki').textContent = `NASA DONKI ${y} (Live Catalogue)`;
+            } catch (err) {
+                st.textContent = `Could not load live catalogue (${err.message}). Retaining bundled snapshot: ${SEPSRC}.`;
+            }
+        };
+
+        $('rnd').onclick = () => $('seed').value = 1 + Math.floor(Math.random() * 9999);
+
+        // =========================================================================
+        // REAL NASA MARS SATELLITE MAP ENGINE (LEAFLET.JS + NASA/USGS MOLA TILES)
+        // =========================================================================
+        let marsMap = null;
+        let routePolyline = null;
+        let traversedPolyline = null;
+        let roverMarker = null;
+        let startMarker = null;
+        let endMarker = null;
+        let casualtyMarker = null;
+
+        function initNasaGoogleMarsMap(siteKey) {
+            const siteData = SITES[siteKey] || SITES.jezero;
+            const container = $('marsLeafletMap');
+            if (!container) return;
+            // If Leaflet/NASA tiles couldn't load (offline), skip the map but keep the simulation running
+            if (typeof L === 'undefined') { marsMap = null; return; }
+
+            if (marsMap) {
+                marsMap.remove();
+                marsMap = null;
+            }
+            casualtyMarker = null;
+            roverMarker = null;
+            traversedPolyline = null;
+            routePolyline = null;
+            startMarker = null;
+            endMarker = null;
+
+            // Initialize Leaflet Map using EPSG:4326 Equirectangular projection for real NASA Mars planetary tiles
+            marsMap = L.map('marsLeafletMap', {
+                crs: L.CRS.EPSG4326,
+                center: [siteData.lat, siteData.lon],
+                zoom: siteData.zoom || 5,
+                minZoom: 2,
+                maxZoom: 10,
+                attributionControl: false,
+                zoomControl: true
+            });
+
+            // 1. Primary Terrain Layer: NASA MGS MOLA Color Shaded Relief (High detail 3D hillshade & craters!)
+            const molaTerrain = L.tileLayer('https://trek.nasa.gov/tiles/Mars/EQ/Mars_MGS_MOLA_ClrShade_merge_global_463m/1.0.0/default/default028mm/{z}/{y}/{x}.jpg', {
+                maxNativeZoom: 7,
+                maxZoom: 10,
+                minZoom: 2,
+                tms: false,
+                noWrap: true
+            }).addTo(marsMap);
+
+            // 2. Photographic Satellite Layer: NASA Viking MDIM21 Color Mosaic (Photographic satellite texture)
+            const vikingSatellite = L.tileLayer('https://trek.nasa.gov/tiles/Mars/EQ/Mars_Viking_MDIM21_ClrMosaic_global_232m/1.0.0/default/default028mm/{z}/{y}/{x}.jpg', {
+                maxNativeZoom: 7,
+                maxZoom: 10,
+                minZoom: 2,
+                tms: false,
+                noWrap: true
+            });
+
+            // Google Maps style Base Layer Switcher in top right corner
+            const baseLayers = {
+                "🏔️ Terrain (MOLA Elevation Relief)": molaTerrain,
+                "🛰️ Satellite (Viking Color Mosaic)": vikingSatellite
+            };
+            L.control.layers(baseLayers, null, { position: 'topright', collapsed: false }).addTo(marsMap);
+
+            // Build Route Coordinates for this site
+            setupSiteNavigationRoute(siteKey);
+        }
+
+        function setupSiteNavigationRoute(siteKey) {
+            const siteData = SITES[siteKey] || SITES.jezero;
+            const baseLat = siteData.lat;
+            const baseLon = siteData.lon;
+
+            // Generate realistic expedition trajectory offsets
+            const latOffset = (siteKey === 'gale' ? -0.18 : siteKey === 'hellas' ? -0.25 : 0.16);
+            const lonOffset = (siteKey === 'arcadia' ? 0.28 : siteKey === 'hellas' ? 0.28 : 0.22);
+            const endLat = baseLat + latOffset;
+            const endLon = baseLon + lonOffset;
+
+            // Intermediate waypoints
+            const routePoints = [
+                [baseLat, baseLon],
+                [baseLat + latOffset * 0.25, baseLon + lonOffset * 0.15],
+                [baseLat + latOffset * 0.55, baseLon + lonOffset * 0.45],
+                [baseLat + latOffset * 0.80, baseLon + lonOffset * 0.75],
+                [endLat, endLon]
+            ];
+
+            // Green Start Pin [A]
+            const startIcon = L.divIcon({
+                className: 'custom-pin',
+                html: `<div class="gmap-marker-pin pin-start"><span>A</span></div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 28]
+            });
+            startMarker = L.marker([baseLat, baseLon], {icon: startIcon}).addTo(marsMap);
+            startMarker.bindPopup(`<b>[START] ${siteData.startName}</b><br>Coordinates: ${siteData.coords}`);
+
+            // Red End Pin [B]
+            const endIcon = L.divIcon({
+                className: 'custom-pin',
+                html: `<div class="gmap-marker-pin pin-end"><span>B</span></div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 28]
+            });
+            endMarker = L.marker([endLat, endLon], {icon: endIcon}).addTo(marsMap);
+            endMarker.bindPopup(`<b>[MISSION END GOAL] ${siteData.endName}</b><br>Target Distance: ${siteData.targetKm} km`);
+
+            // Planned Route Line (Dashed Orange)
+            routePolyline = L.polyline(routePoints, {
+                color: 'rgba(237, 137, 54, 0.45)',
+                weight: 4,
+                dashArray: '6, 6'
+            }).addTo(marsMap);
+
+            // Traversed Route Line (Solid Vibrant Orange)
+            traversedPolyline = L.polyline([[baseLat, baseLon]], {
+                color: '#e25822',
+                weight: 4.5,
+                opacity: 0.95
+            }).addTo(marsMap);
+
+            // Rover Active GPS Dot
+            const roverIcon = L.divIcon({
+                className: 'custom-rover',
+                html: `<div class="rover-gps-dot"></div>`,
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            });
+            roverMarker = L.marker([baseLat, baseLon], {icon: roverIcon}).addTo(marsMap);
+
+            // Store route points on map for interpolation
+            marsMap._routePoints = routePoints;
+            marsMap._basePos = [baseLat, baseLon];
+            marsMap._endPos = [endLat, endLon];
+            marsMap._targetKm = siteData.targetKm;
+
+            // Fit bounds to encompass the expedition route
+            marsMap.fitBounds(L.latLngBounds(routePoints), {padding: [45, 45], maxZoom: 7});
+
+            $('gmapDestName').textContent = `Target: ${siteData.endName}`;
+            $('gmapKmDone').textContent = '0.0 km';
+            $('gmapKmRem').textContent = `${siteData.targetKm.toFixed(1)} km`;
+        }
+
+        function updateNasaGoogleMarsMap(km, isDead, deadCause, sol) {
+            if (!marsMap || !marsMap._routePoints) return;
+
+            const routePoints = marsMap._routePoints;
+            const totalKm = marsMap._targetKm || 24.5;
+            const progressRatio = Math.min(1, km / totalKm);
+
+            // Interpolate position along multi-segment polyline
+            const totalSegs = routePoints.length - 1;
+            const targetSeg = progressRatio * totalSegs;
+            const segIdx = Math.min(totalSegs - 1, Math.floor(targetSeg));
+            const segFrac = targetSeg - segIdx;
+
+            const p1 = routePoints[segIdx];
+            const p2 = routePoints[segIdx + 1];
+            const curLat = p1[0] + (p2[0] - p1[0]) * segFrac;
+            const curLon = p1[1] + (p2[1] - p1[1]) * segFrac;
+            const curLatLng = [curLat, curLon];
+
+            // Update Traversed Polyline
+            const completedPoints = routePoints.slice(0, segIdx + 1);
+            completedPoints.push(curLatLng);
+            if (traversedPolyline) traversedPolyline.setLatLngs(completedPoints);
+
+            // Update Rover Marker Position
+            if (roverMarker) roverMarker.setLatLng(curLatLng);
+
+            // Update Navigation Metrics Box
+            const remKm = Math.max(0, totalKm - km);
+            $('gmapKmDone').textContent = `${km.toFixed(1)} km`;
+            $('gmapKmRem').textContent = `${remKm.toFixed(1)} km`;
+
+            // IF CREW DIES: DROP RED ACCIDENT / CASUALTY PIN!
+            if (isDead) {
+                if (!casualtyMarker && marsMap) {
+                    const incidentIcon = L.divIcon({
+                        className: 'custom-incident',
+                        html: `<div class="casualty-incident-pin">⚠️</div>`,
+                        iconSize: [26, 26],
+                        iconAnchor: [13, 13]
+                    });
+                    casualtyMarker = L.marker(curLatLng, {icon: incidentIcon, zIndexOffset: 1000}).addTo(marsMap);
+                    casualtyMarker.bindPopup(`<b>⚠️ MISSION TERMINATED ON SOL ${sol}</b><br>Reason: ${deadCause}`).openPopup();
+                }
+                if (roverMarker) roverMarker.remove();
+                $('gmapMetrics').className = 'gmap-nav-metrics halted';
+                document.querySelectorAll('#gmapMetrics .gmap-live').forEach(el => el.classList.add('hide'));
+                $('gmapHalted').classList.remove('hide');
+                $('gmapHalted').firstElementChild.textContent = `⚠️ ROUTE HALTED (SOL ${sol})`;
+            } else {
+                if (casualtyMarker) {
+                    casualtyMarker.remove();
+                    casualtyMarker = null;
+                }
+                if (roverMarker && marsMap && !marsMap.hasLayer(roverMarker)) {
+                    roverMarker.addTo(marsMap);
+                }
+                $('gmapMetrics').className = 'gmap-nav-metrics';
+                document.querySelectorAll('#gmapMetrics .gmap-live').forEach(el => el.classList.remove('hide'));
+                $('gmapHalted').classList.add('hide');
+            }
+        }
+        // =========================================================================
+        // HIGH-DEFINITION ATMOSPHERIC MARTIAN SURFACE CAMERA (CANVAS 2D & 4-STAGE JOURNEY)
+        // =========================================================================
+        const sCanvas = $('surfaceCanvas');
+        const sCtx = sCanvas.getContext('2d');
+        const SW = sCanvas.width, SH = sCanvas.height;
+
+        let curSimTelemetry = {
+            sol: 1,
+            tau: 0.6,
+            pf: 1.0,
+            dailyDose: 0.61,
+            sepMult: 0,
+            siteKey: 'jezero',
+            habKey: 'surface',
+            crewCount: 4,
+            evaActive: true,
+            traverseKm: 0,
+            isDead: false,
+            deadCause: null
+        };
+
+        let animFrameCount = 0;
+
+        const PARTICLES = Array.from({length: 120}, () => ({
+            x: Math.random() * SW,
+            y: Math.random() * SH,
+            vx: 0.8 + Math.random() * 2.2,
+            vy: 0.2 + (Math.random() - 0.5) * 0.4,
+            size: 0.8 + Math.random() * 2.4,
+            layer: Math.floor(Math.random() * 3)
+        }));
+
+        function renderAtmosphericSurfaceCamera() {
+            animFrameCount++;
+            sCtx.clearRect(0, 0, SW, SH);
+
+            const sol = curSimTelemetry.sol;
+            const tau = curSimTelemetry.tau;
+            const pf = curSimTelemetry.pf;
+            const site = curSimTelemetry.siteKey;
+            const hab = curSimTelemetry.habKey;
+            const sepMult = curSimTelemetry.sepMult;
+            const isDead = curSimTelemetry.isDead;
+            const traverseKm = curSimTelemetry.traverseKm;
+            const deadCause = curSimTelemetry.deadCause;
+            const crewCount = curSimTelemetry.crewCount;
+
+            // 1. Martian Diurnal Sun Movement & Sky Lighting
+            const timeOfDay = ((sol * 0.85) % 1.0);
+            const sunAngle = timeOfDay * Math.PI * 2;
+            const sunElev = Math.sin(sunAngle);
+            const isDay = sunElev > -0.05;
+            const isTwilight = Math.abs(sunElev) < 0.22;
+
+            const sunX = SW * (0.15 + 0.7 * (1 - timeOfDay));
+            const sunY = SH * (0.6 - Math.max(-0.2, sunElev) * 0.45);
+
+            const stormFactor = Math.min(1, Math.max(0, (tau - 0.6) / 5.2));
+            const horizonY = SH * 0.62;
+
+            let rTop, gTop, bTop, rBot, gBot, bBot;
+
+            if (isDay) {
+                if (isTwilight) {
+                    // Famous Martian Blue Sunset Scattering!
+                    rTop = Math.round(95 * (1 - stormFactor * 0.6));
+                    gTop = Math.round(115 * (1 - stormFactor * 0.7));
+                    bTop = Math.round(155 * (1 - stormFactor * 0.8));
+                    rBot = Math.round(160 * (1 - stormFactor * 0.5));
+                    gBot = Math.round(175 * (1 - stormFactor * 0.6));
+                    bBot = Math.round(210 * (1 - stormFactor * 0.7));
+                    $('hudSunTransit').textContent = 'TWILIGHT (BLUE SUNSET)';
+                    $('hudSunTransit').style.color = '#90cdf4';
+                } else {
+                    // Daylight Ochre Sky
+                    rTop = Math.round(175 * (1 - stormFactor * 0.35));
+                    gTop = Math.round(105 * (1 - stormFactor * 0.5));
+                    bTop = Math.round(65  * (1 - stormFactor * 0.7));
+                    rBot = Math.round(210 * (1 - stormFactor * 0.3));
+                    gBot = Math.round(140 * (1 - stormFactor * 0.45));
+                    bBot = Math.round(95  * (1 - stormFactor * 0.65));
+                    $('hudSunTransit').textContent = 'DAYLIGHT (ZENITH TRANSIT)';
+                    $('hudSunTransit').style.color = 'var(--c3)';
+                }
+            } else {
+                // Cold Martian Night
+                rTop = 10; gTop = 8; bTop = 15;
+                rBot = 28; gBot = 16; bBot = 18;
+                $('hudSunTransit').textContent = 'NIGHT (HAB FLOODLIGHTS ON)';
+                $('hudSunTransit').style.color = 'var(--mute)';
+            }
+
+            if (stormFactor > 0.4) {
+                rTop = Math.round(rTop * 0.8 + 140 * stormFactor * 0.2);
+                gTop = Math.round(gTop * 0.55 + 70 * stormFactor * 0.2);
+                bTop = Math.round(bTop * 0.35 + 40 * stormFactor * 0.2);
+            }
+
+            // Draw Sky Gradient
+            const skyGrad = sCtx.createLinearGradient(0, 0, 0, horizonY + 20);
+            skyGrad.addColorStop(0, `rgb(${rTop}, ${gTop}, ${bTop})`);
+            skyGrad.addColorStop(1, `rgb(${rBot}, ${gBot}, ${bBot})`);
+            sCtx.fillStyle = skyGrad;
+            sCtx.fillRect(0, 0, SW, SH);
+
+            // Night Stars & Phobos
+            if (!isDay && stormFactor < 0.6) {
+                sCtx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+                for (let si = 0; si < 40; si++) {
+                    const sx = (si * 37) % SW;
+                    const sy = (si * 29) % (SH * 0.55);
+                    sCtx.fillRect(sx, sy, 1.2, 1.2);
+                }
+                sCtx.fillStyle = '#e2d8ce';
+                sCtx.beginPath();
+                sCtx.arc(SW * 0.25, SH * 0.2, 4, 0, Math.PI * 2);
+                sCtx.fill();
+            }
+
+            // Small Sun with Blue Scattering Halo
+            if (isDay && sunElev > 0.05) {
+                const sunTrans = Math.max(0.02, Math.exp(-(tau - 0.6) * 0.75));
+                if (sunTrans > 0.04) {
+                    const haloGrad = sCtx.createRadialGradient(sunX, sunY, 3, sunX, sunY, 60);
+                    haloGrad.addColorStop(0, `rgba(165, 205, 245, ${0.72 * sunTrans})`);
+                    haloGrad.addColorStop(0.35, `rgba(140, 185, 235, ${0.35 * sunTrans})`);
+                    haloGrad.addColorStop(1, 'rgba(120, 160, 220, 0)');
+                    sCtx.fillStyle = haloGrad;
+                    sCtx.beginPath();
+                    sCtx.arc(sunX, sunY, 60, 0, Math.PI * 2);
+                    sCtx.fill();
+
+                    sCtx.fillStyle = '#fff';
+                    sCtx.beginPath();
+                    sCtx.arc(sunX, sunY, 7, 0, Math.PI * 2);
+                    sCtx.fill();
+                }
+            }
+
+            // Mountains & Terrain Horizons
+            drawSurfaceMountains(site, stormFactor, rBot, gBot, bBot, isDay);
+            drawSurfaceGround(site, stormFactor, isDay);
+
+            // Wheel Tread Tracks on Regolith if traversed
+            if (traverseKm > 0.5) {
+                drawRoverTracks(traverseKm, stormFactor);
+            }
+
+            // Photovoltaic Solar Arrays (Unfolds Sol 1–50)
+            drawSolarArraySystem(sol, pf, stormFactor, isDay, isDead);
+
+            // Comms Antenna Mast & Signal Ripples
+            drawCommsMast(sol, stormFactor, isDead);
+
+            // Habitat Module with AirLock & Rooftop Klaxon
+            drawSurfaceHabitat(hab, pf, stormFactor, isDay, isDead, sepMult, tau);
+
+            // Dynamic 4-Stage Visual Journey (Rover, Astronaut Activities, Hazards, Victory/Death)
+            drawVisualJourney(sol, tau, pf, isDead, deadCause, traverseKm, crewCount, isDay, stormFactor, sepMult);
+
+            // Volumetric Dust Storm Wind Particles
+            drawSurfaceDust(tau);
+
+            // IF CREW IS DEAD: RENDER CRT SCANLINE GLITCH & FLATLINE WARNING
+            if (isDead) {
+                renderCasualtyOverlay(sol, deadCause);
+            }
+
+            requestAnimationFrame(renderAtmosphericSurfaceCamera);
+        }
+
+        // =========================================================================
+        // 4-STAGE VISUAL JOURNEY ENGINE
+        // =========================================================================
+        function drawVisualJourney(sol, tau, pf, isDead, deadCause, traverseKm, crewCount, isDay, storm, sepMult) {
+            const isHazard = (tau >= 1.8 || (sepMult || 0) > 0);
+            const isVictory = (sol >= 500 && !isDead);
+
+            const badgeTitle = $('hudStageTitle');
+            const badgeSub = $('hudStageSub');
+
+            if (isDead) {
+                // STAGE 4B: CRITICAL CASUALTY / LIFE SUPPORT COLLAPSED
+                if (badgeTitle) {
+                    badgeTitle.textContent = '☠️ CRITICAL MISSION FAILURE — SIGNAL LOST';
+                    badgeTitle.style.color = 'var(--bad)';
+                    badgeSub.textContent = `All ${crewCount} Crew Members Lost on Sol ${sol} · ${deadCause || 'Asphyxiation'}`;
+                }
+                drawCasualtySiteMarker(SW * 0.58, SH * 0.77);
+                drawSurfaceRover(SW * 0.22, SH * 0.76, storm, isDay, true, false, false);
+            } else if (isVictory) {
+                // STAGE 4A: SOL 500 VICTORY & PERMANENT OUTPOST
+                if (badgeTitle) {
+                    badgeTitle.textContent = '🏆 STAGE 4: EXPEDITION OUTPOST ESTABLISHED';
+                    badgeTitle.style.color = '#48bb78';
+                    badgeSub.textContent = `Sol 500 Reached · ${traverseKm.toFixed(1)} km Traversed · Mars Science Depot Operational`;
+                }
+                drawVictoryFlag(SW * 0.65, SH * 0.73);
+                drawScienceRepository(SW * 0.73, SH * 0.75);
+                drawSurfaceRover(SW * 0.38, SH * 0.75, storm, isDay, false, false, false);
+                drawAstronautCelebration(SW * 0.56, SH * 0.76, false);
+                drawAstronautCelebration(SW * 0.78, SH * 0.76, true);
+            } else if (isHazard) {
+                // STAGE 3: SEVERE DUST STORM / FLARE HAZARD EVACUATION
+                if (badgeTitle) {
+                    badgeTitle.textContent = '⚠️ STAGE 3: HAZARD EVACUATION — HABITAT LOCKDOWN';
+                    badgeTitle.style.color = 'var(--bad)';
+                    badgeSub.textContent = `Storm τ ${tau.toFixed(1)} · Radiation Alert · Crew Sprinting to Airlock Shelter`;
+                }
+                drawSurfaceRover(SW * 0.22, SH * 0.74, storm, isDay, false, true, false);
+                drawAstronautSprinting(SW * 0.36, SH * 0.75, 1);
+                drawAstronautSprinting(SW * 0.31, SH * 0.76, 2);
+            } else if (sol <= 50) {
+                // STAGE 1: BASE DEPLOYMENT & SOLAR ARRAY UNFOLDING (Sol 1–50)
+                const deployPct = Math.min(100, Math.round(sol / 50 * 100));
+                if (badgeTitle) {
+                    badgeTitle.textContent = '🔷 STAGE 1: BASE DEPLOYMENT & SOLAR SETUP';
+                    badgeTitle.style.color = '#00f0ff';
+                    badgeSub.textContent = `Deploying 48 kW Photovoltaic Wings & Comms Uplink · Progress: ${deployPct}%`;
+                }
+                drawSurfaceRover(SW * 0.18, SH * 0.74, storm, isDay, false, false, false);
+                drawAstronautEngineer(SW * 0.28, SH * 0.76);
+                drawAstronautCommander(SW * 0.36, SH * 0.75);
+            } else {
+                // STAGE 2: LONG-RANGE EXPEDITION, DRILLING & CORE SAMPLE COLLECTION (Sol 50–300+)
+                const samples = Math.floor(traverseKm / 2.2) + 1;
+                if (badgeTitle) {
+                    badgeTitle.textContent = '🟢 STAGE 2: EXPEDITION & BEDROCK CORE DRILLING';
+                    badgeTitle.style.color = '#68d391';
+                    badgeSub.textContent = `Rover Traversed: ${traverseKm.toFixed(1)} km · Rock Cores Secured: ${samples} · Laser Raman Scan Active`;
+                }
+                const roverX = SW * (0.22 + Math.min(0.25, (traverseKm / 35.0) * 0.25));
+                drawSurfaceRover(roverX, SH * 0.74, storm, isDay, false, false, true);
+                drawAstronautDrilling(SW * 0.58, SH * 0.77);
+                drawAstronautSampleCarrier(roverX + 45, SH * 0.76);
+            }
+        }
+
+        function drawRoverTracks(km, storm) {
+            sCtx.save();
+            sCtx.strokeStyle = `rgba(18, 6, 3, ${0.45 * (1 - storm * 0.75)})`;
+            sCtx.lineWidth = 2.5;
+            sCtx.setLineDash([4, 6]);
+            sCtx.beginPath();
+            sCtx.moveTo(SW * 0.22, SH * 0.75);
+            sCtx.bezierCurveTo(SW * 0.30, SH * 0.76, SW * 0.38, SH * 0.75, SW * 0.48, SH * 0.76);
+            sCtx.stroke();
+            sCtx.beginPath();
+            sCtx.moveTo(SW * 0.22, SH * 0.77);
+            sCtx.bezierCurveTo(SW * 0.30, SH * 0.78, SW * 0.38, SH * 0.77, SW * 0.48, SH * 0.78);
+            sCtx.stroke();
+            sCtx.restore();
+        }
+
+        function drawSolarArraySystem(sol, pf, storm, isDay, isDead) {
+            sCtx.save();
+            const sx = SW * 0.12, sy = SH * 0.70;
+            const deployRatio = Math.min(1.0, sol / 50.0);
+            const arrayWidth = 14 + deployRatio * 62;
+            const isTilted = (storm > 0.4);
+
+            sCtx.fillStyle = '#2d3748';
+            sCtx.fillRect(sx - 4, sy + 14, 12, 6);
+
+            sCtx.strokeStyle = '#ecc94b';
+            sCtx.lineWidth = 2;
+            sCtx.beginPath();
+            sCtx.moveTo(sx + 2, sy + 16);
+            sCtx.bezierCurveTo(sx + 40, sy + 24, sx + 90, sy + 20, SW * 0.40, SH * 0.75);
+            sCtx.stroke();
+
+            sCtx.strokeStyle = '#718096';
+            sCtx.lineWidth = 2.5;
+            sCtx.beginPath();
+            sCtx.moveTo(sx + 2, sy + 15);
+            sCtx.lineTo(sx + 2, sy - 8);
+            sCtx.stroke();
+
+            sCtx.save();
+            sCtx.translate(sx + 2, sy - 8);
+            if (isTilted) sCtx.rotate(-0.35);
+
+            sCtx.fillStyle = isDead ? '#2d3748' : '#1a365d';
+            sCtx.fillRect(-arrayWidth * 0.5, -14, arrayWidth, 18);
+            sCtx.strokeStyle = isDead ? '#4a5568' : '#63b3ed';
+            sCtx.lineWidth = 1.2;
+            sCtx.strokeRect(-arrayWidth * 0.5, -14, arrayWidth, 18);
+
+            if (deployRatio > 0.3) {
+                sCtx.strokeStyle = isDead ? 'rgba(255,255,255,0.08)' : 'rgba(255, 230, 100, 0.45)';
+                sCtx.lineWidth = 0.8;
+                const cellCols = Math.floor(arrayWidth / 10);
+                for (let c = 1; c < cellCols; c++) {
+                    const cx = -arrayWidth * 0.5 + c * 10;
+                    sCtx.beginPath();
+                    sCtx.moveTo(cx, -14);
+                    sCtx.lineTo(cx, 4);
+                    sCtx.stroke();
+                }
+            }
+            sCtx.restore();
+            sCtx.restore();
+        }
+
+        function drawCommsMast(sol, storm, isDead) {
+            sCtx.save();
+            const mx = SW * 0.48, my = SH * 0.63;
+            sCtx.strokeStyle = '#a0aec0';
+            sCtx.lineWidth = 2;
+            sCtx.beginPath();
+            sCtx.moveTo(mx, my);
+            sCtx.lineTo(mx, my - 24);
+            sCtx.stroke();
+
+            sCtx.fillStyle = '#e2e8f0';
+            sCtx.beginPath();
+            sCtx.arc(mx + 6, my - 24, 7, Math.PI * 0.6, Math.PI * 1.6);
+            sCtx.fill();
+
+            if (!isDead && sol > 10) {
+                const waveRadius = ((animFrameCount * 0.8) % 25);
+                const waveAlpha = Math.max(0, 1 - waveRadius / 25);
+                sCtx.strokeStyle = `rgba(0, 240, 255, ${waveAlpha * 0.75})`;
+                sCtx.lineWidth = 1.5;
+                sCtx.beginPath();
+                sCtx.arc(mx + 8, my - 24, waveRadius, -Math.PI * 0.4, Math.PI * 0.4);
+                sCtx.stroke();
+            }
+            sCtx.restore();
+        }
+
+        function drawAstronautEngineer(x, y) {
+            sCtx.save();
+            sCtx.translate(x, y);
+
+            sCtx.fillStyle = 'rgba(18, 6, 3, 0.45)';
+            sCtx.beginPath();
+            sCtx.ellipse(0, 12, 9, 3, 0, 0, Math.PI * 2);
+            sCtx.fill();
+
+            sCtx.fillStyle = '#edf2f7';
+            sCtx.fillRect(-6, -4, 11, 12);
+            sCtx.fillStyle = '#2b6cb0';
+            sCtx.fillRect(-6, -4, 4, 3);
+
+            sCtx.fillStyle = '#cbd5e0';
+            sCtx.fillRect(-8, 6, 12, 5);
+
+            sCtx.fillStyle = '#edf2f7';
+            sCtx.beginPath();
+            sCtx.arc(-1, -9, 5.5, 0, Math.PI * 2);
+            sCtx.fill();
+            sCtx.fillStyle = '#ecc94b';
+            sCtx.beginPath();
+            sCtx.arc(-2.5, -9, 3.5, Math.PI * 0.5, Math.PI * 1.5);
+            sCtx.fill();
+
+            sCtx.strokeStyle = '#a0aec0';
+            sCtx.lineWidth = 1.5;
+            sCtx.beginPath();
+            sCtx.moveTo(-4, 0);
+            sCtx.lineTo(-12, 6);
+            sCtx.stroke();
+
+            if (animFrameCount % 4 < 3) {
+                sCtx.fillStyle = '#fff';
+                sCtx.beginPath();
+                sCtx.arc(-12, 6, 1.8, 0, Math.PI * 2);
+                sCtx.fill();
+                sCtx.fillStyle = '#63b3ed';
+                sCtx.fillRect(-14 + Math.random() * 4, 4 + Math.random() * 4, 1.2, 1.2);
+            }
+            sCtx.restore();
+        }
+
+        function drawAstronautCommander(x, y) {
+            sCtx.save();
+            sCtx.translate(x, y);
+
+            sCtx.fillStyle = 'rgba(18, 6, 3, 0.45)';
+            sCtx.beginPath();
+            sCtx.ellipse(0, 16, 7, 3, 0, 0, Math.PI * 2);
+            sCtx.fill();
+
+            sCtx.fillStyle = '#edf2f7';
+            sCtx.fillRect(-5, -6, 10, 14);
+            sCtx.fillRect(-5, 8, 4, 8);
+            sCtx.fillRect(1, 8, 4, 8);
+            sCtx.fillStyle = '#c53030';
+            sCtx.fillRect(-5, -6, 10, 2);
+
+            sCtx.beginPath();
+            sCtx.arc(0, -11, 5.5, 0, Math.PI * 2);
+            sCtx.fill();
+            sCtx.fillStyle = '#ecc94b';
+            sCtx.beginPath();
+            sCtx.arc(1.5, -11, 3.5, -Math.PI * 0.5, Math.PI * 0.5);
+            sCtx.fill();
+
+            sCtx.fillStyle = '#1a202c';
+            sCtx.fillRect(3, -2, 5, 7);
+            sCtx.fillStyle = '#00f0ff';
+            sCtx.fillRect(3.5, -1.5, 4, 6);
+            sCtx.restore();
+        }
+
+        function drawAstronautDrilling(x, y) {
+            sCtx.save();
+            sCtx.translate(x, y);
+
+            sCtx.fillStyle = '#8c3d26';
+            sCtx.beginPath();
+            sCtx.moveTo(-18, 16);
+            sCtx.lineTo(-5, 6);
+            sCtx.lineTo(15, 8);
+            sCtx.lineTo(24, 16);
+            sCtx.closePath();
+            sCtx.fill();
+
+            sCtx.fillStyle = '#edf2f7';
+            sCtx.fillRect(-12, -2, 11, 12);
+            sCtx.fillRect(-14, 8, 12, 5);
+
+            sCtx.beginPath();
+            sCtx.arc(-7, -8, 5.5, 0, Math.PI * 2);
+            sCtx.fill();
+            sCtx.fillStyle = '#ecc94b';
+            sCtx.beginPath();
+            sCtx.arc(-5.5, -8, 3.5, -Math.PI * 0.4, Math.PI * 0.4);
+            sCtx.fill();
+
+            const drillVibe = (animFrameCount % 2 === 0 ? 0.8 : -0.8);
+            sCtx.strokeStyle = '#e2e8f0';
+            sCtx.lineWidth = 2;
+            sCtx.beginPath();
+            sCtx.moveTo(2 + drillVibe, -4);
+            sCtx.lineTo(2 + drillVibe, 14);
+            sCtx.stroke();
+
+            sCtx.fillStyle = '#ecc94b';
+            sCtx.fillRect(1 + Math.random() * 3, 12 - Math.random() * 4, 1.5, 1.5);
+
+            const laserPhase = Math.sin(animFrameCount * 0.15);
+            sCtx.strokeStyle = `rgba(72, 187, 120, ${0.65 + laserPhase * 0.25})`;
+            sCtx.lineWidth = 1.8;
+            sCtx.beginPath();
+            sCtx.moveTo(-5, -6);
+            sCtx.lineTo(8 + laserPhase * 6, 12);
+            sCtx.stroke();
+
+            sCtx.restore();
+        }
+
+        function drawAstronautSampleCarrier(x, y) {
+            sCtx.save();
+            sCtx.translate(x, y);
+
+            sCtx.fillStyle = 'rgba(18, 6, 3, 0.45)';
+            sCtx.beginPath();
+            sCtx.ellipse(0, 16, 7, 3, 0, 0, Math.PI * 2);
+            sCtx.fill();
+
+            const stride = Math.sin(animFrameCount * 0.2) * 3;
+            sCtx.fillStyle = '#edf2f7';
+            sCtx.fillRect(-5, -6, 10, 13);
+            sCtx.fillRect(-5 + stride, 7, 4, 9);
+            sCtx.fillRect(1 - stride, 7, 4, 9);
+
+            sCtx.beginPath();
+            sCtx.arc(0, -11, 5.5, 0, Math.PI * 2);
+            sCtx.fill();
+            sCtx.fillStyle = '#ecc94b';
+            sCtx.beginPath();
+            sCtx.arc(-1.5, -11, 3.5, Math.PI * 0.5, Math.PI * 1.5);
+            sCtx.fill();
+
+            sCtx.fillStyle = '#63b3ed';
+            sCtx.fillRect(-8, 0, 5, 2.5);
+            sCtx.fillStyle = '#fff';
+            sCtx.fillRect(-8, 0.8, 5, 0.8);
+
+            sCtx.restore();
+        }
+
+        function drawAstronautSprinting(x, y, idx) {
+            sCtx.save();
+            sCtx.translate(x, y);
+
+            const sprintLeg = Math.sin(animFrameCount * 0.4 + idx) * 6;
+            sCtx.fillStyle = 'rgba(18, 6, 3, 0.45)';
+            sCtx.beginPath();
+            sCtx.ellipse(0, 16, 7, 3, 0, 0, Math.PI * 2);
+            sCtx.fill();
+
+            sCtx.save();
+            sCtx.rotate(0.2);
+            sCtx.fillStyle = '#edf2f7';
+            sCtx.fillRect(-5, -6, 10, 13);
+
+            sCtx.fillRect(-6 + sprintLeg, 7, 4, 9);
+            sCtx.fillRect(2 - sprintLeg, 7, 4, 9);
+
+            sCtx.beginPath();
+            sCtx.arc(1, -11, 5.5, 0, Math.PI * 2);
+            sCtx.fill();
+            sCtx.fillStyle = '#ecc94b';
+            sCtx.beginPath();
+            sCtx.arc(2.5, -11, 3.5, -Math.PI * 0.4, Math.PI * 0.4);
+            sCtx.fill();
+            sCtx.restore();
+
+            sCtx.restore();
+        }
+
+        function drawVictoryFlag(x, y) {
+            sCtx.save();
+            sCtx.translate(x, y);
+
+            sCtx.strokeStyle = '#e2e8f0';
+            sCtx.lineWidth = 2.5;
+            sCtx.beginPath();
+            sCtx.moveTo(0, 14);
+            sCtx.lineTo(0, -32);
+            sCtx.stroke();
+
+            const flutter = Math.sin(animFrameCount * 0.18) * 3;
+            sCtx.fillStyle = '#c53030';
+            sCtx.beginPath();
+            sCtx.moveTo(0, -32);
+            sCtx.quadraticCurveTo(12, -32 + flutter, 24, -30);
+            sCtx.lineTo(24, -14);
+            sCtx.quadraticCurveTo(12, -16 + flutter, 0, -16);
+            sCtx.closePath();
+            sCtx.fill();
+
+            sCtx.fillStyle = '#ecc94b';
+            sCtx.beginPath();
+            sCtx.arc(12, -23 + flutter * 0.5, 2.5, 0, Math.PI * 2);
+            sCtx.fill();
+
+            sCtx.restore();
+        }
+
+        function drawScienceRepository(x, y) {
+            sCtx.save();
+            sCtx.translate(x, y);
+
+            sCtx.fillStyle = '#2d3748';
+            sCtx.fillRect(-10, -6, 20, 16);
+            sCtx.strokeStyle = '#63b3ed';
+            sCtx.lineWidth = 1.5;
+            sCtx.strokeRect(-10, -6, 20, 16);
+
+            const glow = Math.abs(Math.sin(animFrameCount * 0.1));
+            sCtx.fillStyle = `rgba(72, 187, 120, ${0.4 + glow * 0.6})`;
+            sCtx.beginPath();
+            sCtx.arc(0, -10, 3.5, 0, Math.PI * 2);
+            sCtx.fill();
+
+            sCtx.restore();
+        }
+
+        function drawAstronautCelebration(x, y, isSalute) {
+            sCtx.save();
+            sCtx.translate(x, y);
+
+            sCtx.fillStyle = '#edf2f7';
+            sCtx.fillRect(-5, -6, 10, 14);
+            sCtx.fillRect(-5, 8, 4, 8);
+            sCtx.fillRect(1, 8, 4, 8);
+
+            sCtx.beginPath();
+            sCtx.arc(0, -11, 5.5, 0, Math.PI * 2);
+            sCtx.fill();
+            sCtx.fillStyle = '#ecc94b';
+            sCtx.beginPath();
+            sCtx.arc(0, -11, 3.5, 0, Math.PI * 2);
+            sCtx.fill();
+
+            sCtx.strokeStyle = '#edf2f7';
+            sCtx.lineWidth = 2.5;
+            sCtx.beginPath();
+            if (isSalute) {
+                sCtx.moveTo(4, -4);
+                sCtx.lineTo(9, -12);
+                sCtx.lineTo(4, -13);
+            } else {
+                const waveArm = Math.sin(animFrameCount * 0.25) * 4;
+                sCtx.moveTo(-4, -4);
+                sCtx.lineTo(-10, -14 + waveArm);
+            }
+            sCtx.stroke();
+
+            sCtx.restore();
+        }
+
+        function drawCasualtySiteMarker(x, y) {
+            sCtx.save();
+            sCtx.translate(x, y);
+
+            const pulse = (animFrameCount % 30) / 30;
+            sCtx.strokeStyle = `rgba(229, 62, 62, ${1 - pulse})`;
+            sCtx.lineWidth = 2;
+            sCtx.beginPath();
+            sCtx.arc(0, 0, pulse * 24, 0, Math.PI * 2);
+            sCtx.stroke();
+
+            sCtx.fillStyle = '#e53e3e';
+            sCtx.beginPath();
+            sCtx.arc(0, 0, 4, 0, Math.PI * 2);
+            sCtx.fill();
+
+            sCtx.restore();
+        }
+
+        function renderCasualtyOverlay(sol, deadCause) {
+            sCtx.fillStyle = 'rgba(120, 20, 15, 0.28)';
+            sCtx.fillRect(0, 0, SW, SH);
+
+            sCtx.strokeStyle = 'rgba(255, 100, 100, 0.25)';
+            sCtx.lineWidth = 1;
+            for (let gl = 0; gl < SH; gl += 6) {
+                sCtx.beginPath();
+                sCtx.moveTo(0, gl);
+                sCtx.lineTo(SW, gl);
+                sCtx.stroke();
+            }
+
+            sCtx.fillStyle = '#fff';
+            sCtx.font = '700 15px ui-monospace, monospace';
+            sCtx.textAlign = 'center';
+            sCtx.fillText(`[SIGNAL LOST — CREW CASUALTY ON SOL ${sol}]`, SW * 0.5, SH * 0.44);
+
+            sCtx.font = '600 12px ui-monospace, monospace';
+            sCtx.fillStyle = '#feb2b2';
+            sCtx.fillText(deadCause || 'Life Support Depleted', SW * 0.5, SH * 0.50);
+
+            sCtx.strokeStyle = '#e53e3e';
+            sCtx.lineWidth = 2;
+            sCtx.beginPath();
+            sCtx.moveTo(SW * 0.35, SH * 0.56);
+            sCtx.lineTo(SW * 0.65, SH * 0.56);
+            sCtx.stroke();
+            sCtx.fillText('0 BPM · 0.0 PSI · NO TELEMETRY', SW * 0.5, SH * 0.62);
+
+            sCtx.textAlign = 'left';
+        }
+
+        function drawSurfaceMountains(site, storm, hr, hg, hb, isDay) {
+            const haze = Math.min(0.88, 0.24 + storm * 0.65);
+            sCtx.save();
+            sCtx.beginPath();
+            sCtx.moveTo(0, SH * 0.62);
+
+            if (site === 'gale') {
+                sCtx.lineTo(SW * 0.2, SH * 0.58);
+                sCtx.lineTo(SW * 0.4, SH * 0.44); // Mount Sharp
+                sCtx.lineTo(SW * 0.5, SH * 0.48);
+                sCtx.lineTo(SW * 0.68, SH * 0.56);
+                sCtx.lineTo(SW, SH * 0.61);
+            } else if (site === 'jezero') {
+                sCtx.bezierCurveTo(SW * 0.2, SH * 0.51, SW * 0.45, SH * 0.55, SW * 0.68, SH * 0.50);
+                sCtx.bezierCurveTo(SW * 0.82, SH * 0.48, SW * 0.94, SH * 0.54, SW, SH * 0.53);
+            } else if (site === 'hellas') {
+                sCtx.bezierCurveTo(SW * 0.3, SH * 0.56, SW * 0.6, SH * 0.55, SW, SH * 0.58);
+            } else {
+                sCtx.lineTo(SW * 0.35, SH * 0.60);
+                sCtx.lineTo(SW * 0.75, SH * 0.61);
+                sCtx.lineTo(SW, SH * 0.60);
+            }
+
+            sCtx.lineTo(SW, SH);
+            sCtx.lineTo(0, SH);
+            sCtx.closePath();
+
+            const baseLight = isDay ? 1.0 : 0.25;
+            const r = Math.round((145 * (1 - haze) + hr * haze) * baseLight);
+            const g = Math.round((72  * (1 - haze) + hg * haze) * baseLight);
+            const b = Math.round((48  * (1 - haze) + hb * haze) * baseLight);
+            sCtx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+            sCtx.fill();
+            sCtx.restore();
+        }
+
+        function drawSurfaceGround(site, storm, isDay) {
+            sCtx.save();
+            const horizonY = SH * 0.62;
+            const gGrad = sCtx.createLinearGradient(0, horizonY, 0, SH);
+            const light = isDay ? 1.0 : 0.20;
+
+            if (site === 'hellas') {
+                gGrad.addColorStop(0, `rgba(${Math.round(155 * light)}, ${Math.round(80 * light)}, ${Math.round(48 * light)}, 1)`);
+                gGrad.addColorStop(1, `rgba(${Math.round(95 * light)}, ${Math.round(42 * light)}, ${Math.round(24 * light)}, 1)`);
+            } else if (site === 'arcadia') {
+                gGrad.addColorStop(0, `rgba(${Math.round(175 * light)}, ${Math.round(105 * light)}, ${Math.round(75 * light)}, 1)`);
+                gGrad.addColorStop(1, `rgba(${Math.round(115 * light)}, ${Math.round(62 * light)}, ${Math.round(42 * light)}, 1)`);
+            } else {
+                gGrad.addColorStop(0, `rgba(${Math.round(195 * light)}, ${Math.round(95 * light)}, ${Math.round(52 * light)}, 1)`);
+                gGrad.addColorStop(1, `rgba(${Math.round(125 * light)}, ${Math.round(52 * light)}, ${Math.round(28 * light)}, 1)`);
+            }
+            sCtx.fillStyle = gGrad;
+            sCtx.fillRect(0, horizonY, SW, SH - horizonY);
+
+            // Boulders and rocks
+            sCtx.fillStyle = `rgba(${Math.round(95 * light)}, ${Math.round(42 * light)}, ${Math.round(22 * light)}, 0.8)`;
+            sCtx.beginPath();
+            sCtx.arc(SW * 0.25, SH * 0.72, 8, 0, Math.PI * 2);
+            sCtx.arc(SW * 0.27, SH * 0.73, 5, 0, Math.PI * 2);
+            sCtx.arc(SW * 0.78, SH * 0.68, 11, 0, Math.PI * 2);
+            sCtx.arc(SW * 0.82, SH * 0.69, 7, 0, Math.PI * 2);
+            sCtx.arc(SW * 0.52, SH * 0.85, 14, 0, Math.PI * 2);
+            sCtx.fill();
+
+            sCtx.restore();
+        }
+
+        function drawSurfaceHabitat(hab, pf, storm, isDay, isDead, sepMult, tau) {
+            sCtx.save();
+            const hx = SW * 0.44, hy = SH * 0.71;
+
+            let winColor;
+            if (isDead) {
+                winColor = 'rgba(120, 20, 15, 0.6)';
+            } else if (pf >= 0.8) {
+                winColor = 'rgba(255, 230, 160, 0.95)';
+            } else if (pf >= 0.4) {
+                winColor = 'rgba(240, 180, 100, 0.55)';
+            } else {
+                winColor = 'rgba(255, 60, 40, 0.7)';
+            }
+
+            sCtx.fillStyle = `rgba(15, 6, 3, ${0.65 * (1 - storm * 0.6)})`;
+            sCtx.beginPath();
+            sCtx.ellipse(hx, hy + 12, 95, 20, 0, 0, Math.PI * 2);
+            sCtx.fill();
+
+            if ((!isDay || storm > 0.5) && !isDead && pf > 0.2) {
+                const flGrad = sCtx.createRadialGradient(hx - 30, hy - 10, 5, hx - 60, hy + 15, 75);
+                flGrad.addColorStop(0, 'rgba(255, 245, 210, 0.5)');
+                flGrad.addColorStop(1, 'rgba(255, 245, 210, 0)');
+                sCtx.fillStyle = flGrad;
+                sCtx.beginPath();
+                sCtx.moveTo(hx - 30, hy - 10);
+                sCtx.lineTo(hx - 100, hy + 20);
+                sCtx.lineTo(hx + 10, hy + 20);
+                sCtx.closePath();
+                sCtx.fill();
+            }
+
+            if (hab === 'lava') {
+                sCtx.fillStyle = isDead ? '#2d3748' : '#4a5568';
+                sCtx.beginPath();
+                sCtx.ellipse(hx, hy + 2, 75, 28, 0, 0, Math.PI * 2);
+                sCtx.fill();
+                sCtx.fillStyle = isDead ? '#1a202c' : '#2d3748';
+                sCtx.beginPath();
+                sCtx.arc(hx, hy, 45, Math.PI, 0);
+                sCtx.fill();
+            } else {
+                sCtx.fillStyle = isDead ? '#4a5568' : '#e2e8f0';
+                sCtx.beginPath();
+                sCtx.arc(hx, hy + 8, 62, Math.PI, 0);
+                sCtx.fill();
+                sCtx.strokeStyle = isDead ? '#2d3748' : '#cbd5e0';
+                sCtx.lineWidth = 2;
+                sCtx.stroke();
+            }
+
+            // Emergency Klaxon Beacon on roof during storm/flare!
+            if (!isDead && (tau >= 1.8 || (sepMult || 0) > 0)) {
+                const sirenAngle = animFrameCount * 0.2;
+                sCtx.save();
+                sCtx.translate(hx, hy - 46);
+                sCtx.strokeStyle = 'rgba(255, 60, 40, 0.75)';
+                sCtx.lineWidth = 3;
+                sCtx.beginPath();
+                sCtx.moveTo(0, 0);
+                sCtx.lineTo(Math.cos(sirenAngle) * 35, Math.sin(sirenAngle) * 15);
+                sCtx.stroke();
+                sCtx.fillStyle = (animFrameCount % 8 < 4) ? '#ff2a2a' : '#9b2c2c';
+                sCtx.beginPath();
+                sCtx.arc(0, 0, 4.5, 0, Math.PI * 2);
+                sCtx.fill();
+                sCtx.restore();
+            }
+
+            // Observation Dome Window
+            sCtx.fillStyle = winColor;
+            sCtx.beginPath();
+            sCtx.arc(hx, hy - 8, 14, Math.PI * 0.8, Math.PI * 0.2);
+            sCtx.fill();
+
+            // Airlock Outer Door
+            sCtx.fillStyle = '#2d3748';
+            sCtx.fillRect(hx - 50, hy - 8, 16, 20);
+            sCtx.strokeStyle = '#718096';
+            sCtx.lineWidth = 1.2;
+            sCtx.strokeRect(hx - 50, hy - 8, 16, 20);
+
+            // Airlock status LED
+            sCtx.fillStyle = isDead ? '#742a2a' : (!isDead && (tau >= 1.8 || (sepMult||0) > 0)) ? '#48bb78' : '#ecc94b';
+            sCtx.beginPath();
+            sCtx.arc(hx - 42, hy - 11, 2, 0, Math.PI * 2);
+            sCtx.fill();
+
+            sCtx.restore();
+        }
+
+        function drawSurfaceRover(rx, ry, storm, isDay, isDead, isHazardLock, isTraversing) {
+            sCtx.save();
+            sCtx.fillStyle = `rgba(18, 6, 3, ${0.5 * (1 - storm * 0.6)})`;
+            sCtx.beginPath();
+            sCtx.ellipse(rx + 15, ry + 12, 34, 7, 0, 0, Math.PI * 2);
+            sCtx.fill();
+
+            // Rover Body Chassis
+            sCtx.fillStyle = isDead ? '#4a5568' : '#c5ccd6';
+            sCtx.fillRect(rx - 8, ry - 14, 48, 17);
+            sCtx.strokeStyle = '#5a6678';
+            sCtx.lineWidth = 1.2;
+            sCtx.strokeRect(rx - 8, ry - 14, 48, 17);
+
+            // Front Cockpit / Sensor Dome
+            sCtx.fillStyle = isDead ? '#1a202c' : '#3182ce';
+            sCtx.beginPath();
+            sCtx.moveTo(rx + 20, ry - 14);
+            sCtx.lineTo(rx + 36, ry - 6);
+            sCtx.lineTo(rx + 36, ry + 2);
+            sCtx.lineTo(rx + 20, ry + 2);
+            sCtx.closePath();
+            sCtx.fill();
+
+            // Mastcam / High-gain Antenna
+            sCtx.strokeStyle = '#718096';
+            sCtx.lineWidth = 1.5;
+            sCtx.beginPath();
+            sCtx.moveTo(rx - 2, ry - 14);
+            sCtx.lineTo(rx - 2, ry - 26);
+            sCtx.stroke();
+            sCtx.beginPath();
+            sCtx.arc(rx - 2, ry - 28, 2.5, 0, Math.PI * 2);
+            sCtx.fillStyle = isDead ? '#742a2a' : isHazardLock ? '#ecc94b' : '#e25822';
+            sCtx.fill();
+
+            // Hazard Warning Blinkers if in Stage 3 Lockdown!
+            if (isHazardLock && !isDead) {
+                if (animFrameCount % 12 < 6) {
+                    sCtx.fillStyle = '#ecc94b';
+                    sCtx.beginPath();
+                    sCtx.arc(rx + 34, ry - 8, 2.5, 0, Math.PI * 2);
+                    sCtx.arc(rx - 6, ry - 8, 2.5, 0, Math.PI * 2);
+                    sCtx.fill();
+                }
+            }
+
+            // Core Sample Canisters Rack on rear cargo bay!
+            if (isTraversing && !isDead) {
+                sCtx.fillStyle = '#63b3ed';
+                sCtx.fillRect(rx + 2, ry - 17, 4, 3);
+                sCtx.fillRect(rx + 8, ry - 17, 4, 3);
+                sCtx.fillRect(rx + 14, ry - 17, 4, 3);
+            }
+
+            // 6 Rugged Wheels with rotation animation
+            const wheelAngle = isTraversing ? (animFrameCount * 0.25) : 0;
+            const wheels = [rx - 4, rx + 14, rx + 30];
+            wheels.forEach(wx => {
+                sCtx.save();
+                sCtx.translate(wx, ry + 5);
+                sCtx.rotate(wheelAngle);
+                sCtx.fillStyle = '#1a202c';
+                sCtx.beginPath();
+                sCtx.arc(0, 0, 5.5, 0, Math.PI * 2);
+                sCtx.fill();
+                sCtx.fillStyle = '#718096';
+                sCtx.beginPath();
+                sCtx.arc(0, 0, 2, 0, Math.PI * 2);
+                sCtx.fill();
+                sCtx.restore();
+            });
+
+            // Dust puffs if traversing
+            if (isTraversing && animFrameCount % 6 < 3) {
+                sCtx.fillStyle = 'rgba(235, 165, 115, 0.45)';
+                sCtx.beginPath();
+                sCtx.arc(rx - 10, ry + 6, 3, 0, Math.PI * 2);
+                sCtx.fill();
+            }
+
+            sCtx.restore();
+        }
+
+        function drawSurfaceDust(tau) {
+            sCtx.save();
+            const wind = 1.4 + (tau - 0.6) * 4.2;
+            const alpha = Math.min(0.82, 0.08 + ((tau - 0.6) / 6.0) * 0.74);
+            const streakLen = 3 + (tau - 0.6) * 10;
+
+            for (const p of PARTICLES) {
+                p.x += p.vx * wind * (0.6 + p.layer * 0.4);
+                p.y += p.vy * (wind * 0.6);
+
+                if (p.x > SW + 30) p.x = -30;
+                if (p.y < 0) p.y = SH;
+                if (p.y > SH) p.y = 0;
+
+                const a = alpha * (0.4 + p.layer * 0.3);
+                sCtx.strokeStyle = `rgba(235, 165, 115, ${a})`;
+                sCtx.lineWidth = p.size * (0.7 + p.layer * 0.35);
+
+                sCtx.beginPath();
+                sCtx.moveTo(p.x, p.y);
+                sCtx.lineTo(p.x + streakLen * (0.8 + p.layer * 0.4), p.y + (p.vy * 2));
+                sCtx.stroke();
+            }
+            sCtx.restore();
+        }
+        // CREW ROSTER: PHASED STAGGERED CASUALTIES & SPECIFIC MEDICAL REASONS (1-A)
+        // =========================================================================
+        function updateCrewRosterUI(crewCount, evaActive, logEntry, simResult) {
+            $('crewCountLabel').textContent = crewCount;
+            const grid = $('crewGrid');
+            grid.innerHTML = '';
+
+            const isHazard = (logEntry.tau >= 1.8 || (logEntry.sepMult || 0) > 0);
+            const isMissionFailed = (logEntry.s >= simResult.run && !simResult.ok);
+            const o2RemainingRatio = logEntry.o2 / (simResult.log[0].o2 * 1.5);
+            const wRemainingRatio = logEntry.w / (simResult.log[0].w * 1.5);
+
+            // Determine how many crew members have succumbed based on critical thresholds
+            let deadCount = 0;
+            let primaryCause = 'Hypoxia (Oxygen Exhaustion)';
+
+            if (isMissionFailed) {
+                deadCount = crewCount; // All dead at mission termination sol!
+                if (/dehydration/i.test(simResult.cause)) primaryCause = 'Dehydration (Water Exhaustion)';
+                else if (/radiation/i.test(simResult.cause)) primaryCause = 'Acute Radiation Syndrome';
+                else primaryCause = 'Asphyxiation (O2 Exhausted)';
+            } else if (o2RemainingRatio < 0.12) {
+                // Staggered casualty onset as O2 vanishes
+                deadCount = Math.min(crewCount - 1, Math.floor((1 - o2RemainingRatio / 0.12) * crewCount));
+                primaryCause = 'Hypoxia (Critical Low O2)';
+            } else if (wRemainingRatio < 0.10) {
+                deadCount = Math.min(crewCount - 1, Math.floor((1 - wRemainingRatio / 0.10) * crewCount));
+                primaryCause = 'Severe Dehydration';
+            }
+
+            // Summary Header
+            if (isMissionFailed) {
+                $('crewEvSummary').textContent = `TOTAL CASUALTY · ALL ${crewCount} CREW LOST ON SOL ${logEntry.s}`;
+                $('crewEvSummary').style.color = 'var(--bad)';
+            } else if (deadCount > 0) {
+                $('crewEvSummary').textContent = `CRITICAL: ${deadCount} OF ${crewCount} CREW DECEASED (${primaryCause})`;
+                $('crewEvSummary').style.color = 'var(--bad)';
+            } else if (isHazard) {
+                $('crewEvSummary').textContent = 'ALL CREW SHELTERED (HAZARD RECALL)';
+                $('crewEvSummary').style.color = 'var(--warn)';
+            } else {
+                $('crewEvSummary').textContent = 'NOMINAL 2-PERSON EVA ROTATION';
+                $('crewEvSummary').style.color = 'var(--mute)';
+            }
+
+            for (let i = 0; i < crewCount; i++) {
+                const role = CREW_ROLES[i] || {code: 'CREW', title: 'Astronaut'};
+                const isDead = (i < deadCount);
+                const isAstronautOnEva = (!isDead && !isHazard && (i === 0 || i === 1));
+
+                const badge = document.createElement('div');
+                badge.className = `roster-badge ${isDead ? 'casualty' : isAstronautOnEva ? 'eva-active' : isHazard ? 'sheltered' : ''}`;
+
+                let statusTagHtml = '';
+                let vitalsHtml = '';
+
+                if (isDead) {
+                    statusTagHtml = `<span class="roster-tag dead">DECEASED</span>`;
+                    vitalsHtml = `<span style="font-size:9.5px; color:var(--bad); font-family:ui-monospace, monospace;">0 BPM · 0 PSI</span>`;
+                } else if (isAstronautOnEva) {
+                    statusTagHtml = `<span class="roster-tag eva">ON EVA</span>`;
+                    vitalsHtml = `<span style="font-size:9.5px; color:var(--mute); font-family:ui-monospace, monospace;">78 BPM · 4.3 PSI</span>`;
+                } else if (isHazard) {
+                    statusTagHtml = `<span class="roster-tag shelter">SHELTERED</span>`;
+                    vitalsHtml = `<span style="font-size:9.5px; color:var(--warn); font-family:ui-monospace, monospace;">82 BPM · 14.7 PSI</span>`;
+                } else {
+                    statusTagHtml = `<span class="roster-tag">IN HAB</span>`;
+                    vitalsHtml = `<span style="font-size:9.5px; color:var(--mute); font-family:ui-monospace, monospace;">70 BPM · 14.7 PSI</span>`;
+                }
+
+                badge.innerHTML = `
+                    <span class="roster-role">[${role.code}] ${role.title}</span>
+                    <span class="roster-name">Astronaut ${i + 1}</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+                        ${statusTagHtml}
+                        ${vitalsHtml}
+                    </div>
+                    ${isDead ? `<span style="display:block; font-size:9px; color:var(--bad); margin-top:3px; font-weight:700;">Cause: ${primaryCause}</span>` : ''}
+                `;
+                grid.appendChild(badge);
+            }
+
+            const hudEva = $('hudEvaStatus');
+            if (isMissionFailed) {
+                hudEva.textContent = 'ALL CREW LOST';
+                hudEva.style.color = 'var(--bad)';
+            } else if (isHazard) {
+                hudEva.textContent = 'SHELTERED';
+                hudEva.style.color = 'var(--warn)';
+            } else {
+                hudEva.textContent = 'ON SURVEY';
+                hudEva.style.color = 'var(--ok)';
+            }
+        }
+
+        function syncViewportTelemetry(logEntry, simResult) {
+            const isDead = (logEntry.s >= simResult.run && !simResult.ok);
+
+            curSimTelemetry.sol = logEntry.s;
+            curSimTelemetry.tau = logEntry.tau;
+            curSimTelemetry.pf = logEntry.pf;
+            curSimTelemetry.dailyDose = logEntry.dailyDose;
+            curSimTelemetry.sepMult = logEntry.sepMult || 0;
+            curSimTelemetry.siteKey = simResult.siteKey || 'jezero';
+            curSimTelemetry.habKey = simResult.habKey || 'surface';
+            curSimTelemetry.crewCount = simResult.crew;
+            curSimTelemetry.evaActive = logEntry.evaActive && !isDead;
+            curSimTelemetry.traverseKm = logEntry.traverseKm || 0;
+            curSimTelemetry.isDead = isDead;
+            curSimTelemetry.deadCause = isDead ? simResult.cause : null;
+
+            const solFormatted = `SOL ${String(logEntry.s).padStart(3, '0')}`;
+            $('clockSol').textContent = `${solFormatted} / 500`;
+
+            const siteObj = SITES[curSimTelemetry.siteKey];
+            $('vpSiteHeader').textContent = siteObj.n;
+            $('vpCoordsHeader').textContent = siteObj.coords;
+            $('vpHabHeader').textContent = HABS[curSimTelemetry.habKey].n;
+
+            const pfPct = Math.round(logEntry.pf * 100);
+            $('vpPowerHeader').textContent = isDead ? 'GRID COLLAPSED' : `GRID ${pfPct}%`;
+
+            $('telTau').textContent = logEntry.tau.toFixed(2);
+            $('telSun').textContent = `${Math.round(logEntry.genYield * 100)}% (${pfPct}% dem)`;
+            $('telRad').textContent = `${logEntry.dailyDose.toFixed(2)} mSv/sol`;
+
+            // NASA DONKI SEP Status
+            const sepLabel = $('telSep');
+            if (curSimTelemetry.sepMult >= 12) {
+                sepLabel.textContent = 'SEVERE FLUX (12x)';
+                sepLabel.style.color = 'var(--bad)';
+            } else if (curSimTelemetry.sepMult >= 4) {
+                sepLabel.textContent = 'MODERATE FLUX (4x)';
+                sepLabel.style.color = 'var(--warn)';
+            } else if (curSimTelemetry.sepMult >= 1) {
+                sepLabel.textContent = 'MINOR FLUX (1x)';
+                sepLabel.style.color = 'var(--warn)';
+            } else {
+                sepLabel.textContent = 'NOMINAL (CALM)';
+                sepLabel.style.color = 'var(--ok)';
+            }
+
+            // Top Status Badge
+            const statusBadge = $('mainStatusBadge');
+            if (isDead) {
+                statusBadge.querySelector('span:last-child').textContent = 'MISSION FAILED';
+                statusBadge.className = 'hud-tag fatal';
+            } else if (logEntry.tau > 4.5) {
+                statusBadge.querySelector('span:last-child').textContent = 'GLOBAL DUST STORM';
+                statusBadge.className = 'hud-tag storm';
+            } else if (logEntry.tau > 1.8) {
+                statusBadge.querySelector('span:last-child').textContent = 'REGIONAL DUST STORM';
+                statusBadge.className = 'hud-tag storm';
+            } else if (curSimTelemetry.sepMult > 0) {
+                statusBadge.querySelector('span:last-child').textContent = 'DONKI SEP EVENT';
+                statusBadge.className = 'hud-tag sep';
+            } else {
+                statusBadge.querySelector('span:last-child').textContent = 'SYSTEMS NOMINAL';
+                statusBadge.className = 'hud-tag';
+            }
+
+            // Critical Hazard Alert
+            const o2Frac = logEntry.o2 / (simResult.log[0].o2 * 1.5);
+            const wFrac = logEntry.w / (simResult.log[0].w * 1.5);
+            const hazardOverlay = $('hazardVignette');
+            const alertPill = $('vpHudAlert');
+
+            if (isDead) {
+                hazardOverlay.className = 'hazard-vignette danger';
+                alertPill.className = 'hud-tag fatal';
+                alertPill.textContent = 'FATAL: CREW CASUALTY';
+            } else if (o2Frac < 0.15 || wFrac < 0.15 || logEntry.dose >= K.limit * 0.9) {
+                hazardOverlay.className = 'hazard-vignette danger';
+                alertPill.className = 'hud-tag storm';
+                alertPill.textContent = o2Frac < 0.15 ? 'CRITICAL: O2 DEPLETED' : wFrac < 0.15 ? 'CRITICAL: WATER EXHAUSTED' : 'CRITICAL: RADIATION LIMIT';
+            } else {
+                hazardOverlay.className = 'hazard-vignette';
+                alertPill.className = 'hud-tag hide';
+            }
+
+            // Update Crew Telemetry
+            updateCrewRosterUI(simResult.crew, curSimTelemetry.evaActive, logEntry, simResult);
+
+            // Update NASA Google Mars Map
+            updateNasaGoogleMarsMap(curSimTelemetry.traverseKm, isDead, simResult.cause, logEntry.s);
+        }
+
+        // =========================================================================
+        // SIMULATION EXECUTION & UI ORCHESTRATION
+        // =========================================================================
+        const DEFAULT_SPEED = 0.5;
+        let R, i, timer, speed = DEFAULT_SPEED, acc = 0, paused = false, cfg;
+
+        function setSpeed(v) {
+            speed = v;
+            document.querySelectorAll('[data-sp]').forEach(x => x.classList.toggle('act', +x.dataset.sp === v));
+        }
+        const cols = ['var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c4)'];
+        const names = ['Oxygen', 'Water', 'Power fraction', 'Radiation dose'];
+
+        function show(id) {
+            ['setup', 'run', 'rep'].forEach(x => {
+                $(x).classList.toggle('hide', x !== id && !(id === 'rep' && x === 'run'));
+            });
+        }
+
+        function chart(n) {
+            const L = R.log;
+            const mx = [Math.max(...L.map(d => d.o2)), Math.max(...L.map(d => d.w)), 1, K.limit];
+            const v = [d => d.o2 / mx[0], d => d.w / mx[1], d => d.pf, d => d.dose / K.limit];
+            $('ch').innerHTML = `<rect x="0" y="0" width="600" height="200" fill="none" stroke="var(--line)"/>` +
+                v.map((f, k) => `<polyline fill="none" stroke="${cols[k]}" stroke-width="2" points="${L.slice(0, n).map((d, j) => `${(j / 499 * 596 + 2).toFixed(1)},${(196 - Math.min(1, f(d)) * 190).toFixed(1)}`).join(' ')}"/>`).join('');
+        }
+
+        function gauges(d) {
+            const g = [
+                [d.o2 / (R.log[0].o2 * 1.5), Math.round(d.o2) + ' kg'],
+                [d.w / (R.log[0].w * 1.5), Math.round(d.w) + ' L'],
+                [d.pf, Math.round(d.pf * 100) + '% of demand'],
+                [d.dose / K.limit, d.dose.toFixed(0) + ' mSv']
+            ];
+            $('gauges').innerHTML = g.map((x, k) => {
+                const r = x[0], bad = k == 3 ? r > .75 : r < .15, warn = k == 3 ? r > .5 : r < .35;
+                return `<div class="g"><div class="t"><span>${names[k]}</span><span>${x[1]}${k == 2 ? ` · &tau; ${d.tau.toFixed(1)}` : ''}</span></div><div class="bar"><i style="width:${Math.min(100, r * 100)}%;background:${bad ? 'var(--bad)' : warn ? 'var(--warn)' : 'var(--ok)'}"></i></div></div>`;
+            }).join('');
+        }
+
+        function tick() {
+            // Fractional speeds (0.1x, 0.5x) accumulate until a whole sol has elapsed
+            acc += speed;
+            const step = Math.floor(acc);
+            if (step < 1) return;
+            acc -= step;
+            const n = Math.min(i + step, R.run);
+            for (const e of R.ev.filter(e => e.sol > i && e.sol <= n)) {
+                const d = document.createElement('div');
+                d.className = e.k;
+                d.innerHTML = `<b>Sol ${e.sol}</b> ${e.msg}`;
+                $('feed').prepend(d);
+            }
+            i = n;
+            $('solc').textContent = `Sol ${i} / 500`;
+            const cur = R.log[i - 1];
+            gauges(cur);
+            chart(i);
+            syncViewportTelemetry(cur, R);
+
+            if (i >= R.run) {
+                clearInterval(timer);
+                setTimeout(report, 700);
+            }
+        }
+
+        function start(c) {
+            cfg = c;
+            R = simulate(c);
+            i = 0;
+            acc = 0;
+            setSpeed(DEFAULT_SPEED); // every new run (launch, run again, change setup) starts at the default speed
+            $('feed').innerHTML = '';
+            show('run');
+            $('pp').textContent = 'Pause';
+            paused = false;
+
+            // Initialize or center NASA Google Mars Satellite Map
+            initNasaGoogleMarsMap(c.site);
+
+            syncViewportTelemetry(R.log[0], R);
+
+            clearInterval(timer);
+            timer = setInterval(() => {
+                if (!paused) tick();
+            }, 120);
+        }
+
+        $('go').onclick = () => start({
+            site: $('site').value,
+            crew: +$('crew').value,
+            hab: $('hab').value,
+            seed: +$('seed').value || 1
+        });
+
+        $('pp').onclick = () => {
+            paused = !paused;
+            $('pp').textContent = paused ? 'Resume' : 'Pause';
+        };
+
+        document.querySelectorAll('[data-sp]').forEach(b => {
+            b.onclick = () => {
+                setSpeed(+b.dataset.sp);
+                // Picking a speed also resumes a paused simulation
+                if (paused) {
+                    paused = false;
+                    $('pp').textContent = 'Pause';
+                }
+            };
+        });
+
+        $('skip').onclick = () => {
+            clearInterval(timer);
+            for (const e of R.ev) {
+                if (e.sol > i) {
+                    const d = document.createElement('div');
+                    d.className = e.k;
+                    d.innerHTML = `<b>Sol ${e.sol}</b> ${e.msg}`;
+                    $('feed').prepend(d);
+                }
+            }
+            i = R.run;
+            $('solc').textContent = `Sol ${i} / 500`;
+            const cur = R.log[i - 1];
+            gauges(cur);
+            chart(i);
+            syncViewportTelemetry(cur, R);
+            report();
+        };
+
+        function report() {
+            const r = R;
+            const top = r.ev.filter(e => e.k == 'dust' || e.k == 'fatal' || (e.k == 'sep' && /severe/.test(e.msg))).slice(-3);
+            const kmTraversed = (r.log[r.run-1].traverseKm||0).toFixed(1);
+            const targetKm = (r.targetKm || SITES[r.siteKey].targetKm).toFixed(1);
+            const pct = Math.round((kmTraversed / targetKm) * 100);
+
+            $('rep').className = '';
+            $('rep').innerHTML = `<div class="card">
+                <div class="verdict ${r.ok ? 'ok' : 'bad'}">${r.ok ? 'Crew survived' : 'Mission failed · Sol ' + r.run}</div>
+                <div style="font-size:22px;margin:4px 0;font-weight:700">Survival Score ${r.score} / 100</div>
+                <p style="font-size:15px;line-height:1.5">${r.ok ? `All ${r.crew} crew members completed 500 sols at ${r.site} in a ${r.hab}. Surface traverse completed ${kmTraversed} km toward the mission end point (${pct}% of target expedition).` : r.cause}</p>
+                <div class="stats">
+                    <div><b>${r.dose.toFixed(0)} mSv</b>Dose per crew (Career limit ${K.limit} mSv)</div>
+                    <div><b>${r.maxTau.toFixed(1)}</b>Worst dust optical depth (&tau;)</div>
+                    <div><b>${r.sepCount}</b>Solar particle events</div>
+                    <div><b>${r.red}</b>Sols with under 60% power</div>
+                    <div><b>${Math.round(r.o2)} kg · ${Math.round(r.w)} L</b>Oxygen and water reserves left</div>
+                </div>
+                <p class="desc">Solar events catalogue source: ${SEPSRC}</p>
+                ${r.ok ? '' : `<h2>Critical Event Chain</h2><ul>${top.map(e => `<li><b>Sol ${e.sol}:</b> ${e.msg}</li>`).join('')}</ul>`}
+                <div class="row" style="margin-top:14px">
+                    <button class="p" id="again">Run again, same seed</button>
+                    <button id="chg">Change setup</button>
+                    <button id="cmp">Compare habitats, same seed</button>
+                </div>
+                <div id="cmpo"></div>
+            </div>`;
+
+            $('again').onclick = () => {
+                $('rep').classList.add('hide');
+                $('run').classList.remove('hide');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                start(cfg);
+            };
+            $('chg').onclick = () => {
+                clearInterval(timer);
+                $('rep').className = 'hide';
+                show('setup');
+            };
+            $('cmp').onclick = () => {
+                $('cmpo').innerHTML = '<table><tr><th>Habitat</th><th>Result</th><th>Score</th><th>Radiation Dose</th></tr>' +
+                    Object.keys(HABS).map(h => {
+                        const x = simulate({...cfg, hab: h});
+                        return `<tr><td>${HABS[h].n}</td><td class="${x.ok ? 'ok' : 'bad'}">${x.ok ? 'Survived' : 'Lost on Sol ' + x.run}</td><td>${x.score}</td><td>${x.dose.toFixed(0)} mSv</td></tr>`;
+                    }).join('') + '</table><p class="desc" style="margin-top:6px">Deterministic comparison: Identical storms and flares, only habitat shielding and power demand varied.</p>';
+            };
+            document.getElementById('rep').scrollIntoView({behavior: 'smooth'});
+        }
+
+        // Start Surface Camera Animation Loop
+        renderAtmosphericSurfaceCamera();
+    </script>
 </body>
 
 </html>

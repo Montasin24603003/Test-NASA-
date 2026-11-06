@@ -13,6 +13,36 @@ import { Moon, Sun } from "lucide-react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { calculateMarsTime } from "../lib/mars-time";
+
+function MarsClockNavButton() {
+  const [solTime, setSolTime] = useState<{ sol: number; lst: string } | null>(null);
+
+  useEffect(() => {
+    const update = () => {
+      // Jezero Crater (77.58°E, 18.38°N) standard mission baseline
+      const data = calculateMarsTime(new Date(), 77.58, 18.38);
+      setSolTime({ sol: data.solNumber, lst: data.ltstFormatted });
+    };
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <Link
+      to="/mars-clock"
+      title="Open Mars Clock & 3D Compass"
+      className="hidden items-center gap-2 rounded-full border border-line bg-white px-3 py-1.5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-amber/40 sm:flex"
+      activeProps={{ className: "border-amber bg-amber/10 text-bright font-medium" }}
+    >
+      <span className="beacon-dot size-1.5 rounded-full bg-mint" />
+      <span className="font-mono text-[11px] text-fog transition-colors hover:text-bright">
+        {solTime ? `SOL ${solTime.sol} · ${solTime.lst} LST` : "SOL 214 · 06:42 LST"}
+      </span>
+    </Link>
+  );
+}
 
 function NotFoundComponent() {
   return (
@@ -36,7 +66,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: { error: any; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -167,6 +197,19 @@ function ThemeToggle() {
 function SiteLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const isMissionLab = location.pathname === "/mission-lab";
+  const isPlanetaryMap = location.pathname === "/planetary-map";
+  const isFullBleed = isMissionLab;
+
+  // On Planetary Map, provide a full-bleed mission workspace with no global site header or footer
+  if (isPlanetaryMap) {
+    return (
+      <div className="relative w-screen h-screen overflow-hidden bg-[#05080f] text-slate-200">
+        <main className="w-full h-full overflow-hidden p-0 m-0">
+          {children}
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-ink text-bright">
@@ -197,64 +240,53 @@ function SiteLayout({ children }: { children: ReactNode }) {
           </Link>
           <nav className="hidden items-center gap-1 rounded-2xl border border-line/80 bg-panel/70 p-1.5 shadow-sm backdrop-blur-xl md:flex">
             <Link
-              to="/"
+              to="/planetary-map"
               className="rounded-xl px-3 py-2 transition-colors hover:bg-ink2 hover:text-bright"
               activeProps={{ className: "rounded-xl bg-amber/10 px-3 py-2 font-medium text-bright" }}
-              activeOptions={{ exact: true }}
             >
-              Mission Map
+              Planetary Map
+            </Link>
+            <Link to="/ml-terrain-lab" className="rounded-xl px-3 py-2 transition-colors hover:bg-indigo-500/10 hover:text-bright" activeProps={{ className: "rounded-xl bg-indigo-500/15 px-3 py-2 font-medium text-bright" }}>
+              ML Terrain Lab
             </Link>
             <Link to="/hazard-layers" className="rounded-xl px-3 py-2 transition-colors hover:bg-ink2 hover:text-bright" activeProps={{ className: "rounded-xl bg-rose/10 px-3 py-2 font-medium text-bright" }}>
-              Hazard Layers
+              Hazard Analysis
             </Link>
             <Link to="/resources" className="rounded-xl px-3 py-2 transition-colors hover:bg-ink2 hover:text-bright" activeProps={{ className: "rounded-xl bg-cyan/10 px-3 py-2 font-medium text-bright" }}>
-              Resources
+              Resource Explorer
             </Link>
             <Link to="/mission-lab" className="rounded-xl px-3 py-2 transition-colors hover:bg-amber/10 hover:text-bright" activeProps={{ className: "rounded-xl bg-amber/10 px-3 py-2 font-medium text-bright" }}>
-              Mission Lab
+              3D Regional Lab
             </Link>
-            <a href="/#data-atlas" className="rounded-xl px-3 py-2 transition-colors hover:bg-ink2 hover:text-bright">
-              NASA Data
-            </a>
-            <a href="/#simulator" className="rounded-xl px-3 py-2 transition-colors hover:bg-ink2 hover:text-bright">
-              Simulator
-            </a>
-            <Link to="/protocols" className="rounded-xl px-3 py-2 transition-colors hover:bg-ink2 hover:text-bright" activeProps={{ className: "rounded-xl bg-amber/10 px-3 py-2 font-medium text-bright" }}>
-              Survival Protocols
-            </Link>
-            <Link to="/sol-by-sol" className="rounded-xl px-3 py-2 transition-colors hover:bg-ink2 hover:text-bright" activeProps={{ className: "rounded-xl bg-mint/10 px-3 py-2 font-medium text-bright" }}>
+            <Link to="/sol-by-sol" className="rounded-xl px-3 py-2 transition-colors hover:bg-mint/10 hover:text-bright" activeProps={{ className: "rounded-xl bg-mint/10 px-3 py-2 font-medium text-bright" }}>
               Sol by Sol
             </Link>
           </nav>
           <div className="flex items-center gap-3">
-            <div className="hidden items-center gap-2 rounded-full border border-line bg-white px-3 py-1.5 shadow-sm sm:flex">
-              <span className="beacon-dot size-1.5 rounded-full bg-mint" />
-              <span className="font-mono text-[11px] text-fog">SOL 214 · 06:42 LST</span>
-            </div>
+            <MarsClockNavButton />
             <ThemeToggle />
             <Link
-              to="/protocols"
+              to="/planetary-map"
               className="rounded-md bg-amber px-4 py-2 font-display text-[13px] font-semibold text-ink transition-colors hover:bg-amber/90"
             >
-              Open Console
+              Open Map
             </Link>
           </div>
         </div>
       </header>
       <div className="relative z-10 border-b border-line/70 bg-panel/70 px-5 py-2 backdrop-blur-xl md:hidden">
         <div className="mx-auto flex max-w-7xl gap-1 overflow-x-auto pb-0.5 text-[11px] font-medium whitespace-nowrap">
-          <Link to="/" activeProps={{ className: "bg-amber/10 text-bright" }} activeOptions={{ exact: true }} className="rounded-lg px-3 py-1.5 text-fog">Map</Link>
+          <Link to="/planetary-map" activeProps={{ className: "bg-amber/10 text-bright" }} className="rounded-lg px-3 py-1.5 text-fog">Planetary Map</Link>
+          <Link to="/ml-terrain-lab" activeProps={{ className: "bg-indigo-500/15 text-bright" }} className="rounded-lg px-3 py-1.5 text-fog">ML Terrain Lab</Link>
           <Link to="/hazard-layers" activeProps={{ className: "bg-rose/10 text-bright" }} className="rounded-lg px-3 py-1.5 text-fog">Hazards</Link>
           <Link to="/resources" activeProps={{ className: "bg-cyan/10 text-bright" }} className="rounded-lg px-3 py-1.5 text-fog">Resources</Link>
-          <Link to="/mission-lab" activeProps={{ className: "bg-amber/10 text-bright" }} className="rounded-lg px-3 py-1.5 text-fog">Mission Lab</Link>
-          <a href="/#data-atlas" className="rounded-lg px-3 py-1.5 text-fog">NASA Data</a>
-          <a href="/#simulator" className="rounded-lg px-3 py-1.5 text-fog">Simulator</a>
-          <Link to="/protocols" className="rounded-lg px-3 py-1.5 text-fog">Protocols</Link>
-          <Link to="/sol-by-sol" className="rounded-lg px-3 py-1.5 text-fog">Sol by Sol</Link>
+          <Link to="/mission-lab" activeProps={{ className: "bg-amber/10 text-bright" }} className="rounded-lg px-3 py-1.5 text-fog">3D Lab</Link>
+          <Link to="/sol-by-sol" activeProps={{ className: "bg-mint/10 text-bright" }} className="rounded-lg px-3 py-1.5 text-fog">Sol by Sol</Link>
+          <Link to="/mars-clock" activeProps={{ className: "bg-amber/10 text-bright" }} className="rounded-lg px-3 py-1.5 text-fog">Clock &amp; Compass</Link>
         </div>
       </div>
 
-      <main className={`relative z-10 ${isMissionLab ? "mission-lab-main" : "mx-auto max-w-7xl px-5 py-8"}`}>{children}</main>
+      <main className={`relative z-10 ${isFullBleed ? "w-full" : "mx-auto max-w-7xl px-5 py-8"}`}>{children}</main>
 
       <footer className="relative z-10 border-t border-line bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-5 py-4 sm:flex-row">

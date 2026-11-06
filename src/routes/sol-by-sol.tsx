@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ExternalLink, Radio, Sparkles } from "lucide-react";
+import { ExternalLink, Radio } from "lucide-react";
 
 export const Route = createFileRoute("/sol-by-sol")({
+  ssr: false,
   head: () => ({
     meta: [
-      { title: "Sol by Sol — Mars Survival Simulator" },
+      { title: "Sol by Sol — Mars Survival Simulator // NASA Space Apps 2026" },
       {
         name: "description",
         content:
@@ -17,24 +18,25 @@ export const Route = createFileRoute("/sol-by-sol")({
 
 function SolBySolPage() {
   return (
-    <div className="rise-in">
-      <div className="mb-4 flex flex-col gap-3 rounded-xl border border-line/70 bg-panel/40 p-4 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
+    <div className="rise-in space-y-4">
+      <div className="flex flex-col gap-3 rounded-2xl border border-line/70 bg-white/80 p-4 shadow-sm backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="flex items-center gap-2">
-            <Sparkles className="size-4 text-amber" />
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber">Integrated mission tool</p>
-          </div>
-          <h1 className="mt-1 font-display text-xl font-bold">Sol by Sol · Mars Survival Simulator</h1>
-          <p className="mt-1 text-xs text-fog">Original HTML/CSS/JavaScript preserved as a dedicated mission page, with the AI advisor wired to the project API.</p>
+          <h1 className="font-display text-xl font-bold tracking-tight text-bright">
+            Sol by Sol · Mars Survival Simulator
+          </h1>
+          <p className="mt-0.5 text-xs text-fog">
+            500-Sol expedition survival simulator with life-support telemetry, resource allocation, and AI advisor assistance.
+          </p>
         </div>
+
         <a
           href="/sol-simulator/index.html"
           target="_blank"
           rel="noreferrer"
-          className="inline-flex shrink-0 items-center gap-2 rounded-md border border-line bg-ink/40 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-fog hover:text-bright"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-line bg-white/80 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-fog hover:text-bright shadow-xs"
         >
           <ExternalLink className="size-3.5" />
-          Open standalone
+          Open Standalone
         </a>
       </div>
 
@@ -42,14 +44,14 @@ function SolBySolPage() {
         <iframe
           title="Sol by Sol Mars Survival Simulator"
           src="/sol-simulator/index.html"
-          className="block h-[min(980px,calc(100vh-170px))] min-h-[760px] w-full border-0"
+          className="block h-[min(1100px,calc(100vh-180px))] min-h-[840px] w-full border-0"
           loading="eager"
         />
       </div>
 
-      <div className="mt-4 flex items-center gap-2 font-mono text-[10px] text-fog">
+      <div className="flex items-center gap-2 font-mono text-[10px] text-fog">
         <Radio className="size-3.5 text-mint" />
-        NASA DONKI live refresh remains optional; bundled data stays available when the API is offline.
+        NASA DONKI live refresh remains active; bundled mission ephemeris stays calibrated when offline.
       </div>
     </div>
   );

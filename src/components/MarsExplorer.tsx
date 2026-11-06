@@ -67,7 +67,18 @@ const REGIONAL_MODELS = [
   { id: "arabia", name: "Arabia / Meridiani", file: "/models/regions/05_Arabia_Meridiani.glb", preview: "/models/regions/previews/05_Arabia_Meridiani_3D_Model.png" },
   { id: "north-pole", name: "North Pole", file: "/models/regions/06_North_Pole.glb", preview: "/models/regions/previews/06_North_Pole_3D_Model.png" },
   { id: "south-pole", name: "South Pole", file: "/models/regions/07_South_Pole.glb", preview: "/models/regions/previews/07_South_Pole_3D_Model.png" },
+  { id: "olympus-mons", name: "Olympus Mons", file: "/models/regions/08_Olympus_Mons.glb", preview: "/models/regions/previews/08_Olympus_Mons_3D_Model.png" },
+  { id: "argyre-planitia", name: "Argyre Planitia", file: "/models/regions/09_Argyre_Planitia.glb", preview: "/models/regions/previews/09_Argyre_Planitia_3D_Model.png" },
+  { id: "chryse-acidalia", name: "Chryse / Acidalia", file: "/models/regions/10_Chryse_Acidalia.glb", preview: "/models/regions/previews/10_Chryse_Acidalia_3D_Model.png" },
+  { id: "global-globe", name: "Mars Global Globe", file: "/models/regions/11_Mars_Global_Globe.glb", preview: "/models/regions/previews/11_Mars_Global_Globe_3D_Model.png" },
+  { id: "global-map", name: "Mars Global Map", file: "/models/regions/12_Mars_Global_Map_Large.glb", preview: "/models/regions/previews/12_Mars_Global_Map_Large_3D_Model.png" },
 ] as const;
+
+if (typeof window !== "undefined") {
+  REGIONAL_MODELS.forEach((m) => {
+    useGLTF.preload(m.file);
+  });
+}
 
 
 const defaultMarsSite: MarsSite = {
@@ -259,17 +270,17 @@ function RegionalMarsModel({ modelId }: { modelId: (typeof REGIONAL_MODELS)[numb
 }
 
 class ModelBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
-  state = { failed: false };
+  override state = { failed: false };
 
   static getDerivedStateFromError() {
     return { failed: true };
   }
 
-  componentDidCatch() {
+  override componentDidCatch() {
     // The downloaded project may not include Lovable's hosted GLB asset.
   }
 
-  render() {
+  override render() {
     return this.state.failed ? this.props.fallback : this.props.children;
   }
 }
@@ -614,19 +625,39 @@ export function MarsExplorer({ initialModelView = "globe", immersive = false }: 
             <div className="absolute bottom-4 left-4 right-4 z-10 rounded-2xl border border-white/15 bg-[#0a1420]/88 p-3 shadow-2xl backdrop-blur-xl">
               <div className="mb-2 flex items-center justify-between gap-3">
                 <div>
-                  <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-cyan">Regional terrain library</p>
+                  <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-cyan">Planetary &amp; regional 3D models</p>
                   <p className="mt-0.5 font-display text-sm font-semibold text-white">Choose a dataset to inspect</p>
                 </div>
-                <span className="rounded-full border border-amber/30 bg-amber/10 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[.1em] text-amber">7 NASA-ready models</span>
+                <span className="rounded-full border border-amber/30 bg-amber/10 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[.1em] text-amber">{REGIONAL_MODELS.length} NASA-ready models</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
+              <div className="flex gap-2 overflow-x-auto pb-1 pt-0.5">
                 {REGIONAL_MODELS.map((model) => {
                   const active = model.id === regionalModelId;
                   return (
-                    <button key={model.id} type="button" onClick={() => setRegionalModelId(model.id)}
-                      className={`group overflow-hidden rounded-xl border text-left transition-all ${active ? "border-amber/80 bg-amber/10 ring-1 ring-amber/30" : "border-white/10 bg-white/[.04] hover:border-cyan/50 hover:bg-white/[.08]"}`}>
-                      <img src={model.preview} alt="" className="h-16 w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
-                      <span className={`block truncate px-2 py-2 font-mono text-[8px] uppercase tracking-[0.06em] ${active ? "text-amber" : "text-white/80"}`}>{model.name}</span>
+                    <button
+                      key={model.id}
+                      type="button"
+                      onClick={() => setRegionalModelId(model.id)}
+                      className={`group w-[112px] shrink-0 overflow-hidden rounded-xl border text-left transition-all sm:w-[126px] ${
+                        active
+                          ? "border-amber/80 bg-amber/10 ring-1 ring-amber/30"
+                          : "border-white/10 bg-white/[.04] hover:border-cyan/50 hover:bg-white/[.08]"
+                      }`}
+                    >
+                      <img
+                        src={model.preview}
+                        alt=""
+                        className="h-14 w-full object-cover transition-transform duration-300 group-hover:scale-105 sm:h-16"
+                        loading="lazy"
+                      />
+                      <span
+                        className={`block truncate px-2 py-1.5 font-mono text-[8px] uppercase tracking-[0.06em] sm:text-[9px] ${
+                          active ? "text-amber font-semibold" : "text-white/80"
+                        }`}
+                        title={model.name}
+                      >
+                        {model.name}
+                      </span>
                     </button>
                   );
                 })}
