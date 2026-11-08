@@ -31,29 +31,10 @@ import * as THREE from "three";
 
 import marsMapImage from "@/assets/mars-jezero-map.jpg";
 import { Button } from "@/components/ui/button";
+import { marsSites, defaultMarsSite, type MarsSite } from "@/data/marsSites";
+export { marsSites, defaultMarsSite, type MarsSite };
 
 type LayerKey = "terrain" | "hazards" | "resources" | "rovers" | "route";
-
-export type MarsSite = {
-  id: string;
-  name: string;
-  region: string;
-  coordinates: string;
-  latitude: number;
-  longitude: number;
-  terrain: string;
-  significance: string;
-  hazard: string;
-  resources: string;
-  score: number;
-  elevation: string;
-  slope: string;
-  radiation: string;
-  temperature: string;
-  waterIce: string;
-  rover: string;
-  scienceTargets: number;
-};
 
 const LOCAL_MARS_MODEL = "/models/scene.gltf";
 
@@ -74,117 +55,7 @@ const REGIONAL_MODELS = [
   { id: "global-map", name: "Mars Global Map", file: "/models/regions/12_Mars_Global_Map_Large.glb", preview: "/models/regions/previews/12_Mars_Global_Map_Large_3D_Model.png" },
 ] as const;
 
-if (typeof window !== "undefined") {
-  REGIONAL_MODELS.forEach((m) => {
-    useGLTF.preload(m.file);
-  });
-}
-
-
-const defaultMarsSite: MarsSite = {
-  id: "jezero",
-  name: "Jezero Crater",
-  region: "Isidis Planitia",
-  coordinates: "18.4°N, 77.5°E",
-  latitude: 18.4,
-  longitude: 77.5,
-  terrain: "Ancient crater lake and river delta with layered sedimentary rock.",
-  significance: "Perseverance rover site; preserves evidence of an ancient wet environment.",
-  hazard: "Broken delta scarps, loose sand, and elevated surface radiation.",
-  resources: "Hydrated minerals, clay-bearing rock, and possible shallow ground ice.",
-  score: 82,
-  elevation: "−2,480 m",
-  slope: "3.2°",
-  radiation: "0.67 mSv/day",
-  temperature: "−63°C",
-  waterIce: "High",
-  rover: "Perseverance",
-  scienceTargets: 8,
-};
-
-export const marsSites: MarsSite[] = [
-  defaultMarsSite,
-  {
-    id: "olympus",
-    name: "Olympus Mons",
-    region: "Tharsis Montes",
-    coordinates: "18.7°N, 226.2°E",
-    latitude: 18.7,
-    longitude: 226.2,
-    terrain: "Shield volcano rising about 22 km above the Martian datum.",
-    significance: "The largest known volcano in the Solar System.",
-    hazard: "Extreme altitude, steep escarpments, and exceptionally thin air.",
-    resources: "Basaltic rock for construction and lava-tube shelter potential.",
-    score: 48,
-    elevation: "+21,000 m",
-    slope: "8.6°",
-    radiation: "0.74 mSv/day",
-    temperature: "−70°C",
-    waterIce: "Low",
-    rover: "Survey drone",
-    scienceTargets: 4,
-  },
-  {
-    id: "valles",
-    name: "Valles Marineris",
-    region: "Equatorial canyon system",
-    coordinates: "14.0°S, 290.0°E",
-    latitude: -14,
-    longitude: 290,
-    terrain: "A canyon network over 4,000 km long and locally up to 7 km deep.",
-    significance: "Exposes a vast record of Martian geology and possible hydrated deposits.",
-    hazard: "Cliffs, landslides, deep shadow, and difficult surface communications.",
-    resources: "Exposed mineral layers and natural radiation-shielding terrain.",
-    score: 58,
-    elevation: "−4,100 m",
-    slope: "11.4°",
-    radiation: "0.61 mSv/day",
-    temperature: "−58°C",
-    waterIce: "Moderate",
-    rover: "Orbital relay",
-    scienceTargets: 11,
-  },
-  {
-    id: "gale",
-    name: "Gale Crater",
-    region: "Aeolis quadrangle",
-    coordinates: "5.4°S, 137.8°E",
-    latitude: -5.4,
-    longitude: 137.8,
-    terrain: "Impact basin containing the 5.5 km-high layered Mount Sharp.",
-    significance: "Curiosity rover found evidence of a long-lived ancient lake environment.",
-    hazard: "Rocky slopes, dust accumulation, and limited accessible water ice.",
-    resources: "Clay minerals, sulfates, and a well-studied geological record.",
-    score: 67,
-    elevation: "−4,500 m",
-    slope: "4.8°",
-    radiation: "0.65 mSv/day",
-    temperature: "−59°C",
-    waterIce: "Moderate",
-    rover: "Curiosity",
-    scienceTargets: 9,
-  },
-  {
-    id: "utopia",
-    name: "Utopia Planitia",
-    region: "Northern lowlands",
-    coordinates: "46.7°N, 117.5°E",
-    latitude: 46.7,
-    longitude: 117.5,
-    terrain: "Broad, relatively flat impact basin covered by patterned ground.",
-    significance: "Radar observations indicate extensive buried ice deposits.",
-    hazard: "Seasonal frost, severe cold, and dust-driven power loss.",
-    resources: "Abundant subsurface water ice and low-slope landing terrain.",
-    score: 88,
-    elevation: "−4,000 m",
-    slope: "1.7°",
-    radiation: "0.59 mSv/day",
-    temperature: "−69°C",
-    waterIce: "Very high",
-    rover: "Relay beacon",
-    scienceTargets: 6,
-  },
-];
+// Note: marsSites, defaultMarsSite, and MarsSite are imported from @/data/marsSites
 
 const layers: Array<{ id: LayerKey; label: string; icon: LucideIcon; detail: string }> = [
   { id: "terrain", label: "Terrain", icon: Waves, detail: "Topography + slope" },

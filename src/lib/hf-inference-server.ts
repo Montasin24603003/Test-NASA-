@@ -129,7 +129,7 @@ function parseServerDotEnvContent(rawText: string): Record<string, string> {
   return result;
 }
 
-function syncServerEnvFiles(): void {
+export function syncServerEnvFiles(): void {
   if (typeof process === 'undefined' || typeof process.cwd !== 'function' || !process.env) {
     return;
   }

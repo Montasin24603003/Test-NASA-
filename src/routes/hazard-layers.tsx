@@ -104,8 +104,7 @@ function HazardLayersPage() {
         </div>
 
         <Link
-          to="/"
-          hash="mission-map"
+          to="/planetary-map"
           className="inline-flex items-center gap-2 rounded-xl bg-amber px-4 py-2.5 font-display text-xs font-semibold text-ink shadow-sm transition hover:bg-amber/90"
         >
           <Layers className="size-3.5" /> Open on Planetary Map <ArrowRight className="size-3.5" />
@@ -131,12 +130,12 @@ function HazardLayersPage() {
             </div>
             <div className="mt-4 pt-3 border-t border-line/60 flex items-center justify-between">
               <span className="font-mono text-[10px] text-fog">Calibrated layer available on Map</span>
-              <a
-                href="/#mission-map"
+              <Link
+                to="/planetary-map"
                 className="font-mono text-[11px] font-semibold text-amber hover:underline inline-flex items-center gap-1"
               >
                 Inspect layer →
-              </a>
+              </Link>
             </div>
           </div>
         ))}

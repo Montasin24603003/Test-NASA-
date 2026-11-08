@@ -15,7 +15,8 @@ import {
   SlidersHorizontal,
   Box,
   BrainCircuit,
-  ExternalLink
+  ExternalLink,
+  FileText
 } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 
@@ -27,6 +28,7 @@ export interface MarsTopToolbarProps {
   onOpenCatalogue: () => void;
   onOpenImages: () => void;
   onOpenAiAdvisor: () => void;
+  onOpenMissionBrief?: () => void;
   onOpenHfAi?: () => void;
   isSidebarOpen: boolean;
   onToggleSidebar: () => void;
@@ -44,6 +46,7 @@ export function MarsTopToolbar({
   onOpenCatalogue,
   onOpenImages,
   onOpenAiAdvisor,
+  onOpenMissionBrief,
   onOpenHfAi,
   isSidebarOpen,
   onToggleSidebar,
@@ -171,6 +174,19 @@ export function MarsTopToolbar({
           <Navigation className="size-3.5 text-emerald-400" />
           <span className="hidden lg:inline">Route</span>
         </button>
+
+        {/* Mission Readiness Brief */}
+        {onOpenMissionBrief && (
+          <button
+            type="button"
+            onClick={onOpenMissionBrief}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 transition-colors"
+            title="Structured Mission Readiness Brief"
+          >
+            <FileText className="size-3.5 text-emerald-400" />
+            <span className="hidden lg:inline">Brief</span>
+          </button>
+        )}
 
         {/* NASA Catalogue Button */}
         <button

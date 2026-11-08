@@ -28,7 +28,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment, Float, Html, Lightformer, OrbitControls, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
-import { marsSites } from "@/components/MarsExplorer";
+import { marsSites } from "@/data/marsSites";
 import { NasaDataAtlas } from "@/components/NasaDataAtlas";
 import { SurvivalSimulator } from "@/components/SurvivalSimulator";
 

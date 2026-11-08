@@ -274,7 +274,7 @@ export function NasaDataAtlas() {
 
               <div className="mt-4 flex items-center justify-between border-t border-line/60 pt-3 font-mono text-[10px] text-fog">
                 <a
-                  href="#mission-map"
+                  href="/planetary-map"
                   className="text-amber hover:underline flex items-center gap-1 font-semibold"
                 >
                   <Layers3 className="size-3 text-amber" />

@@ -26,6 +26,9 @@ import {
   type MarsLandingSite 
 } from '@/lib/mars-trek';
 import { querySwimWaterIce, type SwimAssessment } from '@/lib/swim-data';
+import { getMarsTopography } from '@/lib/mars-dem-engine';
+import { calculateMeri } from '@/lib/mars-meri';
+import { getMarsRadiationDose, getMarsDustOpacity, getMarsEnergyAndComms } from '@/lib/mars-environment';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -221,6 +224,34 @@ function MarsGlobe3DView({
           <meshBasicMaterial color="#fbd38d" wireframe transparent opacity={0.035} />
         </mesh>
 
+        {/* 3D Surface Coordinate Raycasting Sphere */}
+        <mesh
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            if (!globeRef.current) return;
+            const localPt = globeRef.current.worldToLocal(e.point.clone());
+            const r = localPt.length();
+            if (r > 0) {
+              const phi = Math.acos(Math.max(-1, Math.min(1, localPt.y / r)));
+              const lat = 90 - (phi * 180) / Math.PI;
+              const theta = Math.atan2(localPt.z, -localPt.x);
+              let lon = (theta * 180) / Math.PI - 180;
+              while (lon > 180) lon -= 360;
+              while (lon < -180) lon += 360;
+              const topo = getMarsTopography(lat, lon);
+              onSelectLocation({
+                lat: Number(lat.toFixed(4)),
+                lon: Number(lon.toFixed(4)),
+                name: `Planetary Target (${lat.toFixed(2)}°, ${lon.toFixed(2)}°)`,
+                elevationM: topo.elevationM,
+              });
+            }
+          }}
+        >
+          <sphereGeometry args={[2.53, 36, 36]} />
+          <meshBasicMaterial transparent opacity={0.0} />
+        </mesh>
+
         {/* Landing Site Pins on Globe */}
         {MARS_LANDING_SITES.map((site) => {
           const phi = (90 - site.lat) * (Math.PI / 180);
@@ -412,10 +443,13 @@ export function MarsWorldviewMap({
     ctx.fillStyle = '#060a10';
     ctx.fillRect(0, 0, w, h);
 
-    // 2. NASA Mars Trek WMTS Tile Layer Rendering
-    const effectiveTileZoom = Math.min(7, Math.max(0, Math.floor(zoom)));
-    const cols = Math.pow(2, effectiveTileZoom + 1);
-    const rows = Math.pow(2, effectiveTileZoom);
+    // 2. NASA Mars Trek WMTS Tile Layer Rendering with Viewport Culling & Bounds Checking
+    const pViewTL = unprojectFromPixel(0, 0, w, h);
+    const pViewBR = unprojectFromPixel(w, h, w, h);
+    const viewWest = Math.min(pViewTL.lon, pViewBR.lon) - 1.0;
+    const viewEast = Math.max(pViewTL.lon, pViewBR.lon) + 1.0;
+    const viewNorth = Math.max(pViewTL.lat, pViewBR.lat) + 1.0;
+    const viewSouth = Math.min(pViewTL.lat, pViewBR.lat) - 1.0;
 
     // Render active NASA Mars Trek WMTS Raster Layers
     MARS_SCIENTIFIC_LAYERS.forEach((layer) => {
@@ -423,14 +457,39 @@ export function MarsWorldviewMap({
       const state = activeLayers[layer.id];
       if (!state || !state.visible || state.opacity <= 0) return;
 
+      const maxZ = layer.maxZoom ?? 7;
+      const minZ = layer.minZoom ?? 0;
+      const effectiveTileZoom = Math.min(maxZ, Math.max(minZ, Math.floor(zoom)));
+      const cols = Math.pow(2, effectiveTileZoom + 1);
+      const rows = Math.pow(2, effectiveTileZoom);
+
+      // Bounds checking for localized high-resolution layers (HiRISE, CTX)
+      let lWest = -180, lEast = 180, lSouth = -90, lNorth = 90;
+      if (layer.bounds) {
+        [[lSouth, lWest], [lNorth, lEast]] = layer.bounds;
+        if (viewNorth < lSouth || viewSouth > lNorth || viewEast < lWest || viewWest > lEast) {
+          return; // Skip layer completely if outside viewport
+        }
+      }
+
+      const effWest = Math.max(-180, Math.max(viewWest, lWest));
+      const effEast = Math.min(180, Math.min(viewEast, lEast));
+      const effNorth = Math.min(90, Math.min(viewNorth, lNorth));
+      const effSouth = Math.max(-90, Math.max(viewSouth, lSouth));
+
+      const colMin = Math.max(0, Math.floor(((effWest + 180) / 360) * cols));
+      const colMax = Math.min(cols - 1, Math.floor(((effEast + 180) / 360) * cols));
+      const rowMin = Math.max(0, Math.floor(((90 - effNorth) / 180) * rows));
+      const rowMax = Math.min(rows - 1, Math.floor(((90 - effSouth) / 180) * rows));
+
       ctx.save();
       ctx.globalAlpha = state.opacity;
 
-      for (let col = 0; col < cols; col++) {
+      for (let col = colMin; col <= colMax; col++) {
         const tileWest = -180 + (col / cols) * 360;
         const tileEast = -180 + ((col + 1) / cols) * 360;
 
-        for (let row = 0; row < rows; row++) {
+        for (let row = rowMin; row <= rowMax; row++) {
           const tileNorth = 90 - (row / rows) * 180;
           const tileSouth = 90 - ((row + 1) / rows) * 180;
 
@@ -457,6 +516,104 @@ export function MarsWorldviewMap({
       }
       ctx.restore();
     });
+
+    // 2B. MERI Composite Risk Heatmap Vector Overlay
+    const meriLayerState = activeLayers['hazard-meri-risk'];
+    if (meriLayerState?.visible && meriLayerState.opacity > 0) {
+      ctx.save();
+      ctx.globalAlpha = meriLayerState.opacity;
+      const stepDeg = zoom > 3.5 ? 1.5 : zoom > 1.8 ? 3.0 : 6.0;
+      const latStart = Math.max(-85, Math.floor(viewSouth / stepDeg) * stepDeg);
+      const latEnd = Math.min(85, Math.ceil(viewNorth / stepDeg) * stepDeg);
+      const lonStart = Math.max(-180, Math.floor(viewWest / stepDeg) * stepDeg);
+      const lonEnd = Math.min(180, Math.ceil(viewEast / stepDeg) * stepDeg);
+
+      for (let rLat = latStart; rLat <= latEnd; rLat += stepDeg) {
+        for (let rLon = lonStart; rLon <= lonEnd; rLon += stepDeg) {
+          const m = calculateMeri(rLat + stepDeg / 2, rLon + stepDeg / 2);
+          const p1 = projectToPixel(rLon, rLat + stepDeg, w, h);
+          const p2 = projectToPixel(rLon + stepDeg, rLat, w, h);
+          const cellW = p2.x - p1.x;
+          const cellH = p2.y - p1.y;
+
+          if (m.classification === 'SAFE') {
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.35)'; // emerald
+          } else if (m.classification === 'CAUTION') {
+            ctx.fillStyle = 'rgba(245, 158, 11, 0.40)'; // amber
+          } else {
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.48)'; // rose red
+          }
+          ctx.fillRect(p1.x, p1.y, cellW, cellH);
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+          ctx.lineWidth = 0.5;
+          ctx.strokeRect(p1.x, p1.y, cellW, cellH);
+        }
+      }
+      ctx.restore();
+    }
+
+    // 2C. Historical Radiation Environment (MARIE & MSL RAD) Vector Overlay
+    const radLayerState = activeLayers['hazard-radiation-environment'];
+    if (radLayerState?.visible && radLayerState.opacity > 0) {
+      ctx.save();
+      ctx.globalAlpha = radLayerState.opacity;
+      const stepDeg = zoom > 2.5 ? 2.5 : 5.0;
+      const latStart = Math.max(-85, Math.floor(viewSouth / stepDeg) * stepDeg);
+      const latEnd = Math.min(85, Math.ceil(viewNorth / stepDeg) * stepDeg);
+      const lonStart = Math.max(-180, Math.floor(viewWest / stepDeg) * stepDeg);
+      const lonEnd = Math.min(180, Math.ceil(viewEast / stepDeg) * stepDeg);
+
+      for (let rLat = latStart; rLat <= latEnd; rLat += stepDeg) {
+        for (let rLon = lonStart; rLon <= lonEnd; rLon += stepDeg) {
+          const topo = getMarsTopography(rLat + stepDeg / 2, rLon + stepDeg / 2);
+          const rad = getMarsRadiationDose(topo.elevationM);
+          const p1 = projectToPixel(rLon, rLat + stepDeg, w, h);
+          const p2 = projectToPixel(rLon + stepDeg, rLat, w, h);
+
+          if (rad.surfaceGcrDoseMsvYear < 215) {
+            ctx.fillStyle = 'rgba(59, 130, 246, 0.38)'; // deep basin shielding
+          } else if (rad.surfaceGcrDoseMsvYear < 265) {
+            ctx.fillStyle = 'rgba(234, 179, 8, 0.38)'; // nominal plains
+          } else {
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.44)'; // thin atmosphere peaks
+          }
+          ctx.fillRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+        }
+      }
+      ctx.restore();
+    }
+
+    // 2D. Historical Atmospheric Dust Opacity (tau) Vector Overlay
+    const dustLayerState = activeLayers['hazard-dust-opacity'];
+    if (dustLayerState?.visible && dustLayerState.opacity > 0) {
+      ctx.save();
+      ctx.globalAlpha = dustLayerState.opacity;
+      for (let latB = -80; latB <= 80; latB += 10) {
+        const d = getMarsDustOpacity(75, latB);
+        const p1 = projectToPixel(-180, latB + 10, w, h);
+        const p2 = projectToPixel(180, latB, w, h);
+        const alpha = Math.min(0.60, Math.max(0.12, d.tau * 0.35));
+        ctx.fillStyle = `rgba(217, 119, 6, ${alpha})`;
+        ctx.fillRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+      }
+      ctx.restore();
+    }
+
+    // 2E. Solar Energy Potential (Insolation) Vector Overlay
+    const solarLayerState = activeLayers['resource-solar-insolation'];
+    if (solarLayerState?.visible && solarLayerState.opacity > 0) {
+      ctx.save();
+      ctx.globalAlpha = solarLayerState.opacity;
+      for (let latB = -80; latB <= 80; latB += 10) {
+        const solar = getMarsEnergyAndComms(latB, 0, 75, 0.25);
+        const p1 = projectToPixel(-180, latB + 10, w, h);
+        const p2 = projectToPixel(180, latB, w, h);
+        const alpha = Math.min(0.55, (solar.solarInsolationWm2 / 580) * 0.45);
+        ctx.fillStyle = `rgba(251, 191, 36, ${alpha})`;
+        ctx.fillRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+      }
+      ctx.restore();
+    }
 
     // 3. NASA SWIM 2.0 Subsurface Water Ice Overlay (Vector Evidence Layer)
     const swimLayerState = activeLayers['resource-swim-ice'];
@@ -841,7 +998,7 @@ export function MarsWorldviewMap({
     if (viewMode !== '2d') return;
     e.preventDefault();
     const delta = e.deltaY < 0 ? 0.35 : -0.35;
-    setZoom((prev) => Math.max(0.5, Math.min(7.0, prev + delta)));
+    setZoom((prev) => Math.max(0.5, Math.min(14.0, prev + delta)));
   };
 
   return (
@@ -942,7 +1099,7 @@ export function MarsWorldviewMap({
             <>
               <button
                 type="button"
-                onClick={() => setZoom((prev) => Math.min(7.0, prev + 0.5))}
+                onClick={() => setZoom((prev) => Math.min(14.0, prev + 0.5))}
                 title="Zoom In"
                 className="p-2 text-slate-300 hover:bg-slate-800 rounded transition-colors"
               >

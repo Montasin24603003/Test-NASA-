@@ -9,6 +9,7 @@ import { NasaImagesModal } from './NasaImagesModal';
 import { MarsAiAdvisorModal } from './MarsAiAdvisorModal';
 import { MarsCatalogueModal } from './MarsCatalogueModal';
 import { MarsTopToolbar } from './MarsTopToolbar';
+import { MissionReadinessBrief } from '@/components/MissionReadinessBrief/MissionReadinessBrief';
 import { HfAiAnalysisPanel } from '@/components/HfAiAnalysis/HfAiAnalysisPanel';
 import { BrainCircuit, X } from 'lucide-react';
 import { 
@@ -17,7 +18,10 @@ import {
   type MarsScientificLayer, 
   type MarsRegionProfile 
 } from '@/lib/mars-trek';
-import type { SwimAssessment } from '@/lib/swim-data';
+import { querySwimWaterIce, type SwimAssessment } from '@/lib/swim-data';
+import { getMarsTopography } from '@/lib/mars-dem-engine';
+import { calculateMeri } from '@/lib/mars-meri';
+import { planMultiObjectiveRoutes, type MultiRoutePlanResult } from '@/lib/mars-pathfinder';
 
 export interface MarsCockpitProps {
   embedded?: boolean;
@@ -72,6 +76,8 @@ export function MarsCockpit({ embedded = false, className, initialFullscreen = f
   const [routeWaypoints, setRouteWaypoints] = useState<RouteWaypoint[]>([]);
   const [isRoutingMode, setIsRoutingMode] = useState(false);
   const [isRoutePlannerOpen, setIsRoutePlannerOpen] = useState(false);
+  const [isMissionBriefOpen, setIsMissionBriefOpen] = useState(false);
+  const [briefRouteId, setBriefRouteId] = useState<'safest' | 'fastest' | 'science'>('safest');
   const [isCatalogueOpen, setIsCatalogueOpen] = useState(false);
   const [isImagesModalOpen, setIsImagesModalOpen] = useState(false);
   const [isAiAdvisorOpen, setIsAiAdvisorOpen] = useState(false);
@@ -81,6 +87,15 @@ export function MarsCockpit({ embedded = false, className, initialFullscreen = f
     lon: number;
     name: string;
     elevationM: number;
+    slopeDeg?: number;
+    roughnessM?: number;
+    terrainClassification?: string;
+    roverStatus?: string;
+    roverScore?: number;
+    evaStatus?: string;
+    evaScore?: number;
+    meriScore?: number;
+    meriClassification?: string;
     swim: SwimAssessment;
   } | null>(null);
 
@@ -94,6 +109,31 @@ export function MarsCockpit({ embedded = false, className, initialFullscreen = f
     lon: 77.58,
     name: 'Belva Crater Margin',
   });
+
+  // Dynamic telemetry synthesis for mission brief & AI advisor
+  const activeTopography = React.useMemo(() => {
+    return getMarsTopography(selectedLocation.lat, selectedLocation.lon);
+  }, [selectedLocation.lat, selectedLocation.lon]);
+
+  const activeSwim = React.useMemo(() => {
+    return querySwimWaterIce(selectedLocation.lat, selectedLocation.lon);
+  }, [selectedLocation.lat, selectedLocation.lon]);
+
+  const activeMeri = React.useMemo(() => {
+    return calculateMeri(
+      selectedLocation.lat,
+      selectedLocation.lon,
+      'pressurized_rover'
+    );
+  }, [selectedLocation.lat, selectedLocation.lon]);
+
+  const briefPlanResult: MultiRoutePlanResult = React.useMemo(() => {
+    return planMultiObjectiveRoutes(
+      routeOrigin,
+      routeDestination,
+      'pressurized_rover'
+    );
+  }, [routeOrigin, routeDestination]);
 
   // Toggle layer visibility
   const handleToggleLayer = useCallback((layerId: string) => {
@@ -138,6 +178,15 @@ export function MarsCockpit({ embedded = false, className, initialFullscreen = f
     lon: number;
     name: string;
     elevationM: number;
+    slopeDeg?: number;
+    roughnessM?: number;
+    terrainClassification?: string;
+    roverStatus?: string;
+    roverScore?: number;
+    evaStatus?: string;
+    evaScore?: number;
+    meriScore?: number;
+    meriClassification?: string;
     swim: SwimAssessment;
   }) => {
     setAiContext(ctx);
@@ -160,8 +209,24 @@ export function MarsCockpit({ embedded = false, className, initialFullscreen = f
         onOpenRoutePlanner={() => setIsRoutePlannerOpen(true)}
         onOpenCatalogue={() => setIsCatalogueOpen(true)}
         onOpenImages={() => setIsImagesModalOpen(true)}
+        onOpenMissionBrief={() => setIsMissionBriefOpen(true)}
         onOpenAiAdvisor={() => {
-          setAiContext(null);
+          setAiContext({
+            lat: selectedLocation.lat,
+            lon: selectedLocation.lon,
+            name: selectedLocation.name || `Location (${selectedLocation.lat.toFixed(2)}°, ${selectedLocation.lon.toFixed(2)}°)`,
+            elevationM: selectedLocation.elevationM ?? activeTopography.elevationM,
+            slopeDeg: activeTopography.slopeDeg,
+            roughnessM: activeTopography.roughnessM,
+            terrainClassification: activeTopography.terrainClassification,
+            roverStatus: 'OPERATIONAL',
+            roverScore: 85,
+            evaStatus: 'CAUTION',
+            evaScore: 78,
+            meriScore: activeMeri.compositeMeriScore,
+            meriClassification: activeMeri.classification,
+            swim: activeSwim,
+          });
           setIsAiAdvisorOpen(true);
         }}
         onOpenHfAi={() => setIsHfAiOpen(true)}
@@ -317,6 +382,10 @@ export function MarsCockpit({ embedded = false, className, initialFullscreen = f
                 setRouteWaypoints(pts);
                 setIsRoutePlannerOpen(false);
               }}
+              onOpenMissionBrief={(_plan, routeId) => {
+                setBriefRouteId(routeId);
+                setIsMissionBriefOpen(true);
+              }}
               onClose={() => setIsRoutePlannerOpen(false)}
             />
           </div>
@@ -378,6 +447,22 @@ export function MarsCockpit({ embedded = false, className, initialFullscreen = f
           </div>
         </div>
       )}
+
+      {/* 6. Structured NASA Mission Readiness Brief Modal */}
+      <MissionReadinessBrief
+        isOpen={isMissionBriefOpen}
+        onClose={() => setIsMissionBriefOpen(false)}
+        locationName={selectedLocation.name || `Mars Location (${selectedLocation.lat.toFixed(2)}°, ${selectedLocation.lon.toFixed(2)}°)`}
+        lat={selectedLocation.lat}
+        lon={selectedLocation.lon}
+        elevationM={selectedLocation.elevationM ?? activeTopography.elevationM}
+        missionObjective={`Scientific exploration and traversability assessment between ${routeOrigin.name} and ${routeDestination.name}`}
+        planResult={briefPlanResult}
+        selectedRouteId={briefRouteId}
+        meriAssessment={activeMeri}
+        swimAssessment={activeSwim}
+        onSelectRoute={(id) => setBriefRouteId(id)}
+      />
     </div>
   );
 }
