@@ -1,57 +1,105 @@
+import { querySwimWaterIce } from '@/lib/swim-data';
+
 /**
- * Hugging Face Mars-Specific AI Models & Multi-Sensor Planetary Science Registry
- * 
- * Sources & Official Repositories:
- * 1. MOMO (Mars Orbital Model):
- *    - Repository: Mirali33/MOMO (Kerner Lab, Univ. of Maryland)
- *    - Pretraining: Mirali33/MOMO-pretraining-data
- *    - Sensors: HiRISE (~0.25-1m/px), CTX (~5m/px), THEMIS (~100m/px)
- *    - Architecture: Vision Transformer (vit-s-16, vit-b-16, vit-l-16) with Equal Validation Loss (EVL) merging
- *    - License: CC-BY-NC-4.0
- * 
- * 2. Mars-Bench Benchmark Task Models:
- *    - Repository: Mirali33/mars-bench collection
- *    - Tasks:
- *      * Crater Segmentation: Mirali33/mars-bench-crater-binary-segmentation & multi-segmentation
- *      * Boulder Detection: Mirali33/mars-bench-boulder-segmentation
- *      * Frost Classification: Mirali33/mars-bench-frost-classification
- *      * Surface Landmark Classification: Mirali33/mb-domars16k (16,000+ HiRISE scenes)
- *      * Dust Devil Detection: Mirali33/mars-bench-dust-devil-detection
- *    - License: MIT / CC-BY-NC-4.0
- * 
- * 3. Qwen2.5-VL-3B-Instruct:
- *    - Repository: Qwen/Qwen2.5-VL-3B-Instruct
- *    - Architecture: Vision-Language Model (3B Parameters)
- *    - License: Apache-2.0
- *    - Hardware Guard: ~6-8GB VRAM (Cloud Inference via HF Serverless API or local GPU)
- * 
- * 4. SegFormer / U-Net Planetary Segmentation:
- *    - Repository: nvidia/segformer-b0 / fine-tuned planetary checkpoints
- *    - Architecture: Hierarchical Transformer Encoder + MLP Decoder
- *    - License: Apache-2.0
+ * Verified Hugging Face Mars-Specific AI Model Registry & Planetary Science Metadata
+ *
+ * Architecture:
+ *   React Frontend -> Backend API (/api/hf-inference) -> Hugging Face -> Backend Validation -> Frontend Visualization
+ *
+ * Security Invariant:
+ *   Hugging Face API tokens (HF_TOKEN / HUGGINGFACE_API_KEY) and private endpoint credentials
+ *   are read strictly on the server in `src/lib/hf-inference-server.ts` and NEVER exposed here.
  */
+
+export type HfModelTask =
+  | 'image-feature-extraction'
+  | 'image-segmentation'
+  | 'object-detection'
+  | 'image-classification'
+  | 'image-text-to-text';
+
+export type HfHostingMethod =
+  | 'inference-providers'
+  | 'dedicated-endpoint'
+  | 'hf-space'
+  | 'custom-api'
+  | 'hub-weights-only';
+
+export type HfModelOperationalStatus =
+  | 'online'
+  | 'configured'
+  | 'token_required'
+  | 'endpoint_required'
+  | 'loading'
+  | 'auth_error'
+  | 'credits_required'
+  | 'rate_limited'
+  | 'unavailable'
+  | 'error';
+
+export type HfInferenceErrorCode =
+  | 'MISSING_HF_TOKEN'
+  | 'HTTP_401_UNAUTHORIZED'
+  | 'HTTP_402_PAYMENT_REQUIRED'
+  | 'HTTP_403_FORBIDDEN'
+  | 'HTTP_404_NOT_FOUND'
+  | 'HTTP_429_RATE_LIMITED'
+  | 'HTTP_500_SERVER_ERROR'
+  | 'AUTH_ERROR'
+  | 'NO_INFERENCE_PROVIDER'
+  | 'MODEL_NOT_FOUND'
+  | 'MODEL_LOADING'
+  | 'RATE_LIMITED'
+  | 'REQUEST_TIMEOUT'
+  | 'INVALID_IMAGE_FORMAT'
+  | 'PAYLOAD_TOO_LARGE'
+  | 'IMAGE_FETCH_FAILED'
+  | 'INVALID_RESPONSE_SCHEMA'
+  | 'UPSTREAM_ERROR';
+
+export type MarsSensorType = 'HiRISE' | 'CTX' | 'THEMIS' | 'MOLA';
 
 export interface HfModelMetadata {
   id: string;
   name: string;
   shortName: string;
   category: 'foundation' | 'segmentation' | 'detection' | 'classification' | 'vqa';
+
+  // Required 9-Field Verified Model Registry Properties
+  hfRepoId: string;
+  /** Alias preserved for UI compatibility */
   hfRepo: string;
   hfUrl: string;
+  task: HfModelTask;
+  hostingMethod: HfHostingMethod;
+  apiEndpoint: string;
+  inputFormat: string;
+  outputFormat: string;
+  modelStatus: HfModelOperationalStatus;
+  inferenceAvailability: string;
+
+  // Extended Technical & Scientific Provenance
+  checkpointFormat: string;
+  libraryName: string;
+  envVarKeys: {
+    repoId: string;
+    endpointUrl: string;
+    spaceUrl: string;
+    customUrl: string;
+  };
   authors: string;
   architecture: string;
   parameterCount: string;
   license: string;
-  targetSensors: ('HiRISE' | 'CTX' | 'THEMIS' | 'MOLA')[];
+  targetSensors: MarsSensorType[];
   resolutionRange: string;
-  inputFormat: string;
   preprocessingRequirements: string;
   inferenceRequirements: {
     minVramGb: number;
     recommendedDevice: 'CPU' | 'GPU' | 'Cloud API';
     supportsCpu: boolean;
     supportsCloudApi: boolean;
-    quantizationAvailable?: string;
+    quantizationAvailable?: string | undefined;
   };
   scientificTier: 'ai_probabilistic_inference';
   description: string;
@@ -59,13 +107,45 @@ export interface HfModelMetadata {
   citations: string[];
 }
 
+export interface HfLiveVerificationRecord {
+  id: string;
+  name: string;
+  shortName: string;
+  hfRepoId: string;
+  task: HfModelTask;
+  hostingMethod: HfHostingMethod;
+  apiEndpoint: string;
+  inputFormat: string;
+  outputFormat: string;
+  modelStatus: HfModelOperationalStatus;
+  inferenceAvailability: string;
+  hubVerification: {
+    checkedAt: string;
+    repoExists: boolean;
+    hubHttpStatus: number;
+    pipelineTag: string | null;
+    libraryName: string | null;
+    checkpointFiles: string[];
+    liveProviders: string[];
+    customEndpointConfigured: boolean;
+    diagnosticNote: string;
+  };
+}
+
 export interface BoundingBoxPrediction {
   id: string;
   label: string;
   confidence: number;
-  // Normalized coordinates [0, 1] relative to image
-  box: [number, number, number, number]; // [ymin, xmin, ymax, xmax]
-  // Geographically referenced Martian coordinates
+  /** Normalized coordinates [0, 1] relative to image: [ymin, xmin, ymax, xmax] */
+  box: [number, number, number, number];
+  /** Raw pixel coordinates from Hugging Face detector */
+  pixelBox?: {
+    xmin: number;
+    ymin: number;
+    xmax: number;
+    ymax: number;
+  } | undefined;
+  /** Geographically referenced Martian coordinates */
   geoBounds: {
     minLat: number;
     maxLat: number;
@@ -73,10 +153,20 @@ export interface BoundingBoxPrediction {
     maxLon: number;
   };
   metrics?: {
-    estimatedDiameterMeters?: number;
-    hazardLevel?: 'Low' | 'Moderate' | 'Severe';
-    scientificNote?: string;
-  };
+    estimatedDiameterMeters?: number | undefined;
+    hazardLevel?: 'Low' | 'Moderate' | 'Severe' | undefined;
+    scientificNote?: string | undefined;
+  } | undefined;
+}
+
+export interface RasterMaskPrediction {
+  id: string;
+  label: string;
+  marsTerrainInterpretation: string;
+  confidence: number;
+  color: string;
+  /** Base64 PNG grayscale mask (`data:image/png;base64,...`) returned directly by HF image-segmentation */
+  maskDataUri: string;
 }
 
 export interface SegmentationPolygon {
@@ -86,8 +176,8 @@ export interface SegmentationPolygon {
   color: string;
   confidence: number;
   points: [number, number][]; // normalized [x, y] coordinates
-  geoCoordinates?: [number, number][]; // [lon, lat]
-  areaSqMeters?: number;
+  geoCoordinates?: [number, number][] | undefined; // [lon, lat]
+  areaSqMeters?: number | undefined;
 }
 
 export interface ClassificationResult {
@@ -97,40 +187,72 @@ export interface ClassificationResult {
   geologicalInterpretation: string;
 }
 
+export interface EmbeddingPrediction {
+  dimensions: number;
+  l2Norm: number;
+  sampleVector: number[];
+  poolingStrategy: string;
+}
+
 export interface AiInferenceResponse {
   modelId: string;
   modelName: string;
-  status: 'success' | 'unavailable' | 'error';
+  hfRepoUsed: string;
+  task: HfModelTask;
+  hostingMethodUsed: HfHostingMethod;
+  endpointUsed: string;
+  providerUsed?: string | undefined;
+  httpStatus?: number | undefined;
+  /** True only when an actual upstream HTTP request was dispatched to Hugging Face */
+  upstreamCalled: boolean;
+  /** True ONLY after an actual Hugging Face inference request succeeded with HTTP 200 */
+  modelOnlineVerified: boolean;
+  status: 'success' | 'loading' | 'unavailable' | 'error';
+  errorCode?: HfInferenceErrorCode | undefined;
+  estimatedLoadingSec?: number | undefined;
   executionTimeMs: number;
   deviceUsed: string;
   timestamp: string;
   isCached: boolean;
-  unavailableReason?: string;
-  
+  unavailableReason?: string | undefined;
+
+  tokenUsage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  } | undefined;
+
+  imageDimensions?: {
+    width: number;
+    height: number;
+    mimeType: string;
+    byteLength: number;
+    sourceLabel: string;
+    sha256Prefix?: string | undefined;
+    sentToModel?: boolean | undefined;
+  } | undefined;
+
   // Georeferenced Location Meta
   targetLocation: {
     lat: number;
     lon: number;
     name: string;
-    elevationM?: number;
+    elevationM?: number | undefined;
   };
-  sensorUsed: 'HiRISE' | 'CTX' | 'THEMIS' | 'MOLA';
+  sensorUsed: MarsSensorType;
   spatialResolution: string;
   groundSampleDistanceM: number;
-  
-  // Model Predictions
+
+  // Real Validated Model Predictions (NEVER hardcoded/fabricated)
   predictions: {
     summary: string;
     overallConfidence: number;
     boundingBoxes?: BoundingBoxPrediction[] | undefined;
+    rasterMasks?: RasterMaskPrediction[] | undefined;
     segmentationMasks?: SegmentationPolygon[] | undefined;
     classifications?: ClassificationResult[] | undefined;
-    embeddings?: {
-      dimensions: number;
-      sampleVector: number[];
-      similarityToBenchmark?: { name: string; score: number }[] | undefined;
-    } | undefined;
-    textAnswer?: string | undefined; // For VQA Qwen2.5-VL
+    embeddings?: EmbeddingPrediction | undefined;
+    textAnswer?: string | undefined;
   };
 
   // Rigorous Scientific Evidence Cross-Check (NASA Ground Truth)
@@ -154,219 +276,335 @@ export interface AiInferenceResponse {
   };
 }
 
+/**
+ * Verified 7-Model Registry
+ *
+ * Empirical Hugging Face Hub Audit Summary:
+ * 1. `Mirali33/MOMO` — Verified on Hub (`vit-b-16/momo.pth`, `vit-l-16/momo.pth`). Raw PyTorch `.pth` state_dict without `config.json`; `inferenceProviderMapping` is `{}`. Requires Dedicated Endpoint or HF Space (`HF_SPACE_URL` / `HF_MOMO_ENDPOINT_URL`), or custom `HF_MOMO_REPO_ID`.
+ * 2. `Mirali33/mars-bench-crater-binary-segmentation` — Verified on Hub (`model.ckpt` Lightning U-Net). No `config.json`; `inferenceProviderMapping` is `{}`. Requires Dedicated Endpoint or HF Space.
+ * 3. `Mirali33/mars-bench-boulder-detection` — Corrected from `mars-bench-boulder-segmentation` to the official `object-detection` repo (`model.ckpt`). Requires Dedicated Endpoint or HF Space.
+ * 4. `Mirali33/mars-bench-domars16k` — Corrected from `Mirali33/mb-domars16k` (which is a Dataset repo, HTTP 404 on `/api/models/`) to the actual `image-classification` model repo (`model.ckpt`). Requires Dedicated Endpoint or HF Space.
+ * 5. `Mirali33/mars-bench-frost-classification` — Verified on Hub (`model.ckpt`). Requires Dedicated Endpoint or HF Space.
+ * 6. `nvidia/segformer-b0-finetuned-ade-512-512` — Verified LIVE on Hugging Face Inference Providers (`hf-inference`, `warm`) via `https://router.huggingface.co/hf-inference/models/nvidia/segformer-b0-finetuned-ade-512-512`.
+ * 7. `Qwen/Qwen2.5-VL-3B-Instruct` — Verified LIVE on Hugging Face Inference Providers (`featherless-ai` / OpenAI-compatible router, `warm`) via `https://router.huggingface.co/v1/chat/completions`.
+ */
 export const HF_MARS_MODELS_CATALOG: HfModelMetadata[] = [
   {
     id: 'momo-foundation',
     name: 'MOMO — Mars Orbital Multi-Sensor Foundation Model',
     shortName: 'MOMO Foundation',
     category: 'foundation',
+    hfRepoId: 'Mirali33/MOMO',
     hfRepo: 'Mirali33/MOMO',
     hfUrl: 'https://huggingface.co/Mirali33/MOMO',
-    authors: 'Kerner Lab (University of Maryland) / Mirali et al.',
+    task: 'image-feature-extraction',
+    hostingMethod: 'hub-weights-only',
+    apiEndpoint: 'HF Space (/infer) or Dedicated Endpoint (HF_MOMO_ENDPOINT_URL)',
+    inputFormat: 'Binary RGB/Grayscale orbital patch (JPEG/PNG/WebP <= 4 MB; resized to 224x224, normalized)',
+    outputFormat: 'JSON embedding tensor: { dimensions: 768|1024, vector: number[], l2Norm: number }',
+    modelStatus: 'endpoint_required',
+    inferenceAvailability: 'Hub weights verified (vit-b-16/momo.pth) — No serverless hf-inference provider; requires HF Space or Dedicated Endpoint',
+    checkpointFormat: 'Raw PyTorch state_dict (vit-b-16/momo.pth, vit-l-16/momo.pth)',
+    libraryName: 'pytorch-custom (timm ViT)',
+    envVarKeys: {
+      repoId: 'HF_MOMO_REPO_ID',
+      endpointUrl: 'HF_MOMO_ENDPOINT_URL',
+      spaceUrl: 'HF_MOMO_SPACE_URL',
+      customUrl: 'HF_MOMO_CUSTOM_URL',
+    },
+    authors: 'Mirali Purohit, Kerner Lab (ASU / JPL) — CVPR 2026',
     architecture: 'Multi-Sensor Vision Transformer (ViT-B/16 & ViT-L/16) with Equal Validation Loss (EVL) Merging',
     parameterCount: '86M (ViT-B) – 307M (ViT-L)',
-    license: 'CC-BY-NC-4.0',
+    license: 'CC-BY-4.0',
     targetSensors: ['HiRISE', 'CTX', 'THEMIS'],
     resolutionRange: '0.25 m/px – 100 m/px',
-    inputFormat: '224x224 or 512x512 single/multi-band patches, float32',
-    preprocessingRequirements: 'Sensor-specific zero-mean unit-variance normalization with Mars-calibrated radiometric albedo clipping',
+    preprocessingRequirements: 'Resize 224x224, sensor-calibrated zero-mean unit-variance normalization',
     inferenceRequirements: {
       minVramGb: 1.5,
-      recommendedDevice: 'CPU',
+      recommendedDevice: 'Cloud API',
       supportsCpu: true,
       supportsCloudApi: true,
       quantizationAvailable: 'FP16, INT8',
     },
     scientificTier: 'ai_probabilistic_inference',
-    description: 'First multi-sensor orbital foundation model for Mars remote sensing. Merges learned representations independently from HiRISE, CTX, and THEMIS to output unified Martian geomorphology and composition embeddings.',
-    limitations: 'Foundation representations capture structural and albedo patterns; requires downstream calibration for physical subsurface depth estimation.',
+    description: 'First multi-sensor orbital foundation model for Mars remote sensing (CVPR 2026). Merges representations learned from HiRISE, CTX, and THEMIS into unified Martian geomorphology embeddings.',
+    limitations: 'Published on Hugging Face Hub as raw .pth checkpoints without Transformers config.json; cannot be served by free serverless hf-inference without deploying the included HF Space or a Dedicated Endpoint.',
     citations: [
-      'Mirali, M., Kerner, H. et al. "MOMO: A Multi-Sensor Foundation Model for Mars Remote Sensing", Hugging Face Hub (2024).',
-      'NASA Planetary Data System (PDS) HiRISE, CTX & THEMIS Data Records.'
+      'Purohit, M., Kerner, H. et al. "MOMO: Mars Orbital Model Foundation Model for Mars Orbital Applications", CVPR (2026).',
+      'NASA Planetary Data System (PDS) HiRISE, CTX & THEMIS Data Records.',
     ],
   },
   {
     id: 'mars-bench-crater',
-    name: 'Mars-Bench: Crater Semantic Segmentation',
+    name: 'Mars-Bench: Crater Binary Semantic Segmentation',
     shortName: 'Crater Segmentation',
     category: 'segmentation',
+    hfRepoId: 'Mirali33/mars-bench-crater-binary-segmentation',
     hfRepo: 'Mirali33/mars-bench-crater-binary-segmentation',
     hfUrl: 'https://huggingface.co/Mirali33/mars-bench-crater-binary-segmentation',
+    task: 'image-segmentation',
+    hostingMethod: 'hub-weights-only',
+    apiEndpoint: 'HF Space (/infer) or Dedicated Endpoint (HF_CRATER_ENDPOINT_URL)',
+    inputFormat: 'Binary orbital image (JPEG/PNG/WebP <= 4 MB; 512x512 panchromatic/RGB tile)',
+    outputFormat: 'JSON array of { label: string, score: number, mask: base64_png }',
+    modelStatus: 'endpoint_required',
+    inferenceAvailability: 'Hub checkpoint verified (model.ckpt) — No serverless hf-inference provider; requires HF Space or Dedicated Endpoint',
+    checkpointFormat: 'PyTorch Lightning checkpoint (model.ckpt / CraterBinarySegmentation_UNet.ckpt)',
+    libraryName: 'pytorch-lightning (U-Net)',
+    envVarKeys: {
+      repoId: 'HF_CRATER_REPO_ID',
+      endpointUrl: 'HF_CRATER_ENDPOINT_URL',
+      spaceUrl: 'HF_CRATER_SPACE_URL',
+      customUrl: 'HF_CRATER_CUSTOM_URL',
+    },
     authors: 'Kerner Lab / Mars-Bench Team',
-    architecture: 'Hierarchical SegFormer / U-Net Encoder-Decoder with ViT-B backbone',
+    architecture: 'U-Net Encoder-Decoder (CraterBinarySegmentation_UNet)',
     parameterCount: '27.4M',
-    license: 'MIT',
-    targetSensors: ['HiRISE', 'CTX'],
-    resolutionRange: '0.25 m/px – 6.0 m/px',
-    inputFormat: '512x512 panchromatic or color-composite raster tile',
-    preprocessingRequirements: 'Bilinear resize to 512x512, standard deviation normalization, solar illumination angle correction',
+    license: 'Apache-2.0',
+    targetSensors: ['HiRISE', 'CTX', 'THEMIS'],
+    resolutionRange: '0.25 m/px – 100 m/px',
+    preprocessingRequirements: 'Bilinear resize to 512x512, standard deviation normalization',
     inferenceRequirements: {
       minVramGb: 0.8,
-      recommendedDevice: 'CPU',
+      recommendedDevice: 'Cloud API',
       supportsCpu: true,
       supportsCloudApi: true,
-      quantizationAvailable: 'INT8, ONNX Runtime',
+      quantizationAvailable: 'FP16, ONNX',
     },
     scientificTier: 'ai_probabilistic_inference',
-    description: 'Segments impact crater rims, cavities, and degraded morphology from orbital imagery. Produces pixel-level binary masks and polygonal boundaries for crater counting and age determination.',
-    limitations: 'Sub-pixel eroded secondary craters under heavy dust mantling may have reduced confidence (<70%).',
+    description: 'Segments Martian impact crater rims, cavities, and degraded morphology from orbital imagery into pixel-level binary masks.',
+    limitations: 'Published on Hugging Face Hub as a raw Lightning model.ckpt file without config.json; requires HF Space or Dedicated Endpoint hosting for live execution.',
     citations: [
       'Mars-Bench: A Benchmark for Vision Foundation Models in Planetary Science (2024).',
-      'Robbins, S. J., & Hynek, B. M. "A new global database of Mars impact craters >= 1.0 km". JGR Planets.'
+      'Robbins, S. J., & Hynek, B. M. "A new global database of Mars impact craters >= 1.0 km". JGR Planets.',
     ],
   },
   {
     id: 'mars-bench-boulder',
-    name: 'Mars-Bench: Boulder Detection & Hazard Extraction',
+    name: 'Mars-Bench: Surface Boulder Object Detection',
     shortName: 'Boulder Detection',
     category: 'detection',
-    hfRepo: 'Mirali33/mars-bench-boulder-segmentation',
-    hfUrl: 'https://huggingface.co/Mirali33/mars-bench-boulder-segmentation',
+    hfRepoId: 'Mirali33/mars-bench-boulder-detection',
+    hfRepo: 'Mirali33/mars-bench-boulder-detection',
+    hfUrl: 'https://huggingface.co/Mirali33/mars-bench-boulder-detection',
+    task: 'object-detection',
+    hostingMethod: 'hub-weights-only',
+    apiEndpoint: 'HF Space (/infer) or Dedicated Endpoint (HF_BOULDER_ENDPOINT_URL)',
+    inputFormat: 'Binary HiRISE/orbital image (JPEG/PNG/WebP <= 4 MB; 512x512–1024x1024 tile)',
+    outputFormat: 'JSON array of { label: string, score: number, box: { xmin, ymin, xmax, ymax } }',
+    modelStatus: 'endpoint_required',
+    inferenceAvailability: 'Hub checkpoint verified (model.ckpt) — No serverless hf-inference provider; requires HF Space or Dedicated Endpoint',
+    checkpointFormat: 'PyTorch Lightning checkpoint (model.ckpt)',
+    libraryName: 'pytorch-lightning (Detector)',
+    envVarKeys: {
+      repoId: 'HF_BOULDER_REPO_ID',
+      endpointUrl: 'HF_BOULDER_ENDPOINT_URL',
+      spaceUrl: 'HF_BOULDER_SPACE_URL',
+      customUrl: 'HF_BOULDER_CUSTOM_URL',
+    },
     authors: 'Kerner Lab / Mars-Bench Team',
-    architecture: 'Feature Pyramid Network (FPN) with Mask-RCNN / YOLOv8 Detection Head',
-    parameterCount: '44.2M',
-    license: 'MIT',
+    architecture: 'Feature Pyramid Object Detection Head on Mars-Bench HiRISE Boulder Patches',
+    parameterCount: '41.5M',
+    license: 'Apache-2.0',
     targetSensors: ['HiRISE'],
-    resolutionRange: '0.25 m/px – 0.50 m/px (Requires ultra-high resolution)',
-    inputFormat: '512x512 or 1024x1024 HiRISE RDR tiles',
-    preprocessingRequirements: 'Photometric calibrated I/F radiance, cast-shadow length thresholding based on incidence angle',
+    resolutionRange: '0.25 m/px – 0.50 m/px',
+    preprocessingRequirements: 'Radiometric I/F normalization, 512x512/1024x1024 tiling',
     inferenceRequirements: {
       minVramGb: 1.2,
-      recommendedDevice: 'CPU',
-      supportsCpu: true,
-      supportsCloudApi: true,
-      quantizationAvailable: 'FP16, INT8',
-    },
-    scientificTier: 'ai_probabilistic_inference',
-    description: 'Detects and measures individual Martian surface boulders (>0.5 meter diameter) from ultra-high-resolution HiRISE imagery for rover traverse planning and EDL (Entry, Descent, Landing) safety certification.',
-    limitations: 'Cannot detect boulders smaller than the Nyquist sampling limit (<0.5m) or boulders concealed beneath deep sand ripples.',
-    citations: [
-      'Golombek, M. et al. "Selection of the Mars Science Laboratory landing site: Gale crater". Space Sci Rev.',
-      'Mars-Bench: Autonomous Planetary Geohazard Detection (2024).'
-    ],
-  },
-  {
-    id: 'mars-bench-geology',
-    name: 'Mars-Bench: Surface & Landmark Geomorphology (mb-domars16k)',
-    shortName: 'Geology Classification',
-    category: 'classification',
-    hfRepo: 'Mirali33/mb-domars16k',
-    hfUrl: 'https://huggingface.co/datasets/Mirali33/mb-domars16k',
-    authors: 'Kerner Lab / DoMars16k Dataset Project',
-    architecture: 'ResNet-50 / ViT-S fine-tuned on 16,000+ labeled NASA HiRISE terrain scenes',
-    parameterCount: '23.8M',
-    license: 'CC-BY-4.0',
-    targetSensors: ['HiRISE', 'CTX'],
-    resolutionRange: '0.25 m/px – 10.0 m/px',
-    inputFormat: '224x224 RGB/Greyscale patches',
-    preprocessingRequirements: 'Histogram equalization, standard ImageNet/Mars mean-std scaling',
-    inferenceRequirements: {
-      minVramGb: 0.5,
-      recommendedDevice: 'CPU',
-      supportsCpu: true,
-      supportsCloudApi: true,
-      quantizationAvailable: 'ONNX, INT8',
-    },
-    scientificTier: 'ai_probabilistic_inference',
-    description: 'Classifies Martian terrain across 15 distinct geomorphological categories: Bedrock Outcrops, Barchan Dunes, Crater Rims, Slope Streaks, Gullies, Swiss Cheese CO2 pits, Polygonal Cracking, and Alluvial Fans.',
-    limitations: 'Visual geomorphological classification describes surface morphology; does not guarantee subsurface rock hardness or mineralogical composition.',
-    citations: [
-      'Rothrock, B. et al. "SPOC: Deep Learning for Martian Terrain Classification", IEEE Aerospace (2016).',
-      'DoMars16k: Martian Surface Feature Benchmark (2023).'
-    ],
-  },
-  {
-    id: 'mars-bench-frost',
-    name: 'Mars-Bench: Seasonal Volatiles & Frost Classification',
-    shortName: 'Frost & Volatiles',
-    category: 'classification',
-    hfRepo: 'Mirali33/mars-bench-frost-classification',
-    hfUrl: 'https://huggingface.co/Mirali33/mars-bench-frost-classification',
-    authors: 'Kerner Lab / Mars-Bench Team',
-    architecture: 'Multi-Band Vision Transformer (ViT-B) with THEMIS Thermal Ratio Fusion',
-    parameterCount: '38.6M',
-    license: 'MIT',
-    targetSensors: ['HiRISE', 'THEMIS'],
-    resolutionRange: '1.0 m/px – 100 m/px',
-    inputFormat: 'Multi-channel visible + thermal infrared band ratios',
-    preprocessingRequirements: 'Radiometric calibration, Ls (Solar Longitude) seasonal contextualization',
-    inferenceRequirements: {
-      minVramGb: 1.0,
-      recommendedDevice: 'CPU',
+      recommendedDevice: 'Cloud API',
       supportsCpu: true,
       supportsCloudApi: true,
       quantizationAvailable: 'FP16',
     },
     scientificTier: 'ai_probabilistic_inference',
-    description: 'Detects optical and thermal signatures of surface carbon dioxide (CO2) dry ice and water (H2O) frost in polar and sub-polar Martian latitudes.',
-    limitations: 'CRITICAL SCIENTIFIC DISTINCTION: Identifies ephemeral surface condensation on top millimetre of soil. DOES NOT detect or confirm deep subsurface water ice table or ISRU resources without SHARAD radar sounding.',
+    description: 'Localizes individual Martian surface boulders from ultra-high-resolution HiRISE imagery for rover path planning and landing hazard assessment.',
+    limitations: 'Published on Hugging Face Hub as a raw Lightning model.ckpt file; requires HF Space or Dedicated Endpoint hosting (or custom HF_BOULDER_REPO_ID with Transformers config.json).',
     citations: [
-      'Titus, T. N. et al. "Mars South Polar Cap Springtime Sublimation and Jets", Science.',
-      'Mars-Bench Volatiles Suite (2024).'
+      'Golombek, M. et al. "Selection of the Mars Science Laboratory landing site: Gale crater". Space Sci Rev.',
+      'Mars-Bench: Autonomous Planetary Geohazard Detection (2024).',
+    ],
+  },
+  {
+    id: 'mars-bench-geology',
+    name: 'Mars-Bench: DoMars16k Geomorphology Classification',
+    shortName: 'Geology Classification',
+    category: 'classification',
+    hfRepoId: 'Mirali33/mars-bench-domars16k',
+    hfRepo: 'Mirali33/mars-bench-domars16k',
+    hfUrl: 'https://huggingface.co/Mirali33/mars-bench-domars16k',
+    task: 'image-classification',
+    hostingMethod: 'hub-weights-only',
+    apiEndpoint: 'HF Space (/infer) or Dedicated Endpoint (HF_GEOLOGY_ENDPOINT_URL)',
+    inputFormat: 'Binary orbital patch (JPEG/PNG/WebP <= 4 MB; 224x224 RGB/Grayscale)',
+    outputFormat: 'JSON array of { label: string, score: number } across 15 Martian landform classes',
+    modelStatus: 'endpoint_required',
+    inferenceAvailability: 'Hub checkpoint verified (model.ckpt) — Corrected from dataset repo mb-domars16k; requires HF Space or Dedicated Endpoint',
+    checkpointFormat: 'PyTorch Lightning checkpoint (model.ckpt)',
+    libraryName: 'pytorch-lightning (Classifier)',
+    envVarKeys: {
+      repoId: 'HF_GEOLOGY_REPO_ID',
+      endpointUrl: 'HF_GEOLOGY_ENDPOINT_URL',
+      spaceUrl: 'HF_GEOLOGY_SPACE_URL',
+      customUrl: 'HF_GEOLOGY_CUSTOM_URL',
+    },
+    authors: 'Kerner Lab / Wilhelm et al. (DoMars16k)',
+    architecture: 'Backbone Classifier fine-tuned on 16,150 labeled NASA HiRISE Martian landforms',
+    parameterCount: '23.8M',
+    license: 'Apache-2.0',
+    targetSensors: ['HiRISE', 'CTX'],
+    resolutionRange: '0.25 m/px – 6.0 m/px',
+    preprocessingRequirements: '224x224 center/patch resize, standard Mars albedo normalization',
+    inferenceRequirements: {
+      minVramGb: 0.5,
+      recommendedDevice: 'Cloud API',
+      supportsCpu: true,
+      supportsCloudApi: true,
+      quantizationAvailable: 'FP16, INT8',
+    },
+    scientificTier: 'ai_probabilistic_inference',
+    description: 'Classifies Martian surface morphology across 15 DoMars16k categories (Aeolian Dunes, Craters, Slope Streaks, Gullies, Spiders, Swiss Cheese terrain, Bedrock, Landslides).',
+    limitations: 'Describes optical surface morphology only; does not confirm subsurface mineralogy. Raw model.ckpt requires HF Space or Dedicated Endpoint deployment.',
+    citations: [
+      'Wilhelm, T. et al. "DoMars16k: A Diverse Dataset for Weakly Supervised Geomorphologic Analysis on Mars", Remote Sensing (2020).',
+    ],
+  },
+  {
+    id: 'mars-bench-frost',
+    name: 'Mars-Bench: Seasonal Surface Frost Classification',
+    shortName: 'Frost & Volatiles',
+    category: 'classification',
+    hfRepoId: 'Mirali33/mars-bench-frost-classification',
+    hfRepo: 'Mirali33/mars-bench-frost-classification',
+    hfUrl: 'https://huggingface.co/Mirali33/mars-bench-frost-classification',
+    task: 'image-classification',
+    hostingMethod: 'hub-weights-only',
+    apiEndpoint: 'HF Space (/infer) or Dedicated Endpoint (HF_FROST_ENDPOINT_URL)',
+    inputFormat: 'Binary HiRISE/CTX image (JPEG/PNG/WebP <= 4 MB; 224x224 patch)',
+    outputFormat: 'JSON array of { label: "Frost" | "Background", score: number }',
+    modelStatus: 'endpoint_required',
+    inferenceAvailability: 'Hub checkpoint verified (model.ckpt) — No serverless hf-inference provider; requires HF Space or Dedicated Endpoint',
+    checkpointFormat: 'PyTorch Lightning checkpoint (model.ckpt)',
+    libraryName: 'pytorch-lightning (Frost Classifier)',
+    envVarKeys: {
+      repoId: 'HF_FROST_REPO_ID',
+      endpointUrl: 'HF_FROST_ENDPOINT_URL',
+      spaceUrl: 'HF_FROST_SPACE_URL',
+      customUrl: 'HF_FROST_CUSTOM_URL',
+    },
+    authors: 'Kerner Lab / NASA JPL Martian Frost Benchmark',
+    architecture: 'Binary/Multi-Class Vision Classifier trained on HiRISE seasonal CO2/H2O frost subframes',
+    parameterCount: '25.6M',
+    license: 'Apache-2.0',
+    targetSensors: ['HiRISE', 'THEMIS'],
+    resolutionRange: '0.25 m/px – 100 m/px',
+    preprocessingRequirements: 'Radiometric normalization, 224x224 patch resize',
+    inferenceRequirements: {
+      minVramGb: 0.8,
+      recommendedDevice: 'Cloud API',
+      supportsCpu: true,
+      supportsCloudApi: true,
+      quantizationAvailable: 'FP16',
+    },
+    scientificTier: 'ai_probabilistic_inference',
+    description: 'Detects optical signatures of ephemeral seasonal CO2 dry ice and surface frost condensation on Martian dunes, gullies, and polar scarps.',
+    limitations: 'CRITICAL: Identifies millimeter-thin optical surface frost only; DOES NOT prove subsurface water-ice reserves without NASA SWIM / SHARAD radar confirmation.',
+    citations: [
+      'Wagstaff, K. L. et al. "Mars-Bench Frost Classification Dataset", NASA JPL / PDS.',
     ],
   },
   {
     id: 'segformer-terrain',
-    name: 'SegFormer-Mars: High-Resolution Terrain Traversability',
+    name: 'SegFormer-B0: Semantic Terrain & Traversability Segmentation',
     shortName: 'SegFormer Traversability',
     category: 'segmentation',
+    hfRepoId: 'nvidia/segformer-b0-finetuned-ade-512-512',
     hfRepo: 'nvidia/segformer-b0-finetuned-ade-512-512',
     hfUrl: 'https://huggingface.co/nvidia/segformer-b0-finetuned-ade-512-512',
-    authors: 'NVIDIA / Adapted for Martian Topography',
-    architecture: 'Hierarchical Transformer Encoder + All-MLP Decoder (SegFormer-B0)',
-    parameterCount: '3.7M (Extremely Lightweight)',
+    task: 'image-segmentation',
+    hostingMethod: 'inference-providers',
+    apiEndpoint: 'https://router.huggingface.co/hf-inference/models/nvidia/segformer-b0-finetuned-ade-512-512',
+    inputFormat: 'Raw binary image (Content-Type: image/jpeg | image/png | image/webp, <= 4 MB)',
+    outputFormat: 'JSON array of { label: string, score: number | null, mask: string (base64 grayscale PNG) }',
+    modelStatus: 'token_required',
+    inferenceAvailability: 'Available via Hugging Face Inference Providers (hf-inference) — Requires HF_TOKEN & live inference test before ONLINE',
+    checkpointFormat: 'Safetensors + Transformers config.json & preprocessor_config.json',
+    libraryName: 'transformers',
+    envVarKeys: {
+      repoId: 'HF_SEGFORMER_REPO_ID',
+      endpointUrl: 'HF_SEGFORMER_ENDPOINT_URL',
+      spaceUrl: 'HF_SEGFORMER_SPACE_URL',
+      customUrl: 'HF_SEGFORMER_CUSTOM_URL',
+    },
+    authors: 'NVIDIA (Xie et al.) — Served via Hugging Face hf-inference',
+    architecture: 'Hierarchical Transformer Encoder (MiT-B0) + All-MLP Semantic Decoder',
+    parameterCount: '3.7M',
     license: 'Apache-2.0',
     targetSensors: ['HiRISE', 'CTX', 'MOLA'],
-    resolutionRange: '0.25 m/px – 10 m/px',
-    inputFormat: '512x512 3-channel elevation + optical composite',
-    preprocessingRequirements: 'Normalized DEM elevation slope gradient fused with optical albedo',
+    resolutionRange: '0.25 m/px – 200 m/px',
+    preprocessingRequirements: 'Automatic server-side SegFormerImageProcessor resize (512x512) & normalization',
     inferenceRequirements: {
-      minVramGb: 0.3,
-      recommendedDevice: 'CPU',
+      minVramGb: 0.4,
+      recommendedDevice: 'Cloud API',
       supportsCpu: true,
       supportsCloudApi: true,
-      quantizationAvailable: 'ONNX, INT8, WebGL',
+      quantizationAvailable: 'Safetensors FP32/FP16',
     },
     scientificTier: 'ai_probabilistic_inference',
-    description: 'Ultra-fast, lightweight terrain segmentation dividing the survey area into 4 rover-traversable classes: Smooth Regolith Plain, Rocky Crater Cavity, Loose Sand Drift, and Steep Fault Scarp.',
-    limitations: 'Requires DEM slope fusion for high accuracy on low-contrast shadows.',
+    description: 'Live hierarchical transformer semantic segmentation partitioning orbital & surface imagery into contiguous morphological regions (earth, rock, sand, mountain/ridge, sky/horizon) mapped to rover traversal strata.',
+    limitations: 'Base weights use ADE20K morphological taxonomy unless overridden via HF_SEGFORMER_REPO_ID with a Mars-finetuned SegFormer checkpoint (e.g. S5Mars / MarsSeg). Always cross-check slopes against MOLA.',
     citations: [
-      'Xie, E. et al. "SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers", NeurIPS (2021).'
+      'Xie, E. et al. "SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers", NeurIPS (2021).',
     ],
   },
   {
     id: 'qwen25-vl-planetary',
-    name: 'Qwen2.5-VL-3B-Instruct: Planetary Visual Reasoning & VQA',
+    name: 'Qwen2.5-VL-3B-Instruct: Planetary Visual Question Answering',
     shortName: 'Qwen2.5-VL VQA',
     category: 'vqa',
+    hfRepoId: 'Qwen/Qwen2.5-VL-3B-Instruct',
     hfRepo: 'Qwen/Qwen2.5-VL-3B-Instruct',
     hfUrl: 'https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct',
-    authors: 'Qwen Team (Alibaba Cloud) / Open-Source Planetary VQA Adaptations',
-    architecture: 'Vision-Language Multimodal Transformer with Dynamic Resolution Visual Encoder',
+    task: 'image-text-to-text',
+    hostingMethod: 'inference-providers',
+    apiEndpoint: 'https://router.huggingface.co/v1/chat/completions',
+    inputFormat: 'OpenAI-compatible multimodal JSON: messages[{ role: "user", content: [{ type: "text" }, { type: "image_url", image_url: { url: "data:image/...;base64,..." } }] }]',
+    outputFormat: 'ChatCompletion JSON: { choices: [{ message: { content: string } }], usage }',
+    modelStatus: 'token_required',
+    inferenceAvailability: 'Available via Hugging Face Inference Providers Router (/v1/chat/completions) — Requires HF_TOKEN & live inference test before ONLINE',
+    checkpointFormat: 'Safetensors (2 shards) + Transformers config.json & chat_template.json',
+    libraryName: 'transformers',
+    envVarKeys: {
+      repoId: 'HF_QWEN_REPO_ID',
+      endpointUrl: 'HF_QWEN_ENDPOINT_URL',
+      spaceUrl: 'HF_QWEN_SPACE_URL',
+      customUrl: 'HF_QWEN_CUSTOM_URL',
+    },
+    authors: 'Qwen Team (Alibaba Cloud)',
+    architecture: 'Vision-Language Multimodal Transformer with Dynamic Resolution ViT Encoder',
     parameterCount: '3.0 Billion',
     license: 'Apache-2.0',
-    targetSensors: ['HiRISE', 'CTX', 'THEMIS'],
-    resolutionRange: 'Dynamic Resolution (up to 4K orbital scenes)',
-    inputFormat: 'Image + Natural Language Prompt',
-    preprocessingRequirements: 'Dynamic patch slicing, temporal-spatial positional embedding',
+    targetSensors: ['HiRISE', 'CTX', 'THEMIS', 'MOLA'],
+    resolutionRange: 'Dynamic Resolution (28x28 multiples up to high-res orbital tiles)',
+    preprocessingRequirements: 'Base64 data URI encoding + grounded planetary geology system prompt',
     inferenceRequirements: {
       minVramGb: 6.5,
       recommendedDevice: 'Cloud API',
-      supportsCpu: false, // 3B model will OOM on 3.89 GB CPU RAM
+      supportsCpu: false,
       supportsCloudApi: true,
-      quantizationAvailable: 'AWQ 4-bit, GGUF, bnb-4bit',
+      quantizationAvailable: 'BF16 / AWQ 4-bit',
     },
     scientificTier: 'ai_probabilistic_inference',
-    description: 'Multimodal vision-language model capable of complex visual question answering, identifying subtle geological strata, assessing rover path clearance, and localizing surface anomalies.',
-    limitations: 'HARDWARE GUARD: Requires 6.5 GB VRAM for local execution. Runs via Hugging Face Serverless Cloud API when an API key is provided, or displays an unavailable status on CPU-only nodes to protect system stability.',
+    description: 'Multimodal vision-language model executing live visual reasoning and geological VQA directly on NASA Mars imagery via Hugging Face Inference Providers.',
+    limitations: 'Visual reasoning interprets optical morphology only and can hallucinate fine scale without GSD context; strictly cross-check against MOLA slope and SWIM radar data.',
     citations: [
-      'Qwen Team. "Qwen2.5-VL Technical Report: Enhancing Vision-Language Models with Structured Reasoning" (2025).'
+      'Qwen Team. "Qwen2.5-VL Technical Report", arXiv:2502.13923 (2025).',
     ],
   },
 ];
 
 /**
- * Benchmark Martian Locations with Real NASA Imagery Profiles
+ * Benchmark Martian Locations with Verified Static Imagery (`public/mars-terrain-library/...`)
+ * AND Live NASA Mars Trek WMTS Tile Coordinates
  */
 export interface MarsBenchmarkTarget {
   id: string;
@@ -376,8 +614,9 @@ export interface MarsBenchmarkTarget {
   lon: number;
   elevationMeters: number;
   targetFeatures: string;
-  bestSensors: ('HiRISE' | 'CTX' | 'THEMIS' | 'MOLA')[];
+  bestSensors: MarsSensorType[];
   defaultModelId: string;
+  /** Verified static asset inside `public/mars-terrain-library/...` */
   imageUrl: string;
   bounds: {
     minLat: number;
@@ -387,7 +626,7 @@ export interface MarsBenchmarkTarget {
   };
   scientificFacts: {
     geologicalAge: string;
-    swimIceConsistency: number; // -1.0 to +1.0
+    swimIceConsistency: number;
     swimCategory: string;
     radarReflectivity: string;
     molaSlopeMeanDeg: number;
@@ -406,8 +645,8 @@ export const MARS_BENCHMARK_TARGETS: MarsBenchmarkTarget[] = [
     elevationMeters: -2560,
     targetFeatures: 'Ancient river delta, lacustrine mudstones, boulder fields, crater margin',
     bestSensors: ['HiRISE', 'CTX', 'MOLA'],
-    defaultModelId: 'mars-bench-boulder',
-    imageUrl: '/mars-jezero-map-CfVJUO5g.jpg',
+    defaultModelId: 'segformer-terrain',
+    imageUrl: '/mars-terrain-library/craters_basins/jezero_crater.png',
     bounds: {
       minLat: 18.35,
       maxLat: 18.52,
@@ -433,8 +672,8 @@ export const MARS_BENCHMARK_TARGETS: MarsBenchmarkTarget[] = [
     elevationMeters: -4450,
     targetFeatures: 'Layered sulfate sedimentary mound, active sand dunes (Bagnold Dunes), impact rim',
     bestSensors: ['HiRISE', 'CTX', 'THEMIS'],
-    defaultModelId: 'mars-bench-geology',
-    imageUrl: '/mars-jezero-map-CfVJUO5g.jpg',
+    defaultModelId: 'qwen25-vl-planetary',
+    imageUrl: '/mars-terrain-library/craters_basins/gale_crater.png',
     bounds: {
       minLat: -4.68,
       maxLat: -4.50,
@@ -448,7 +687,7 @@ export const MARS_BENCHMARK_TARGETS: MarsBenchmarkTarget[] = [
       radarReflectivity: 'High radar attenuation; desiccated equatorial basin',
       molaSlopeMeanDeg: 8.4,
       themisThermalInertia: 310,
-      summary: 'Curiosity Rover site. Massive 5 km central sedimentary mound with active sand dune migration and sulphate enrichment.',
+      summary: 'Curiosity Rover site. Massive 5 km central sedimentary mound with active sand dune migration and sulfate enrichment.',
     },
   },
   {
@@ -456,17 +695,17 @@ export const MARS_BENCHMARK_TARGETS: MarsBenchmarkTarget[] = [
     name: 'Olympus Mons (Eastern Basal Escarpment)',
     region: 'Tharsis Volcanic Province',
     lat: 18.65,
-    lon: 226.2,
+    lon: -133.8,
     elevationMeters: 8400,
     targetFeatures: 'Colossal 8 km vertical scarp, lava collapse tubes, volcanic ash mantling',
     bestSensors: ['CTX', 'MOLA', 'THEMIS'],
     defaultModelId: 'segformer-terrain',
-    imageUrl: '/mars-jezero-map-CfVJUO5g.jpg',
+    imageUrl: '/mars-terrain-library/volcanoes/olympus_mons.png',
     bounds: {
       minLat: 18.45,
       maxLat: 18.85,
-      minLon: 225.9,
-      maxLon: 226.5,
+      minLon: -134.1,
+      maxLon: -133.5,
     },
     scientificFacts: {
       geologicalAge: 'Amazonian (<100 Ma lava flows)',
@@ -475,7 +714,7 @@ export const MARS_BENCHMARK_TARGETS: MarsBenchmarkTarget[] = [
       radarReflectivity: 'Strong surface scattering on jagged aa basalt; dense volcanic shield',
       molaSlopeMeanDeg: 28.5,
       themisThermalInertia: 140,
-      summary: 'Largest shield volcano in the solar system. The basal cliff is an extreme traversal hazard with slopes exceeding 30 degrees.',
+      summary: 'Largest shield volcano in the solar system. The basal cliff is an extreme traversal hazard with slopes exceeding 28 degrees.',
     },
   },
   {
@@ -483,26 +722,26 @@ export const MARS_BENCHMARK_TARGETS: MarsBenchmarkTarget[] = [
     name: 'Arcadia Planitia (Subsurface Ice Sheet)',
     region: 'Arcadia Quadrangle',
     lat: 39.2,
-    lon: 189.7,
+    lon: -170.3,
     elevationMeters: -4100,
     targetFeatures: 'Shallow pure water ice sheet, polygon thermal contraction terrain, flat volcanic plain',
     bestSensors: ['HiRISE', 'CTX', 'MOLA'],
     defaultModelId: 'mars-bench-crater',
-    imageUrl: '/mars-jezero-map-CfVJUO5g.jpg',
+    imageUrl: '/mars-terrain-library/major_regions/arcadia_planitia.png',
     bounds: {
       minLat: 39.0,
       maxLat: 39.4,
-      minLon: 189.5,
-      maxLon: 190.0,
+      minLon: -170.5,
+      maxLon: -170.0,
     },
     scientificFacts: {
       geologicalAge: 'Amazonian Mantled Terrain',
       swimIceConsistency: 0.88,
-      swimCategory: 'High Ice Consistency (Confirmed <1m Depth)',
-      radarReflectivity: 'SHARAD radar detects clean dielectric dielectric constant ~3.15, indicative of >90% pure H2O ice 1-3m beneath surface regolith',
+      swimCategory: 'High Ice Consistency (Confirmed <1–2m Depth)',
+      radarReflectivity: 'SHARAD radar detects clean dielectric constant ~3.12, indicative of >90% pure H2O ice 1–3m beneath regolith',
       molaSlopeMeanDeg: 1.2,
-      themisThermalInertia: 240,
-      summary: 'Prime human mission target. NASA SWIM 2.0 confirms vast, shallow subsurface water ice accessible within 1-2 meters of the surface.',
+      themisThermalInertia: 210,
+      summary: 'Prime human mission target. NASA SWIM 2.0 confirms vast, shallow subsurface water ice accessible within 1–2 meters of the surface.',
     },
   },
   {
@@ -515,7 +754,7 @@ export const MARS_BENCHMARK_TARGETS: MarsBenchmarkTarget[] = [
     targetFeatures: '60 km wide, 1.8 km thick pure water ice glacier, cold-trap microclimate',
     bestSensors: ['HiRISE', 'THEMIS', 'CTX'],
     defaultModelId: 'mars-bench-frost',
-    imageUrl: '/mars-jezero-map-CfVJUO5g.jpg',
+    imageUrl: '/mars-terrain-library/craters_basins/korolev_crater.png',
     bounds: {
       minLat: 72.8,
       maxLat: 73.2,
@@ -529,7 +768,7 @@ export const MARS_BENCHMARK_TARGETS: MarsBenchmarkTarget[] = [
       radarReflectivity: 'Massive transparent ice echo spanning 1,800m depth with negligible dielectric loss',
       molaSlopeMeanDeg: 2.1,
       themisThermalInertia: 520,
-      summary: 'Cold-trapped water ice mound persisting all year round without melting. Air above the glacier is chilled, forming an insulating atmospheric blanket.',
+      summary: 'Cold-trapped water ice mound persisting year-round. Air above the glacier cools and sinks, forming an insulating atmospheric cold trap.',
     },
   },
   {
@@ -537,17 +776,17 @@ export const MARS_BENCHMARK_TARGETS: MarsBenchmarkTarget[] = [
     name: 'Valles Marineris (Coprates Chasma Fault Scarp)',
     region: 'Coprates Quadrangle',
     lat: -14.2,
-    lon: 301.0,
+    lon: -59.0,
     elevationMeters: -3800,
-    targetFeatures: 'Tectonic canyon walls, layered rock strata, landslide talus fans, Recurring Slope Lineae (RSL)',
+    targetFeatures: 'Tectonic canyon walls, layered rock strata, landslide talus fans, fault scarps',
     bestSensors: ['HiRISE', 'CTX', 'THEMIS'],
     defaultModelId: 'momo-foundation',
-    imageUrl: '/mars-jezero-map-CfVJUO5g.jpg',
+    imageUrl: '/mars-terrain-library/canyons_valleys/coprates_chasma.png',
     bounds: {
       minLat: -14.4,
       maxLat: -14.0,
-      minLon: 300.8,
-      maxLon: 301.3,
+      minLon: -59.2,
+      maxLon: -58.7,
     },
     scientificFacts: {
       geologicalAge: 'Noachian to Early Amazonian Tectonic Rift',
@@ -562,317 +801,108 @@ export const MARS_BENCHMARK_TARGETS: MarsBenchmarkTarget[] = [
 ];
 
 /**
- * System Hardware Capability Detection
+ * Normalize Martian longitude into [-180, 180)
  */
-export interface SystemHardwareStatus {
-  cudaAvailable: boolean;
-  gpuDeviceName?: string;
-  totalVramGb: number;
-  availableVramGb: number;
-  totalRamGb: number;
-  availableRamGb: number;
-  hfCloudApiConfigured: boolean;
-  executionMode: 'Local-CPU' | 'Local-GPU' | 'Cloud-API-Fallback';
+export function normalizeMarsLon180(lon: number): number {
+  return ((((lon + 180) % 360) + 360) % 360) - 180;
 }
 
-export function detectSystemHardware(): SystemHardwareStatus {
-  // In browser or Node SSR, this is calibrated with live server telemetry
+/**
+ * Compute official NASA Mars Trek WMTS tile URL (`default028mm` Equirectangular)
+ * for any Martian `(lat, lon)` and sensor. Never fabricates endpoints.
+ */
+export function buildNasaMarsTrekTileUrl(
+  lat: number,
+  lon: number,
+  sensor: MarsSensorType
+): {
+  tileUrl: string;
+  wmtsLayerId: string;
+  zoom: number;
+  row: number;
+  col: number;
+  tileBounds: { minLat: number; maxLat: number; minLon: number; maxLon: number };
+  groundSampleDistanceM: number;
+  spatialResolution: string;
+} {
+  const clampedLat = Math.max(-89.9, Math.min(89.9, lat));
+  const lon180 = normalizeMarsLon180(lon);
+
+  // Use targeted high-resolution NASA Mars Trek mosaics when coordinates fall inside their footprint
+  const inJezero = clampedLat >= 18.35 && clampedLat <= 18.55 && lon180 >= 77.3 && lon180 <= 77.6;
+
+  let wmtsLayerId = 'Mars_Viking_MDIM21_ClrMosaic_global_232m';
+  let ext: 'jpg' | 'png' = 'jpg';
+  let zoom = 5;
+  let groundSampleDistanceM = 232;
+  let spatialResolution = '232 m/pixel (Viking MDIM 2.1)';
+
+  if (sensor === 'HiRISE' && inJezero) {
+    wmtsLayerId = 'JEZ_hirise_soc_006_orthoMosaic_25cm_Eqc_latTs0_lon0_first_dd';
+    ext = 'png';
+    zoom = 9;
+    groundSampleDistanceM = 0.25;
+    spatialResolution = '0.25 m/pixel (MRO HiRISE Jezero Orthomosaic)';
+  } else if (sensor === 'THEMIS' && Math.abs(clampedLat) <= 84) {
+    wmtsLayerId = 'THEMIS_NightIR_ControlledMosaics_100m_v2_oct2018';
+    ext = 'png';
+    zoom = 5;
+    groundSampleDistanceM = 100;
+    spatialResolution = '100 m/pixel (Mars Odyssey THEMIS Night IR)';
+  } else if (sensor === 'MOLA') {
+    wmtsLayerId = 'Mars_MGS_MOLA_ClrShade_merge_global_463m';
+    ext = 'jpg';
+    zoom = 5;
+    groundSampleDistanceM = 463;
+    spatialResolution = '463 m/pixel (MGS MOLA Colorized Altimetry)';
+  } else if (sensor === 'CTX') {
+    wmtsLayerId = 'Mars_MOLA_blend200ppx_HRSC_Shade_clon0dd_200mpp_lzw';
+    ext = 'jpg';
+    zoom = 5;
+    groundSampleDistanceM = 200;
+    spatialResolution = '200 m/pixel (MOLA + MEX HRSC Relief Blend)';
+  }
+
+  const cols = Math.pow(2, zoom + 1);
+  const rows = Math.pow(2, zoom);
+  const col = Math.min(cols - 1, Math.max(0, Math.floor(((lon180 + 180) / 360) * cols)));
+  const row = Math.min(rows - 1, Math.max(0, Math.floor(((90 - clampedLat) / 180) * rows)));
+
+  const minLon = -180 + (col / cols) * 360;
+  const maxLon = -180 + ((col + 1) / cols) * 360;
+  const maxLat = 90 - (row / rows) * 180;
+  const minLat = 90 - ((row + 1) / rows) * 180;
+
+  const tileUrl = `https://trek.nasa.gov/tiles/Mars/EQ/${wmtsLayerId}/1.0.0/default/default028mm/${zoom}/${row}/${col}.${ext}`;
+
   return {
-    cudaAvailable: false,
-    totalVramGb: 0,
-    availableVramGb: 0,
-    totalRamGb: 15.1,
-    availableRamGb: 3.89,
-    hfCloudApiConfigured: typeof process !== 'undefined' && Boolean(process.env?.['HUGGINGFACE_API_KEY'] || process.env?.['HF_TOKEN']),
-    executionMode: 'Local-CPU',
+    tileUrl,
+    wmtsLayerId,
+    zoom,
+    row,
+    col,
+    tileBounds: {
+      minLat: +minLat.toFixed(4),
+      maxLat: +maxLat.toFixed(4),
+      minLon: +minLon.toFixed(4),
+      maxLon: +maxLon.toFixed(4),
+    },
+    groundSampleDistanceM,
+    spatialResolution,
   };
 }
 
 /**
- * Generate Geographically-Referenced AI Predictions with Ground-Truth Cross-Check
+ * Build empirical NASA Ground-Truth scientific validation block (SWIM 2.0 + MOLA + THEMIS)
+ * Strictly separated from probabilistic AI predictions.
  */
-export function executeMarsModelInference(
-  modelId: string,
-  target: MarsBenchmarkTarget,
-  sensor: 'HiRISE' | 'CTX' | 'THEMIS' | 'MOLA',
-  userPrompt?: string
-): AiInferenceResponse {
-  const model = HF_MARS_MODELS_CATALOG.find((m) => m.id === modelId) ?? HF_MARS_MODELS_CATALOG[0]!;
-  const hw = detectSystemHardware();
-  const startTime = Date.now();
-
-  // 1. Hardware Guard for Heavy Models (e.g. Qwen2.5-VL-3B)
-  if (model.id === 'qwen25-vl-planetary' && !hw.cudaAvailable && !hw.hfCloudApiConfigured) {
+export function buildScientificValidation(
+  lat: number,
+  lon: number,
+  target?: MarsBenchmarkTarget | undefined
+): AiInferenceResponse['scientificValidation'] {
+  if (target) {
     return {
-      modelId: model.id,
-      modelName: model.name,
-      status: 'unavailable',
-      executionTimeMs: 14,
-      deviceUsed: 'CPU-Guard-Interception',
-      timestamp: new Date().toISOString(),
-      isCached: false,
-      unavailableReason: `HARDWARE CONSTRAINT: ${model.name} requires ${model.inferenceRequirements.minVramGb} GB GPU VRAM. Detected: 0 GB GPU (Available CPU RAM: ${hw.availableRamGb} GB). To prevent host out-of-memory crashes, provide a Hugging Face API Token (HUGGINGFACE_API_KEY) for Serverless Cloud Inference, or run our lightweight CPU-optimized Mars-Bench models.`,
-      targetLocation: {
-        lat: target.lat,
-        lon: target.lon,
-        name: target.name,
-        elevationM: target.elevationMeters,
-      },
-      sensorUsed: sensor,
-      spatialResolution: sensor === 'HiRISE' ? '0.25 m/pixel' : sensor === 'CTX' ? '5.0 m/pixel' : '100 m/pixel',
-      groundSampleDistanceM: sensor === 'HiRISE' ? 0.25 : sensor === 'CTX' ? 5.0 : 100,
-      predictions: {
-        summary: 'Model unavailable on this hardware node without an active Hugging Face Cloud Inference Token.',
-        overallConfidence: 0.0,
-      },
-      scientificValidation: {
-        swimIceConsistency: {
-          compositeScore: target.scientificFacts.swimIceConsistency,
-          category: target.scientificFacts.swimCategory,
-          radarAgreement: target.scientificFacts.radarReflectivity,
-          scientificVerdict: target.scientificFacts.summary,
-        },
-        molaTopography: {
-          datumElevationM: target.elevationMeters,
-          slopeDegrees: target.scientificFacts.molaSlopeMeanDeg,
-          terrainRoughness: target.scientificFacts.molaSlopeMeanDeg > 15 ? 'Extremely Rough Escarpment' : 'Moderate Plain',
-        },
-        themisThermalInertia: {
-          estimatedInertiaJ: target.scientificFacts.themisThermalInertia,
-          surfaceTexture: target.scientificFacts.themisThermalInertia > 400 ? 'Dense Rock / Exposed Crust' : 'Fine Dust Mantle',
-        },
-        scientificDisclaimer: 'AI predictions are probabilistic inferences and MUST NOT be used alone as proof of water ice or safe landing zones.',
-      },
-    };
-  }
-
-  // 2. Compute Georeferenced Coordinates for Bounding Boxes & Polygons
-  const { minLat, maxLat, minLon, maxLon } = target.bounds;
-  const projectBoxToGeo = (ymin: number, xmin: number, ymax: number, xmax: number) => ({
-    minLat: +(maxLat - ymax * (maxLat - minLat)).toFixed(4),
-    maxLat: +(maxLat - ymin * (maxLat - minLat)).toFixed(4),
-    minLon: +(minLon + xmin * (maxLon - minLon)).toFixed(4),
-    maxLon: +(minLon + xmax * (maxLon - minLon)).toFixed(4),
-  });
-
-  // 3. Tailored Model Task Executions
-  let boundingBoxes: BoundingBoxPrediction[] | undefined;
-  let segmentationMasks: SegmentationPolygon[] | undefined;
-  let classifications: ClassificationResult[] | undefined;
-  let embeddings: AiInferenceResponse['predictions']['embeddings'] | undefined;
-  let textAnswer: string | undefined;
-  let summary = '';
-  let overallConfidence = 0.88;
-
-  if (model.id === 'momo-foundation') {
-    // MOMO Multi-Sensor Foundation Model Representation
-    summary = `MOMO multi-sensor ViT-B/16 extracted 768-dimensional invariant representation from ${sensor} imagery of ${target.name}. Cross-sensor representation similarity to Jezero Delta baseline: 92.4%. Surface texture reveals low optical dust scattering index with defined morphological boundaries.`;
-    overallConfidence = 0.942;
-    embeddings = {
-      dimensions: 768,
-      sampleVector: [0.142, -0.088, 0.512, -0.219, 0.045, 0.381, -0.491, 0.117],
-      similarityToBenchmark: [
-        { name: 'Jezero Delta Mudstones', score: 0.924 },
-        { name: 'Gale Mount Sharp Stratum', score: 0.781 },
-        { name: 'Olympus Mons Basalt', score: 0.412 },
-        { name: 'Arcadia Ice Permafrost', score: 0.235 },
-      ],
-    };
-  } else if (model.id === 'mars-bench-crater') {
-    summary = `Detected 4 primary impact structures and 8 degraded secondary crater cavities across the ${target.name} survey tile. Rims exhibit sharp topographic relief with localized ejecta rays.`;
-    overallConfidence = 0.916;
-    segmentationMasks = [
-      {
-        id: 'crater-poly-1',
-        classId: 1,
-        className: 'Primary Crater Rim & Cavity',
-        color: '#f59e0b',
-        confidence: 0.945,
-        points: [[0.32, 0.28], [0.48, 0.24], [0.58, 0.38], [0.52, 0.54], [0.38, 0.58], [0.28, 0.44]],
-        areaSqMeters: 48200,
-      },
-      {
-        id: 'crater-poly-2',
-        classId: 1,
-        className: 'Degraded Secondary Crater',
-        color: '#f59e0b',
-        confidence: 0.887,
-        points: [[0.68, 0.62], [0.78, 0.59], [0.84, 0.71], [0.76, 0.82], [0.65, 0.77]],
-        areaSqMeters: 18400,
-      },
-    ];
-    boundingBoxes = [
-      {
-        id: 'crater-box-1',
-        label: 'Impact Crater Rim',
-        confidence: 0.945,
-        box: [0.24, 0.28, 0.58, 0.58],
-        geoBounds: projectBoxToGeo(0.24, 0.28, 0.58, 0.58),
-        metrics: {
-          estimatedDiameterMeters: 248.5,
-          hazardLevel: 'Moderate',
-          scientificNote: 'Fresh rim crest with steep internal wall slope (19°)',
-        },
-      },
-      {
-        id: 'crater-box-2',
-        label: 'Degraded Impact Crater',
-        confidence: 0.887,
-        box: [0.59, 0.65, 0.82, 0.84],
-        geoBounds: projectBoxToGeo(0.59, 0.65, 0.82, 0.84),
-        metrics: {
-          estimatedDiameterMeters: 152.0,
-          hazardLevel: 'Low',
-          scientificNote: 'Eroded rim infilled by aeolian dust mantle',
-        },
-      },
-    ];
-  } else if (model.id === 'mars-bench-boulder') {
-    summary = `Identified 3 dangerous high-relief surface boulders (>1.0m diameter) along rover ingress path. Shadow analysis at 48° solar incidence angle confirms vertical obstacle heights up to 1.6 meters.`;
-    overallConfidence = 0.938;
-    boundingBoxes = [
-      {
-        id: 'boulder-box-1',
-        label: 'Perched Basalt Boulder',
-        confidence: 0.962,
-        box: [0.42, 0.35, 0.48, 0.41],
-        geoBounds: projectBoxToGeo(0.42, 0.35, 0.48, 0.41),
-        metrics: {
-          estimatedDiameterMeters: 1.65,
-          hazardLevel: 'Severe',
-          scientificNote: 'Wheel snag hazard; exceeds rover chassis belly ground clearance (0.45m)',
-        },
-      },
-      {
-        id: 'boulder-box-2',
-        label: 'Tabular Bedrock Fragment',
-        confidence: 0.924,
-        box: [0.46, 0.62, 0.51, 0.67],
-        geoBounds: projectBoxToGeo(0.46, 0.62, 0.51, 0.67),
-        metrics: {
-          estimatedDiameterMeters: 1.15,
-          hazardLevel: 'Moderate',
-          scientificNote: 'Angular scree fragment with sharp abrasive edges',
-        },
-      },
-      {
-        id: 'boulder-box-3',
-        label: 'Sub-Meter Regolith Block',
-        confidence: 0.889,
-        box: [0.72, 0.45, 0.76, 0.49],
-        geoBounds: projectBoxToGeo(0.72, 0.45, 0.76, 0.49),
-        metrics: {
-          estimatedDiameterMeters: 0.75,
-          hazardLevel: 'Low',
-          scientificNote: 'Partially buried in aeolian sand; passable at low traverse velocity',
-        },
-      },
-    ];
-  } else if (model.id === 'mars-bench-geology') {
-    summary = `Topological classification predicts ${target.targetFeatures} with dominant bedrock outcrop and sedimentary stratification. Minimal active sand ripple migration detected.`;
-    overallConfidence = 0.951;
-    classifications = [
-      {
-        className: 'Layered Sedimentary Bedrock',
-        confidence: 0.785,
-        scientificDescription: 'Exposed stratigraphy with differential erosion banding',
-        geologicalInterpretation: 'Indicates past aqueous lacustrine deposition or volcanic ash compaction',
-      },
-      {
-        className: 'Polygonal Desiccation Cracks',
-        confidence: 0.142,
-        scientificDescription: 'Hexagonal pattern terrain created by thermal contraction cycles',
-        geologicalInterpretation: 'Commonly associated with permafrost or ancient drying clay beds',
-      },
-      {
-        className: 'Aeolian Sand Drift',
-        confidence: 0.073,
-        scientificDescription: 'Fine mobile basaltic sand mantling low-elevation topography',
-        geologicalInterpretation: 'Modern atmospheric wind-sculpted ripples',
-      },
-    ];
-  } else if (model.id === 'mars-bench-frost') {
-    const isPolar = Math.abs(target.lat) > 60;
-    summary = isPolar
-      ? `High optical reflectance and THEMIS thermal deficit confirm persistent surface volatile condensation (H2O ice / seasonal CO2 frost mantle).`
-      : `No significant seasonal surface frost detected at this tropical/mid latitude (Latitude ${target.lat > 0 ? target.lat + '°N' : Math.abs(target.lat) + '°S'}). Albedo corresponds to bare basaltic regolith.`;
-    overallConfidence = 0.932;
-    classifications = [
-      {
-        className: isPolar ? 'Perennial Water Ice / CO2 Frost' : 'Dry Bare Basaltic Regolith',
-        confidence: isPolar ? 0.941 : 0.978,
-        scientificDescription: isPolar ? 'Cryogenic surface volatile ice slab' : 'Desiccated volcanic mineral soil',
-        geologicalInterpretation: isPolar ? 'Surface glacier and cold-trap deposit' : 'Arid equatorial crust',
-      },
-    ];
-  } else if (model.id === 'segformer-terrain') {
-    summary = `SegFormer-B0 partitioned the ${target.name} survey area into 4 rover-traversable terrain classes. Overall traversability score: 0.74 / 1.00 (Good landing & transit capability with minor scarp detours).`;
-    overallConfidence = 0.895;
-    segmentationMasks = [
-      {
-        id: 'seg-smooth-plain',
-        classId: 0,
-        className: 'Smooth Regolith Plain (Traversability: 0.95)',
-        color: '#10b981', // Emerald
-        confidence: 0.92,
-        points: [[0.05, 0.05], [0.95, 0.05], [0.95, 0.35], [0.05, 0.35]],
-        areaSqMeters: 310000,
-      },
-      {
-        id: 'seg-dunes',
-        classId: 2,
-        className: 'Loose Aeolian Sand Dunes (Traversability: 0.45)',
-        color: '#f59e0b', // Amber
-        confidence: 0.87,
-        points: [[0.15, 0.40], [0.85, 0.40], [0.80, 0.65], [0.20, 0.65]],
-        areaSqMeters: 145000,
-      },
-      {
-        id: 'seg-scarp',
-        classId: 3,
-        className: 'Steep Escarpment / Bedrock Scarp (Traversability: 0.10)',
-        color: '#ef4444', // Red
-        confidence: 0.91,
-        points: [[0.10, 0.70], [0.90, 0.70], [0.95, 0.95], [0.05, 0.95]],
-        areaSqMeters: 198000,
-      },
-    ];
-  } else if (model.id === 'qwen25-vl-planetary') {
-    // If running in cloud API mode
-    summary = `Qwen2.5-VL-3B-Instruct evaluated the query: "${userPrompt || 'Analyze geological stratigraphy and rover landing risks'}" against NASA ${sensor} orbital imagery.`;
-    overallConfidence = 0.91;
-    textAnswer = `Based on high-resolution NASA ${sensor} orbital observations of ${target.name} (coordinates ${target.lat.toFixed(2)}°, ${target.lon.toFixed(2)}°):\n\n1. Geomorphological Context: The terrain is characterized by ${target.targetFeatures}. Visible stratigraphy shows distinct bedding planes characteristic of ${target.scientificFacts.geologicalAge}.\n\n2. Landing & Traverse Assessment: While broad inter-crater plains provide stable firm regolith, localized scarp slopes (${target.scientificFacts.molaSlopeMeanDeg}° slope) and boulder clusters require at least 50m stand-off distance.\n\n3. Volatiles & ISRU Note: Optical albedo does NOT confirm extractable water ice. NASA SWIM radar consistency is rated at ${target.scientificFacts.swimIceConsistency} (${target.scientificFacts.swimCategory}). Rover operations must rely on ground-penetrating radar rather than visual image classification alone.`;
-  }
-
-  const executionTimeMs = Math.round(Date.now() - startTime + 85 + Math.random() * 45);
-
-  return {
-    modelId: model.id,
-    modelName: model.name,
-    status: 'success',
-    executionTimeMs,
-    deviceUsed: hw.cudaAvailable ? 'Local-GPU (CUDA)' : 'Local-CPU (Optimized Runtime)',
-    timestamp: new Date().toISOString(),
-    isCached: false,
-    targetLocation: {
-      lat: target.lat,
-      lon: target.lon,
-      name: target.name,
-      elevationM: target.elevationMeters,
-    },
-    sensorUsed: sensor,
-    spatialResolution: sensor === 'HiRISE' ? '0.25 m/pixel' : sensor === 'CTX' ? '5.0 m/pixel' : sensor === 'THEMIS' ? '100 m/pixel' : '463 m/pixel',
-    groundSampleDistanceM: sensor === 'HiRISE' ? 0.25 : sensor === 'CTX' ? 5.0 : sensor === 'THEMIS' ? 100 : 463,
-    predictions: {
-      summary,
-      overallConfidence,
-      boundingBoxes,
-      segmentationMasks,
-      classifications,
-      embeddings,
-      textAnswer,
-    },
-    scientificValidation: {
       swimIceConsistency: {
         compositeScore: target.scientificFacts.swimIceConsistency,
         category: target.scientificFacts.swimCategory,
@@ -882,13 +912,56 @@ export function executeMarsModelInference(
       molaTopography: {
         datumElevationM: target.elevationMeters,
         slopeDegrees: target.scientificFacts.molaSlopeMeanDeg,
-        terrainRoughness: target.scientificFacts.molaSlopeMeanDeg > 15 ? 'Extremely Rough (>15° slopes)' : target.scientificFacts.molaSlopeMeanDeg > 5 ? 'Moderately Undulating' : 'Flat Plains (<3° slope)',
+        terrainRoughness:
+          target.scientificFacts.molaSlopeMeanDeg > 15
+            ? 'Extremely Rough (>15° slopes)'
+            : target.scientificFacts.molaSlopeMeanDeg > 5
+              ? 'Moderately Undulating (5°–15°)'
+              : 'Flat Plains (<5° slope)',
       },
       themisThermalInertia: {
         estimatedInertiaJ: target.scientificFacts.themisThermalInertia,
-        surfaceTexture: target.scientificFacts.themisThermalInertia > 450 ? 'Hard Exposed Bedrock' : target.scientificFacts.themisThermalInertia > 250 ? 'Coarse Regolith & Duricrust' : 'Fine Unconsolidated Dust',
+        surfaceTexture:
+          target.scientificFacts.themisThermalInertia > 450
+            ? 'Hard Exposed Bedrock / Consolidated Ice'
+            : target.scientificFacts.themisThermalInertia > 250
+              ? 'Coarse Regolith & Indurated Duricrust'
+              : 'Fine Unconsolidated Aeolian Dust',
       },
-      scientificDisclaimer: 'SCIENTIFIC NOTICE: Visual machine learning predictions (HiRISE/CTX image classification and segmentation) reflect optical surface features only. They CANNOT detect or confirm subsurface water ice, subglacial brines, ionizing radiation exposure, or ground-bearing strength. Scientific validation requires NASA SWIM radar/neutron datasets, MOLA altimetry, and orbital thermal inertia.',
+      scientificDisclaimer:
+        'SCIENTIFIC NOTICE: Machine learning outputs from orbital/surface imagery reflect optical patterns only. They CANNOT confirm subsurface water ice, ionizing radiation exposure, or mechanical load-bearing capacity. Cross-validate against NASA SWIM 2.0 radar/neutron maps, MOLA altimetry, and THEMIS thermal inertia.',
+    };
+  }
+
+  const swim = querySwimWaterIce(lat, normalizeMarsLon180(lon));
+  return {
+    swimIceConsistency: {
+      compositeScore: swim.compositeConsistency,
+      category: `${swim.confidenceCategory} (Dominant horizon: ${swim.dominantDepth})`,
+      radarAgreement:
+        swim.radarDielectricConstant !== null
+          ? `SHARAD dielectric constant εr ≈ ${swim.radarDielectricConstant} (${swim.extractionFeasibility})`
+          : `WEH ≈ ${swim.wehPercent}% (${swim.extractionFeasibility})`,
+      scientificVerdict: swim.scientificNotes,
     },
+    molaTopography: {
+      datumElevationM: -2100,
+      slopeDegrees: 4.5,
+      terrainRoughness: 'Regional MOLA MEGDR baseline (~463 m/px)',
+    },
+    themisThermalInertia: {
+      estimatedInertiaJ: swim.thermalInertia,
+      surfaceTexture:
+        swim.thermalInertia > 400
+          ? 'Exposed Bedrock / Ice-Cemented Regolith'
+          : swim.thermalInertia > 220
+            ? 'Medium-Grain Sand & Pebbled Lag'
+            : 'Fine Dust Mantle',
+    },
+    scientificDisclaimer:
+      'SCIENTIFIC NOTICE: Machine learning outputs from orbital/surface imagery reflect optical patterns only. They CANNOT confirm subsurface water ice, ionizing radiation exposure, or mechanical load-bearing capacity. Cross-validate against NASA SWIM 2.0 radar/neutron maps, MOLA altimetry, and THEMIS thermal inertia.',
   };
 }
+
+export const MAX_IMAGE_UPLOAD_BYTES = 4 * 1024 * 1024; // 4.0 MB (safe inside Vercel 4.5 MB serverless body limit)
+export const ALLOWED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;

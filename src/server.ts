@@ -46,6 +46,17 @@ function isH3SwallowedErrorBody(body: string): boolean {
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    // Bridge server-only runtime bindings (Cloudflare / Nitro worker `env`) without exposing to client
+    if (env && typeof env === "object") {
+      const runtimeBindings: Record<string, string> = {};
+      for (const [k, v] of Object.entries(env as Record<string, unknown>)) {
+        if (typeof v === "string" && v.trim().length > 0) {
+          runtimeBindings[k] = v;
+        }
+      }
+      (globalThis as Record<string, unknown>)["__MARS_SERVER_RUNTIME_ENV__"] = runtimeBindings;
+    }
+
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);

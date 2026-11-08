@@ -369,6 +369,7 @@ export function MarsCockpit({ embedded = false, className, initialFullscreen = f
             </div>
 
             <HfAiAnalysisPanel
+              externalLocation={selectedLocation}
               onSelectCoordinates={(lat, lon, name) => {
                 setSelectedLocation({ lat, lon, name });
                 setIsHfAiOpen(false);
