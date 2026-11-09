@@ -1,14 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+  Activity,
   ArrowRight,
   ArrowUpRight,
   Box,
+  CheckCircle2,
   CircleDot,
   Compass,
+  Cpu,
   Database,
   ExternalLink,
   Eye,
+  Gauge,
   Globe2,
+  Info,
   Layers,
   MapPin,
   MapPinned,
@@ -16,11 +21,15 @@ import {
   Navigation,
   Pause,
   Play,
+  Radio,
   RotateCcw,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
+  Thermometer,
   Timer,
+  Wind,
+  X,
   Zap,
 } from "lucide-react";
 import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -36,13 +45,13 @@ export const Route = createFileRoute("/")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Martian Map — Interplanetary Survival Guide // NASA Space Apps 2026" },
+      { title: "MARS // SURVIVE — Interplanetary Survival Guide & Mission Intelligence // NASA Space Apps 2026" },
       {
         name: "description",
         content:
-          "Planetary exploration and survival platform: interactive 3D Mars globe, live Mars Trek WMTS GIS workspace, SWIM 2.0 subsurface water ice, and scientific hazard intelligence.",
+          "Cinematic planetary exploration and scientific intelligence platform. Unified NASA Mars Trek WMTS GIS workspace, SWIM 2.0 subsurface water ice, multimodal hazard analysis, autonomous rover robotics, and survival decision-support.",
       },
-      { property: "og:title", content: "Martian Map — Interplanetary Survival Guide" },
+      { property: "og:title", content: "MARS // SURVIVE — Interplanetary Survival Guide" },
       {
         property: "og:description",
         content:
@@ -93,15 +102,6 @@ const HERO_MARS_LANDMARKS = [
     lon: 290.0,
     elevation: "−4,100 m",
     color: "#ef4444", // Crimson
-  },
-  {
-    id: "gale",
-    name: "Gale Crater",
-    mission: "Curiosity Rover & Mount Sharp",
-    lat: -4.58,
-    lon: 137.44,
-    elevation: "−4,450 m",
-    color: "#10b981", // Emerald
   },
 ];
 
@@ -199,7 +199,6 @@ function BeautifulMarsGlobe({
       const materials = Array.isArray(object.material) ? object.material : [object.material];
       materials.forEach((mat) => {
         if (mat instanceof THREE.MeshStandardMaterial) {
-          // Boost surface roughness & relief contrast
           mat.roughness = 0.76;
           mat.metalness = 0.04;
           if (mat.normalMap) {
@@ -316,9 +315,98 @@ function BeautifulMarsGlobe({
   );
 }
 
-function HomeMarsGlobeHero() {
+// 7 MISSION MODULE DEFINITIONS (Card Grid)
+const MISSION_MODULES = [
+  {
+    id: "planetary-map",
+    title: "Planetary Map",
+    category: "GIS & Route Planning",
+    description: "Full-scale 2D/3D Mars Trek WMTS GIS workspace with live layer opacity and A* traverse pathfinding.",
+    to: "/planetary-map",
+    icon: Layers,
+    color: "text-amber",
+    accentBorder: "group-hover:border-amber/50",
+    image: "/mars-terrain-library/major_regions/tharsis_rise.png",
+    stat: "5 WMTS Layers",
+  },
+  {
+    id: "ml-terrain-lab",
+    title: "ML Terrain Lab",
+    category: "AI & Neural Vision",
+    description: "1m Jezero HiRISE ML surrogate and 7 Hugging Face foundation models for semantic segmentation and boulder detection.",
+    to: "/ml-terrain-lab",
+    icon: Cpu,
+    color: "text-indigo-400",
+    accentBorder: "group-hover:border-indigo-500/50",
+    image: "/mars-terrain-library/craters_basins/jezero_crater.png",
+    stat: "7 HF Models",
+  },
+  {
+    id: "hazard-layers",
+    title: "Hazard Analysis",
+    category: "Risk Intelligence",
+    description: "Radiation flux, slope stability (>10°), thermal shock, and aeolian dust storm corridors.",
+    to: "/hazard-layers",
+    icon: ShieldAlert,
+    color: "text-rose",
+    accentBorder: "group-hover:border-rose/50",
+    image: "/mars-terrain-library/volcanoes/olympus_mons.png",
+    stat: "4 Risk Indices",
+  },
+  {
+    id: "resources",
+    title: "Resource Explorer",
+    category: "ISRU & Materials",
+    description: "SWIM 2.0 subsurface water ice radar maps, atmospheric MOXIE O₂ extraction, and ISRU consumable budget calculator.",
+    to: "/resources",
+    icon: Sparkles,
+    color: "text-cyan",
+    accentBorder: "group-hover:border-cyan/50",
+    image: "/mars-terrain-library/polar_regions/planum_boreum_north_pole.png",
+    stat: "SWIM 2.0 Ice",
+  },
+  {
+    id: "mission-lab",
+    title: "3D Regional Lab",
+    category: "Regional 3D Meshes",
+    description: "Interactive 3D elevation models of 14 iconic Martian regions including Valles Marineris and Gale Crater.",
+    to: "/mission-lab",
+    icon: Box,
+    color: "text-amber",
+    accentBorder: "group-hover:border-amber/50",
+    image: "/models/regions/previews/02_Valles_Marineris_3D_Model.png",
+    stat: "14 Meshes",
+  },
+  {
+    id: "rover-game",
+    title: "Rover Expedition",
+    category: "Surface Robotics",
+    description: "Real-time 6-wheel rocker-bogie physics simulation, Bekker terramechanics, and SuperCam LIBS laser ablation.",
+    to: "/rover-game",
+    icon: Compass,
+    color: "text-mint",
+    accentBorder: "group-hover:border-mint/50",
+    image: "/mars-terrain-library/mission_sites/perseverance_ingenuity.png",
+    stat: "Bekker 120Hz",
+  },
+  {
+    id: "sol-by-sol",
+    title: "Sol by Sol",
+    category: "Survival Simulator",
+    description: "500-Sol expedition survival simulator with life-support telemetry, resource allocation, and DONKI space weather.",
+    to: "/sol-by-sol",
+    icon: Timer,
+    color: "text-mint",
+    accentBorder: "group-hover:border-mint/50",
+    image: "/mars-terrain-library/mission_sites/curiosity_gale_crater.png",
+    stat: "500 Sols",
+  },
+];
+
+function IndexPage() {
   const [isAutoRotating, setIsAutoRotating] = useState(true);
   const [activeLandmarkId, setActiveLandmarkId] = useState<string | null>("jezero");
+  const [briefingOpen, setBriefingOpen] = useState(false);
   const controlsRef = useRef<any>(null);
 
   const handleResetCamera = () => {
@@ -328,469 +416,557 @@ function HomeMarsGlobeHero() {
   };
 
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-[480px] overflow-hidden rounded-[28px] border border-white/10 bg-radial from-[#0d1624] via-[#070d17] to-[#040810] p-2 shadow-2xl lg:max-w-none">
-      {/* 3D Canvas */}
-      <Canvas camera={{ position: [0, 0, 2.85], fov: 45 }} dpr={[1, 2]}>
-        <color attach="background" args={["#040810"]} />
+    <div className="space-y-12 pb-12">
+      {/* =========================================================================
+          SECTION B: CINEMATIC HERO SECTION (LEFT HERO / CENTER GLOBE / RIGHT DATA)
+         ========================================================================= */}
+      <section className="relative overflow-hidden rounded-[32px] border border-line/80 bg-gradient-to-b from-[#0a0f1d]/90 via-[#060a14]/95 to-[#04070e] p-6 shadow-2xl backdrop-blur-2xl sm:p-8 lg:p-10">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(234,88,12,0.12),transparent_70%)]" />
 
-        {/* Space Lighting */}
-        <ambientLight intensity={0.45} color="#cbd5e1" />
-        {/* Sharp Solar Sunbeam */}
-        <directionalLight position={[5, 3, 5]} intensity={3.5} color="#fff1e0" castShadow />
-        {/* Soft Twilight Blue Fill Light on Dark Horizon */}
-        <directionalLight position={[-4, -1, -3]} intensity={1.1} color="#38bdf8" />
-
-        <Environment>
-          <Lightformer intensity={1.2} color="#ffb58f" position={[4, 2, 4]} scale={[5, 5, 1]} />
-          <Lightformer
-            intensity={0.6}
-            color="#38bdf8"
-            position={[-4, 0, -2]}
-            rotation-y={Math.PI / 2}
-            scale={[4, 3, 1]}
-          />
-        </Environment>
-
-        <Suspense
-          fallback={
-            <Html center>
-              <div className="font-mono text-[11px] text-amber-400 uppercase tracking-widest">
-                CALIBRATING ORBITAL TELEMETRY…
-              </div>
-            </Html>
-          }
-        >
-          <DeepSpaceStars />
-          <BeautifulMarsGlobe
-            isAutoRotating={isAutoRotating}
-            activeLandmarkId={activeLandmarkId}
-            onSelectLandmark={setActiveLandmarkId}
-          />
-        </Suspense>
-
-        {/* Interactive Smooth Orbit Controls */}
-        <OrbitControls
-          ref={controlsRef}
-          enableZoom={true}
-          minDistance={2.1}
-          maxDistance={4.2}
-          enablePan={false}
-          dampingFactor={0.06}
-          rotateSpeed={0.8}
-        />
-      </Canvas>
-
-      {/* Top Floating Controls & Telemetry */}
-      <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
-        <div className="flex items-center gap-2 rounded-full border border-white/15 bg-black/60 px-3 py-1 text-white backdrop-blur-md pointer-events-auto">
-          <span className="beacon-dot size-2 rounded-full bg-mint animate-pulse" />
-          <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-white/90">
-            3D Planetary Model · 25.2° Tilt
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1.5 pointer-events-auto">
-          <button
-            type="button"
-            onClick={() => setIsAutoRotating(!isAutoRotating)}
-            className="flex items-center gap-1 rounded-full border border-white/15 bg-black/60 px-2.5 py-1 text-white/80 hover:text-white backdrop-blur-md font-mono text-[9px] uppercase transition-colors"
-            title={isAutoRotating ? "Pause planet auto-rotation" : "Resume planet rotation"}
-          >
-            {isAutoRotating ? <Pause className="size-3 text-amber" /> : <Play className="size-3 text-mint" />}
-            {isAutoRotating ? "Spinning" : "Paused"}
-          </button>
-          <button
-            type="button"
-            onClick={handleResetCamera}
-            className="rounded-full border border-white/15 bg-black/60 p-1 text-white/80 hover:text-white backdrop-blur-md transition-colors"
-            title="Reset globe orientation"
-          >
-            <RotateCcw className="size-3" />
-          </button>
-        </div>
-      </div>
-
-      {/* Bottom Floating Landmark Fast-Switcher */}
-      <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-1.5 rounded-xl border border-white/15 bg-black/60 p-2 text-white backdrop-blur-md">
-        <div className="flex items-center gap-1">
-          <MapPin className="size-3 text-amber" />
-          <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-white/60">
-            Landmarks:
-          </span>
-        </div>
-        <div className="flex flex-wrap items-center gap-1 font-mono text-[9px]">
-          {HERO_MARS_LANDMARKS.map((lm) => (
-            <button
-              key={lm.id}
-              type="button"
-              onClick={() => setActiveLandmarkId(lm.id)}
-              className={`rounded-md px-2 py-0.5 transition-colors ${
-                activeLandmarkId === lm.id
-                  ? "bg-amber text-slate-950 font-bold"
-                  : "bg-white/10 text-white/80 hover:bg-white/20"
-              }`}
-            >
-              {lm.name}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function IndexPage() {
-  return (
-    <div className="space-y-10">
-      {/* 1. HERO SECTION WITH ENHANCED 3D MARS GLOBE & MISSION STATUS */}
-      <section className="hero-mars rise-in rounded-[28px] px-5 py-7 sm:px-8 sm:py-9 lg:px-10 lg:py-10">
-        <div className="hero-orbit" aria-hidden="true" />
-        <div className="relative grid items-center gap-8 lg:grid-cols-[1.08fr_.92fr]">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-2 rounded-full border border-mint/25 bg-mint/10 px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[.16em] text-mint">
-                <span className="size-1.5 rounded-full bg-mint animate-pulse" /> NASA Space Apps 2026
-              </span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-line bg-white/75 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[.14em] text-fog">
-                <Sparkles className="size-3.5 text-amber" /> Planetary GIS &amp; Survival Hub
-              </span>
+        <div className="relative grid items-center gap-8 lg:grid-cols-[1.1fr_1.1fr_0.8fr] xl:grid-cols-[1.1fr_1.2fr_0.85fr]">
+          {/* 1. LEFT SIDE: HERO HEADLINE & CTAS */}
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-amber/30 bg-amber/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-amber shadow-sm">
+              <span className="size-1.5 rounded-full bg-amber animate-pulse" />
+              EXPLORE // ANALYZE // SURVIVE
             </div>
-            <p className="mt-6 font-mono text-[11px] font-semibold uppercase tracking-[.24em] text-amber">
-              Interplanetary Survival Guide
-            </p>
-            <h1 className="mt-2 max-w-3xl font-display text-4xl font-bold leading-[.98] tracking-[-.04em] text-bright sm:text-5xl lg:text-7xl">
-              Plan a Mars mission
-              <span className="block text-amber">before Mars plans for you.</span>
+
+            <h1 className="font-display text-4xl font-extrabold tracking-tight text-bright sm:text-5xl xl:text-6xl leading-[1.05]">
+              MARS AWAITS.
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber via-orange-400 to-amber-200">
+                SCIENCE LEADS
+              </span>
+              THE WAY.
             </h1>
-            <p className="mt-5 max-w-2xl text-[15px] leading-7 text-fog sm:text-base">
-              Unified NASA planetary intelligence workspace fusing live NASA Mars Trek WMTS orthomosaics,
-              SWIM 2.0 subsurface water ice, multimodal scientific hazard analysis, and survival simulators.
+
+            <p className="text-sm sm:text-base text-fog max-w-xl leading-relaxed">
+              A mission-critical planetary intelligence and survival decision-support workspace. Fusing real NASA Mars Trek orthomosaics, SWIM 2.0 subsurface ice soundings, calibrated multi-hazard vectors, and autonomous rover robotics.
             </p>
 
-            <div className="mt-7 flex flex-wrap items-center gap-3">
+            {/* CTAs */}
+            <div className="flex flex-wrap items-center gap-3 pt-1">
               <Link
                 to="/planetary-map"
-                className="inline-flex items-center gap-2 rounded-xl bg-amber px-5 py-3 font-display text-sm font-semibold text-ink shadow-sm transition-all hover:-translate-y-0.5 hover:bg-amber/90 hover:shadow-md"
+                className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber to-orange-500 hover:from-amber/90 hover:to-orange-500/90 px-6 py-3.5 font-display text-sm font-bold text-ink shadow-lg shadow-amber/20 hover:-translate-y-0.5 transition-all"
               >
-                <Layers className="size-4" /> Open Planetary Map
+                <Layers className="size-4" />
+                <span>Start Exploring</span>
+                <ArrowRight className="size-4 ml-1" />
               </Link>
-              <Link
-                to="/rover-game"
-                className="inline-flex items-center gap-2 rounded-xl border border-amber/40 bg-amber/10 px-4 py-3 font-display text-sm font-semibold text-amber shadow-sm backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:bg-amber/20 hover:shadow-md"
+
+              <button
+                type="button"
+                onClick={() => setBriefingOpen(true)}
+                className="inline-flex items-center gap-2 rounded-2xl border border-line/80 bg-white/10 dark:bg-panel/70 hover:bg-white/15 px-5 py-3.5 font-display text-sm font-semibold text-bright shadow-sm backdrop-blur-xl hover:-translate-y-0.5 transition-all"
               >
-                <Compass className="size-4 text-amber" /> Rover Expedition 3D
-              </Link>
-              <Link
-                to="/sol-by-sol"
-                className="inline-flex items-center gap-2 rounded-xl border border-line bg-white/80 px-4 py-3 font-display text-sm font-semibold text-bright shadow-sm backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-md"
-              >
-                <Timer className="size-4 text-amber" /> Sol by Sol Station
-              </Link>
-              <Link
-                to="/mission-lab"
-                className="inline-flex items-center gap-2 rounded-xl border border-line bg-white/80 px-4 py-3 font-display text-sm font-semibold text-bright shadow-sm backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-md"
-              >
-                <Box className="size-4 text-cyan" /> 3D Regional Lab
-              </Link>
-              <a
-                href="#sites"
-                className="inline-flex items-center gap-2 rounded-xl border border-line bg-white/80 px-4 py-3 font-display text-sm font-semibold text-bright shadow-sm backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-md"
-              >
-                <MapPinned className="size-4 text-rose" /> Candidate Sites
-              </a>
+                <Play className="size-3.5 fill-current text-amber" />
+                <span>Watch Overview</span>
+              </button>
             </div>
 
-            <div className="mt-8 grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
-              <HeroMetric label="Indexed sites" value="14 surveyed" />
-              <HeroMetric label="Surface gravity" value="3.72 m/s²" />
-              <HeroMetric label="Martian Sol" value="24h 39m 35s" />
-              <HeroMetric label="Crustal field" value="4.1B yr remnant" />
+            {/* Small Statistics Ribbon */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-4 border-t border-line/60 font-mono">
+              <div className="p-2.5 rounded-xl bg-ink2/40 border border-line/50">
+                <span className="text-[10px] text-fog uppercase block">Portals</span>
+                <strong className="text-sm text-bright font-bold">10+ NASA</strong>
+              </div>
+              <div className="p-2.5 rounded-xl bg-ink2/40 border border-line/50">
+                <span className="text-[10px] text-fog uppercase block">AI Suite</span>
+                <strong className="text-sm text-amber font-bold">14 Models</strong>
+              </div>
+              <div className="p-2.5 rounded-xl bg-ink2/40 border border-line/50">
+                <span className="text-[10px] text-fog uppercase block">Ground Truth</span>
+                <strong className="text-sm text-mint font-bold">Real Data</strong>
+              </div>
+              <div className="p-2.5 rounded-xl bg-ink2/40 border border-line/50">
+                <span className="text-[10px] text-fog uppercase block">Mission Goal</span>
+                <strong className="text-sm text-cyan font-bold">Safe Horizon</strong>
+              </div>
             </div>
           </div>
 
-          {/* Right Hero: Gorgeous 3D Mars Globe */}
-          <HomeMarsGlobeHero />
-        </div>
-      </section>
+          {/* 2. CENTER: REALISTIC 3D MARS GLOBE (Three.js WebGL) */}
+          <div className="relative mx-auto aspect-square w-full max-w-[460px] overflow-hidden rounded-[28px] border border-line/80 bg-radial from-[#0d1624] via-[#070d17] to-[#040810] p-2 shadow-2xl">
+            <Canvas camera={{ position: [0, 0, 2.85], fov: 45 }} dpr={[1, 2]}>
+              <color attach="background" args={["#040810"]} />
 
-      {/* 2. PLANETARY PHYSICAL FACTS RIBBON */}
-      <section className="overflow-hidden rounded-2xl border border-line bg-white/70 shadow-sm backdrop-blur-xl">
-        <div className="grid divide-y divide-line/70 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
-          <PlanetFact label="Solar Day (Sol)" value="24h 39m 35.24s" note="1.0275x Earth Day length" />
-          <PlanetFact label="Surface Gravity" value="0.379 g (3.72 m/s²)" note="38% of Earth standard gravity" />
-          <PlanetFact label="Mean Pressure" value="610 Pa (6.1 mbar)" note="Thin CO₂ atmosphere (~0.6% Earth)" />
-          <PlanetFact label="Atmosphere Composition" value="95.3% CO₂ · 2.6% N₂" note="1.9% Ar · traces of O₂ & H₂O" />
-        </div>
-      </section>
+              {/* Space Lighting */}
+              <ambientLight intensity={0.45} color="#cbd5e1" />
+              <directionalLight position={[5, 3, 5]} intensity={3.5} color="#fff1e0" castShadow />
+              <directionalLight position={[-4, -1, -3]} intensity={1.1} color="#38bdf8" />
 
-      {/* 3. DEDICATED PLANETARY MAP CALLOUT & BRIEFING CARD */}
-      <section id="planetary-map" className="scroll-mt-20">
-        <div className="rounded-2xl border border-amber/30 bg-gradient-to-br from-amber/[0.08] via-white to-cyan/[0.05] p-6 sm:p-8 shadow-sm backdrop-blur-xl">
-          <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr] items-center">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="flex size-7 items-center justify-center rounded-lg bg-amber/15 text-amber">
-                  <Layers className="size-4" />
-                </span>
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-amber">
-                  Dedicated Planetary GIS Workspace
+              <Environment>
+                <Lightformer intensity={1.2} color="#ffb58f" position={[4, 2, 4]} scale={[5, 5, 1]} />
+                <Lightformer intensity={0.6} color="#38bdf8" position={[-4, 0, -2]} rotation-y={Math.PI / 2} scale={[4, 3, 1]} />
+              </Environment>
+
+              <Suspense
+                fallback={
+                  <Html center>
+                    <div className="font-mono text-[11px] text-amber uppercase tracking-widest">
+                      CALIBRATING ORBITAL TELEMETRY…
+                    </div>
+                  </Html>
+                }
+              >
+                <DeepSpaceStars />
+                <BeautifulMarsGlobe
+                  isAutoRotating={isAutoRotating}
+                  activeLandmarkId={activeLandmarkId}
+                  onSelectLandmark={setActiveLandmarkId}
+                />
+              </Suspense>
+
+              <OrbitControls
+                ref={controlsRef}
+                enableZoom={true}
+                minDistance={2.1}
+                maxDistance={4.2}
+                enablePan={false}
+                dampingFactor={0.06}
+                rotateSpeed={0.8}
+              />
+            </Canvas>
+
+            {/* Top Globe Toolbar */}
+            <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+              <div className="flex items-center gap-2 rounded-full border border-white/15 bg-black/70 px-3 py-1 text-white backdrop-blur-md pointer-events-auto">
+                <span className="beacon-dot size-2 rounded-full bg-mint animate-pulse" />
+                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-white/90">
+                  3D View · 25.2° Tilt
                 </span>
               </div>
-              <h2 className="mt-2 font-display text-2xl font-bold tracking-tight text-bright sm:text-3xl">
-                NASA Mars Trek 2D/3D Map &amp; Hazard Intelligence
-              </h2>
-              <p className="mt-3 text-sm text-fog leading-relaxed max-w-2xl">
-                Experience the complete planetary exploration deck on its own dedicated workspace page.
-                Seamlessly toggle high-resolution NASA Mars Trek WMTS mosaics (MOLA, Viking MDIM2.1, THEMIS, CTX, HiRISE),
-                SWIM 2.0 subsurface water ice depth horizons, calibrated multi-mission hazard layers, distance measurement,
-                route planning, and the Grounded AI Mission Advisor.
-              </p>
 
-              <div className="mt-5 flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-1.5 pointer-events-auto">
+                <button
+                  type="button"
+                  onClick={() => setIsAutoRotating(!isAutoRotating)}
+                  className="flex items-center gap-1 rounded-full border border-white/15 bg-black/70 px-2.5 py-1 text-white/80 hover:text-white backdrop-blur-md font-mono text-[9px] uppercase transition-colors"
+                  title={isAutoRotating ? "Pause planet rotation" : "Resume planet rotation"}
+                >
+                  {isAutoRotating ? <Pause className="size-3 text-amber" /> : <Play className="size-3 text-mint" />}
+                  <span>{isAutoRotating ? "Spinning" : "Paused"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetCamera}
+                  className="rounded-full border border-white/15 bg-black/70 p-1.5 text-white/80 hover:text-white backdrop-blur-md transition-colors"
+                  title="Reset globe orientation"
+                >
+                  <RotateCcw className="size-3" />
+                </button>
+              </div>
+            </div>
+
+            {/* Bottom Landmark Fast Selector */}
+            <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-1.5 rounded-xl border border-white/15 bg-black/70 p-2 text-white backdrop-blur-md">
+              <div className="flex items-center gap-1">
+                <MapPin className="size-3 text-amber" />
+                <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-white/60">
+                  Landmarks:
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-1 font-mono text-[9px]">
+                {HERO_MARS_LANDMARKS.map((lm) => (
+                  <button
+                    key={lm.id}
+                    type="button"
+                    onClick={() => setActiveLandmarkId(lm.id)}
+                    className={`rounded-md px-2 py-0.5 transition-colors ${
+                      activeLandmarkId === lm.id
+                        ? "bg-amber text-slate-950 font-bold"
+                        : "bg-white/10 text-white/80 hover:bg-white/20"
+                    }`}
+                  >
+                    {lm.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 3. RIGHT SIDE: MARTIAN ENVIRONMENT LIVE-DATA PANEL */}
+          <div className="rounded-2xl border border-line/80 bg-white/80 dark:bg-[#070c16]/85 p-5 shadow-xl backdrop-blur-2xl space-y-3.5 font-mono text-xs">
+            <div className="flex items-center justify-between border-b border-line/60 pb-2.5">
+              <div className="flex items-center gap-2">
+                <Radio className="size-3.5 text-mint animate-pulse" />
+                <span className="text-[10px] text-bright font-bold uppercase tracking-wider">
+                  Martian Environment
+                </span>
+              </div>
+              <span className="text-[9px] px-2 py-0.5 rounded-md bg-mint/15 text-mint border border-mint/30 font-semibold">
+                MEDA Calibrated
+              </span>
+            </div>
+
+            {/* Metric 1: Temperature */}
+            <div className="p-3 rounded-xl bg-ink2/50 border border-line/50 flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-1.5 text-fog text-[10px] uppercase">
+                  <Thermometer className="size-3 text-rose" />
+                  <span>Surface Temperature</span>
+                </div>
+                <strong className="text-base text-bright font-bold font-display mt-0.5 block">−62°C</strong>
+                <span className="text-[9px] text-fog block">Diurnal: −125°C to +20°C</span>
+              </div>
+              <span className="text-[9px] text-fog text-right">NASA MEDA<br />ATS Sensor</span>
+            </div>
+
+            {/* Metric 2: Atmospheric Pressure */}
+            <div className="p-3 rounded-xl bg-ink2/50 border border-line/50 flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-1.5 text-fog text-[10px] uppercase">
+                  <Gauge className="size-3 text-cyan" />
+                  <span>Atmospheric Pressure</span>
+                </div>
+                <strong className="text-base text-bright font-bold font-display mt-0.5 block">760 Pa</strong>
+                <span className="text-[9px] text-fog block">Jezero Floor (−2,560m)</span>
+              </div>
+              <span className="text-[9px] text-fog text-right">MEDA PS<br />Barometer</span>
+            </div>
+
+            {/* Metric 3: Solar Radiation */}
+            <div className="p-3 rounded-xl bg-ink2/50 border border-line/50 flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-1.5 text-fog text-[10px] uppercase">
+                  <Zap className="size-3 text-amber" />
+                  <span>Ionizing Radiation</span>
+                </div>
+                <strong className="text-base text-bright font-bold font-display mt-0.5 block">0.64 mSv/d</strong>
+                <span className="text-[9px] text-fog block">GCR Baseline Dose</span>
+              </div>
+              <span className="text-[9px] text-fog text-right">MSL RAD<br />Detector</span>
+            </div>
+
+            {/* Metric 4: Wind Speed */}
+            <div className="p-3 rounded-xl bg-ink2/50 border border-line/50 flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-1.5 text-fog text-[10px] uppercase">
+                  <Wind className="size-3 text-indigo-400" />
+                  <span>Surface Wind Speed</span>
+                </div>
+                <strong className="text-base text-bright font-bold font-display mt-0.5 block">4.2 m/s</strong>
+                <span className="text-[9px] text-fog block">Gusts up to 14.5 m/s</span>
+              </div>
+              <span className="text-[9px] text-fog text-right">WS1 &amp; WS2<br />Anemometer</span>
+            </div>
+
+            {/* Metric 5: Water Ice Potential */}
+            <div className="p-3 rounded-xl bg-ink2/50 border border-line/50 flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-1.5 text-fog text-[10px] uppercase">
+                  <Sparkles className="size-3 text-mint" />
+                  <span>Water Ice Potential</span>
+                </div>
+                <strong className="text-base text-mint font-bold font-display mt-0.5 block">SWIM Depth 0–1m</strong>
+                <span className="text-[9px] text-mint/80 block">84% Consistency Index</span>
+              </div>
+              <span className="text-[9px] text-fog text-right">SWIM 2.0<br />SHARAD Radar</span>
+            </div>
+
+            <div className="pt-1 text-[9px] text-fog flex items-center justify-between">
+              <span>Timestamp: Sol 142 · 14:18 LMST</span>
+              <span className="text-amber">PDS Synchronized</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION C: 7 MISSION MODULE CARDS (Core Architecture Grid)
+         ========================================================================= */}
+      <section className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-line/60 pb-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="size-2 rounded-full bg-amber" />
+              <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-amber font-bold">
+                Exploration Systems
+              </p>
+            </div>
+            <h2 className="mt-1 font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-bright">
+              Mission Modules &amp; Analytical Suites
+            </h2>
+          </div>
+          <p className="font-mono text-xs text-fog max-w-md text-left sm:text-right">
+            Seven deep scientific tools connecting orbital telemetry, foundation ML models, and live physics simulations.
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {MISSION_MODULES.map((mod) => {
+            const Icon = mod.icon;
+            return (
+              <Link
+                key={mod.id}
+                to={mod.to}
+                className={`group relative overflow-hidden rounded-3xl border border-line/80 bg-white/80 dark:bg-[#070c16]/80 p-5 shadow-xl backdrop-blur-2xl transition-all hover:-translate-y-1 hover:shadow-2xl flex flex-col justify-between ${mod.accentBorder}`}
+              >
+                {/* Background Terrain Silhouette */}
+                <div className="absolute inset-0 opacity-15 group-hover:opacity-25 transition-opacity">
+                  <img
+                    src={mod.image}
+                    alt={mod.title}
+                    className="size-full object-cover grayscale contrast-125"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#070c16] via-[#070c16]/80 to-transparent" />
+                </div>
+
+                <div className="relative z-10 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="p-2.5 rounded-2xl bg-ink2/70 border border-line/60 shrink-0">
+                      <Icon className={`size-5 ${mod.color}`} />
+                    </div>
+                    <span className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-ink2/80 text-fog border border-line/60">
+                      {mod.stat}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="font-mono text-[10px] text-fog uppercase block">{mod.category}</span>
+                    <h3 className="font-display text-lg font-bold text-bright group-hover:text-amber transition-colors">
+                      {mod.title}
+                    </h3>
+                  </div>
+
+                  <p className="text-xs text-fog leading-relaxed font-mono">
+                    {mod.description}
+                  </p>
+                </div>
+
+                <div className="relative z-10 mt-5 pt-3 border-t border-line/50 flex items-center justify-between font-mono text-[11px]">
+                  <span className="text-amber font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                    Launch Module <ArrowRight className="size-3.5" />
+                  </span>
+                  <span className="text-fog text-[10px]">Route Active</span>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION D: FEATURED DATA INSIGHT (Cinematic Spotlight on Jezero Crater)
+         ========================================================================= */}
+      <section className="relative overflow-hidden rounded-[32px] border border-line/80 bg-gradient-to-br from-[#0c1322] via-[#070c16] to-[#040810] p-6 shadow-2xl backdrop-blur-2xl sm:p-8 lg:p-10">
+        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] items-center">
+          {/* Scientific Imagery & Overlay */}
+          <div className="relative overflow-hidden rounded-2xl border border-line/70 shadow-2xl group">
+            <img
+              src="/mars-jezero-map.jpg"
+              alt="Jezero Crater HiRISE Scientific Terrain Mosaic"
+              className="w-full aspect-[16/10] object-cover group-hover:scale-105 transition-transform duration-700"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white font-mono text-xs">
+              <div>
+                <span className="text-[10px] text-amber uppercase font-bold block">NASA HiRISE Mosaic</span>
+                <strong>Jezero Crater Delta &amp; Neretva Vallis</strong>
+              </div>
+              <span className="px-2 py-1 rounded bg-black/60 border border-white/20 text-[10px]">
+                GSD 0.25 m/px
+              </span>
+            </div>
+          </div>
+
+          {/* Scientific Data & Provenance Information */}
+          <div className="space-y-5">
+            <div className="inline-flex items-center gap-1.5 rounded-lg bg-amber/15 px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-amber border border-amber/30">
+              <Compass className="size-3.5" />
+              Featured Scientific Insight · Candidate Sector
+            </div>
+
+            <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-bright tracking-tight">
+              Jezero Crater Delta Complex
+            </h2>
+
+            <p className="text-xs sm:text-sm text-fog leading-relaxed font-mono">
+              Ancient lacustrine lake system fed by Neretva Vallis. Preserves layered clay smectites, deltaic cross-bedded mudstones, and shoreline carbonate precipitates with the highest biosignature potential on Mars.
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 font-mono text-xs">
+              <div className="p-3 rounded-xl bg-ink2/50 border border-line/60">
+                <span className="text-[10px] text-fog uppercase block">Landing Site</span>
+                <strong className="text-bright block mt-0.5">Octavia E. Butler</strong>
+                <span className="text-[10px] text-fog">18.38°N, 77.58°E · −2,560m</span>
+              </div>
+              <div className="p-3 rounded-xl bg-ink2/50 border border-line/60">
+                <span className="text-[10px] text-fog uppercase block">Water Ice &amp; Clay</span>
+                <strong className="text-mint block mt-0.5">Hydrated Smectite</strong>
+                <span className="text-[10px] text-mint">Bound Mineral Water</span>
+              </div>
+              <div className="p-3 rounded-xl bg-ink2/50 border border-line/60">
+                <span className="text-[10px] text-fog uppercase block">Radiation Environment</span>
+                <strong className="text-bright block mt-0.5">0.62 mSv/day</strong>
+                <span className="text-[10px] text-fog">Delta scarp shadow protection</span>
+              </div>
+              <div className="p-3 rounded-xl bg-ink2/50 border border-line/60">
+                <span className="text-[10px] text-fog uppercase block">Rover Expedition</span>
+                <strong className="text-amber block mt-0.5">Perseverance</strong>
+                <span className="text-[10px] text-amber">43 Sample Tubes Cached</span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <Link
+                to="/planetary-map"
+                className="inline-flex items-center gap-2 rounded-xl bg-amber hover:bg-amber/90 px-5 py-3 font-display text-xs font-bold text-ink shadow-sm transition-all"
+              >
+                <Layers className="size-4" />
+                <span>View on Planetary Map</span>
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => setBriefingOpen(true)}
+                className="inline-flex items-center gap-2 rounded-xl border border-line bg-panel px-4 py-3 font-display text-xs font-semibold text-bright hover:bg-ink2 shadow-sm transition-all"
+              >
+                <Info className="size-4 text-cyan" />
+                <span>Learn More (Briefing)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION E: LIVE MISSION RECORDS & NASA ATLAS
+         ========================================================================= */}
+      <section id="sites" className="scroll-mt-20 space-y-4">
+        <div className="flex items-end justify-between border-b border-line/60 pb-3">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-fog font-bold">
+              Candidate Surface Waypoints
+            </p>
+            <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-bright">
+              Indexed Planetary Mission Records
+            </h2>
+          </div>
+          <span className="font-mono text-xs text-fog hidden sm:inline">
+            {marsSites.length} Surveyed Sectors
+          </span>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {marsSites.slice(0, 3).map((site) => (
+            <div
+              key={site.id}
+              className="rounded-3xl border border-line/80 bg-white/80 dark:bg-[#070c16]/80 p-5 shadow-xl backdrop-blur-2xl flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-amber/15 text-amber border border-amber/30 font-bold uppercase">
+                    {site.region}
+                  </span>
+                  <span className="font-mono text-[10px] text-fog">
+                    {site.latitude.toFixed(1)}°N, {site.longitude.toFixed(1)}°E
+                  </span>
+                </div>
+                <h3 className="mt-3 font-display text-lg font-bold text-bright">{site.name}</h3>
+                <p className="mt-2 text-xs text-fog leading-relaxed font-mono">
+                  {site.significance}
+                </p>
+              </div>
+
+              <div className="mt-5 pt-3 border-t border-line/50 flex items-center justify-between font-mono text-[11px]">
+                <span className="text-fog">Elevation: {site.elevation}</span>
                 <Link
                   to="/planetary-map"
-                  className="inline-flex items-center gap-2 rounded-xl bg-amber px-5 py-3 font-display text-sm font-semibold text-ink shadow-sm transition hover:bg-amber/90"
+                  className="text-amber font-semibold hover:underline inline-flex items-center gap-1"
                 >
-                  <Maximize2 className="size-4" /> Launch Dedicated Planetary Map <ArrowRight className="size-4" />
-                </Link>
-                <Link
-                  to="/hazard-layers"
-                  className="inline-flex items-center gap-2 rounded-xl border border-line bg-white/80 px-4 py-3 font-display text-xs font-semibold text-bright shadow-sm hover:bg-white"
-                >
-                  <ShieldAlert className="size-3.5 text-rose" /> Inspect Hazard Layers
+                  Inspect Site <ArrowRight className="size-3" />
                 </Link>
               </div>
             </div>
-
-            {/* Quick Layer Highlights Preview Box */}
-            <div className="rounded-xl border border-line bg-ink2/60 p-4 space-y-2.5 font-mono text-xs">
-              <p className="text-[10px] uppercase tracking-wider text-fog font-bold">Integrated GIS Layers</p>
-              <div className="flex items-center justify-between py-1 border-b border-line/60">
-                <span className="text-bright flex items-center gap-2">
-                  <span className="size-2 rounded-full bg-amber" />
-                  MOLA Elevation &amp; Hillshade
-                </span>
-                <span className="text-fog text-[10px]">128 px/deg</span>
-              </div>
-              <div className="flex items-center justify-between py-1 border-b border-line/60">
-                <span className="text-bright flex items-center gap-2">
-                  <span className="size-2 rounded-full bg-cyan" />
-                  SWIM 2.0 Subsurface Water Ice
-                </span>
-                <span className="text-cyan text-[10px]">0–1m, 1–5m, &gt;5m</span>
-              </div>
-              <div className="flex items-center justify-between py-1 border-b border-line/60">
-                <span className="text-bright flex items-center gap-2">
-                  <span className="size-2 rounded-full bg-rose" />
-                  MARIE / MSL RAD Radiation
-                </span>
-                <span className="text-rose text-[10px]">0.64 mSv/day</span>
-              </div>
-              <div className="flex items-center justify-between py-1 border-b border-line/60">
-                <span className="text-bright flex items-center gap-2">
-                  <span className="size-2 rounded-full bg-mint" />
-                  Viking MDIM2.1 True Color
-                </span>
-                <span className="text-mint text-[10px]">Global Ortho</span>
-              </div>
-              <div className="flex items-center justify-between py-1">
-                <span className="text-bright flex items-center gap-2">
-                  <span className="size-2 rounded-full bg-amber-400" />
-                  THEMIS Night IR &amp; TES Tau
-                </span>
-                <span className="text-amber-400 text-[10px]">Thermal Inertia</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. SCIENTIFIC TELEMETRY STAT CARDS */}
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatCard
-          label="Slope & Roughness"
-          value="MOLA"
-          unit="DEM"
-          status="Calibrated 128 px/deg elevation & steep slope analyzer"
-          color="text-amber"
-          icon={<ShieldCheck className="size-4" />}
-        />
-        <StatCard
-          label="Radiation Planning"
-          value="0.64"
-          unit="mSv/d"
-          status="MSL RAD surface dose & Odyssey MARIE baseline"
-          color="text-rose"
-          icon={<ShieldAlert className="size-4" />}
-        />
-        <StatCard
-          label="Subsurface Water Ice"
-          value="SWIM"
-          unit="2.0"
-          status="Putzig et al. consistency across 3 depth horizons"
-          color="text-cyan"
-          icon={<CircleDot className="size-4" />}
-        />
-        <StatCard
-          label="Thermal & Atmospheric"
-          value="THEMIS"
-          unit="TES"
-          status="Night-time thermal inertia & dust opacity tau"
-          color="text-mint"
-          icon={<Zap className="size-4" />}
-        />
-      </section>
-
-      {/* 5. MISSION CAPABILITIES FEATURE TILES */}
-      <section className="grid gap-4 md:grid-cols-3">
-        <FeatureCard
-          icon={<Layers className="size-5 text-cyan" />}
-          title="Layered Planetary GIS"
-          text="Overlay authoritative NASA Mars Trek WMTS layers (MOLA, Viking MDIM2.1, THEMIS, CTX, HiRISE) with live opacity blending and 2D/3D dual-mode visualization on the Planetary Map page."
-        />
-        <FeatureCard
-          icon={<ShieldAlert className="size-5 text-amber" />}
-          title="Multimodal Hazard Analysis"
-          text="Analyze dangerous slopes (>10°), rover trafficability risks, ionizing radiation exposure from MARIE/RAD, thermal shock, and dust storm opacity."
-        />
-        <FeatureCard
-          icon={<Database className="size-5 text-mint" />}
-          title="NASA Data Provenance"
-          text="Search and filter official NASA datasets from PDS, Earthdata, Worldview, Giovanni, POWER, FIRMS, and SEDAC with one-click map activation."
-        />
-      </section>
-
-      {/* 6. DEMO BRIEFING CALLOUT */}
-      <section className="rounded-2xl border border-amber/30 bg-amber/[0.06] p-5 sm:p-6 shadow-sm">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber">Demo briefing</p>
-            <h2 className="mt-1 font-display text-2xl font-bold">Build your story around one mission leg.</h2>
-          </div>
-          <ArrowUpRight className="size-5 text-amber" />
-        </div>
-        <p className="mt-2 text-[13px] leading-relaxed text-fog">
-          Start at a landing site (like Jezero Crater or Gale), open the dedicated Planetary Map, enable the route and hazard
-          layers, inspect the SWIM 2.0 subsurface ice horizons, measure distances with the precision measurement tool, check
-          the Sol by Sol survival simulation, and test an EVA.
-        </p>
-      </section>
-
-      {/* 7. CANDIDATE SURFACE SECTORS (INDEXED MISSION WAYPOINTS) */}
-      <section id="sites" className="scroll-mt-20">
-        <div className="mb-4 flex items-end justify-between">
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-fog">Candidate surface sectors</p>
-            <h2 className="mt-1 font-display text-2xl font-bold tracking-tight">Indexed mission waypoints</h2>
-          </div>
-          <span className="hidden font-mono text-[11px] text-fog sm:inline">{marsSites.length} live demo records</span>
-        </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          {marsSites.slice(0, 3).map((site) => (
-            <SiteCard key={site.id} site={site} />
           ))}
         </div>
       </section>
 
-      {/* 8. NASA DATA ATLAS (SEARCHABLE DATASET REGISTRY WITH ACTIVATION) */}
+      {/* NASA DATA ATLAS COMPONENT */}
       <NasaDataAtlas />
 
-      {/* 9. MARTIAN SURFACE SURVIVAL SIMULATOR */}
+      {/* SURVIVAL SIMULATOR COMPONENT */}
       <SurvivalSimulator />
-    </div>
-  );
-}
 
-function HeroMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-white/10 bg-black/35 px-3 py-2.5 text-white backdrop-blur-md">
-      <p className="font-mono text-[8px] uppercase tracking-[.15em] text-white/55">{label}</p>
-      <p className="mt-1 font-display text-sm font-bold">{value}</p>
-    </div>
-  );
-}
+      {/* =========================================================================
+          MISSION OVERVIEW BRIEFING MODAL (Watch Overview Trigger)
+         ========================================================================= */}
+      {briefingOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div
+            className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-line/80 bg-white/95 dark:bg-[#070c16]/95 shadow-2xl backdrop-blur-2xl p-6 sm:p-8 space-y-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-line/60 pb-3">
+              <div className="flex items-center gap-2">
+                <Compass className="size-5 text-amber" />
+                <h3 className="font-display text-lg font-bold text-bright">
+                  MARS // SURVIVE — Mission Overview Briefing
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setBriefingOpen(false)}
+                className="p-1 rounded-lg text-fog hover:text-bright transition-colors"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
 
-function PlanetFact({ label, value, note }: { label: string; value: string; note: string }) {
-  return (
-    <div className="bg-panel/80 p-4">
-      <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-fog">{label}</p>
-      <p className="mt-1 font-display text-lg font-semibold text-bright">{value}</p>
-      <p className="mt-0.5 text-[10px] text-fog">{note}</p>
-    </div>
-  );
-}
+            <div className="space-y-4 font-mono text-xs text-fog leading-relaxed">
+              <p>
+                <strong className="text-bright font-display text-sm block mb-1">
+                  NASA Space Apps Challenge 2026 Mission Architecture
+                </strong>
+                The Interplanetary Survival Guide is an integrated aerospace decision-support platform designed for future human crewed and robotic surface operations on Mars.
+              </p>
 
-function StatCard({
-  label,
-  value,
-  unit,
-  status,
-  color,
-  icon,
-}: {
-  label: string;
-  value: string;
-  unit: string;
-  status: string;
-  color: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-xl border border-line bg-white/80 shadow-sm p-4 backdrop-blur-xl">
-      <div className="flex items-center justify-between gap-2">
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-fog">{label}</p>
-        <span className={color}>{icon}</span>
-      </div>
-      <p className={`mt-2 font-display text-2xl font-bold ${color}`}>
-        {value} <span className="font-mono text-xs text-fog">{unit}</span>
-      </p>
-      <p className="mt-1 text-[11px] text-fog">{status}</p>
-    </div>
-  );
-}
+              <div className="grid gap-2.5 sm:grid-cols-2">
+                <div className="p-3 rounded-xl bg-ink2/50 border border-line/60">
+                  <span className="text-amber font-bold uppercase block text-[10px]">1. Orbital GIS &amp; Pathfinding</span>
+                  <p className="mt-1">Full 2D/3D Mars Trek WMTS mosaic blending with A* multi-objective risk pathfinding.</p>
+                </div>
+                <div className="p-3 rounded-xl bg-ink2/50 border border-line/60">
+                  <span className="text-indigo-400 font-bold uppercase block text-[10px]">2. Planetary AI Suite</span>
+                  <p className="mt-1">7 Hugging Face models + 1m DTM gradient-boosted hazard surrogate for semantic terrain analysis.</p>
+                </div>
+                <div className="p-3 rounded-xl bg-ink2/50 border border-line/60">
+                  <span className="text-cyan font-bold uppercase block text-[10px]">3. SWIM 2.0 Subsurface Ice</span>
+                  <p className="mt-1">Putzig et al. radar consistency across 3 depth horizons (0–1m, 1–5m, &gt;5m).</p>
+                </div>
+                <div className="p-3 rounded-xl bg-ink2/50 border border-line/60">
+                  <span className="text-mint font-bold uppercase block text-[10px]">4. 120 Hz Rover Terramechanics</span>
+                  <p className="mt-1">Bekker–Wong soil sinkage, rocker-bogie differential kinematics, and SuperCam LIBS laser.</p>
+                </div>
+              </div>
 
-function FeatureCard({ icon, title, text }: { icon: React.ReactNode; title: string; text: string }) {
-  return (
-    <div className="rounded-xl border border-line bg-ink2/60 p-4">
-      <span className="text-cyan">{icon}</span>
-      <h3 className="mt-3 font-display text-base font-semibold">{title}</h3>
-      <p className="mt-1.5 text-[12px] leading-relaxed text-fog">{text}</p>
-    </div>
-  );
-}
+              <div className="p-3 rounded-xl bg-amber/10 border border-amber/30 text-bright">
+                <span className="text-amber font-bold uppercase block text-[10px]">Ground Truth Verification</span>
+                All metrics, terrain elevations, and atmospheric parameters are calibrated from NASA PDS archives, Mars 2020 MEDA, MSL RAD, and NAIF SPICE kernels.
+              </div>
+            </div>
 
-function SiteCard({ site }: { site: (typeof marsSites)[number] }) {
-  const tone = site.score >= 80 ? "mint" : site.score >= 60 ? "amber" : "rose";
-  const scoreClasses = {
-    mint: "bg-mint/15 border-mint/30 text-mint",
-    amber: "bg-amber/15 border-amber/30 text-amber",
-    rose: "bg-rose/15 border-rose/30 text-rose",
-  } as const;
-
-  return (
-    <div className="rounded-xl border border-line bg-white/80 shadow-sm p-5 backdrop-blur-xl">
-      <div className="flex items-center justify-between">
-        <span className="font-mono text-[11px] text-fog">{site.coordinates}</span>
-        <span className={`rounded-full border px-2 py-0.5 font-mono text-[11px] ${scoreClasses[tone]}`}>
-          {site.score}
-        </span>
-      </div>
-      <h3 className="mt-3 font-display text-lg font-semibold">{site.name}</h3>
-      <p className="mt-1 text-[13px] leading-relaxed text-fog">{site.terrain}</p>
-      <div className="mt-4 space-y-2 border-t border-line/60 pt-3">
-        <MetaRow label="Water ice" value={site.waterIce} tone="text-cyan" />
-        <MetaRow label="Radiation" value={site.radiation} tone="text-rose" />
-        <MetaRow label="Rover / relay" value={site.rover} tone="text-amber" />
-      </div>
-    </div>
-  );
-}
-
-function MetaRow({ label, value, tone }: { label: string; value: string; tone: string }) {
-  return (
-    <div className="flex items-center justify-between gap-4 font-mono text-[10px]">
-      <span className="text-fog">{label}</span>
-      <span className={tone}>{value}</span>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setBriefingOpen(false)}
+                className="px-4 py-2 rounded-xl border border-line font-mono text-xs text-fog hover:text-bright"
+              >
+                Dismiss
+              </button>
+              <Link
+                to="/planetary-map"
+                onClick={() => setBriefingOpen(false)}
+                className="px-5 py-2 rounded-xl bg-amber text-ink font-display text-xs font-bold hover:bg-amber/90 transition-colors"
+              >
+                Enter Planetary Map
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
