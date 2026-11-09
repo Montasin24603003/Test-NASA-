@@ -282,6 +282,13 @@ function SiteLayout({ children }: { children: ReactNode }) {
               Planetary Map
             </Link>
             <Link
+              to="/rover-game"
+              className={`rounded-xl font-mono uppercase tracking-wider text-slate-600 dark:text-fog hover:text-slate-950 dark:hover:text-bright hover:bg-emerald-50 dark:hover:bg-mint/10 transition-colors ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}`}
+              activeProps={{ className: `rounded-xl bg-emerald-500/15 text-emerald-700 dark:bg-mint/15 dark:text-mint font-mono font-bold border border-emerald-500/35 dark:border-mint/30 shadow-sm ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}` }}
+            >
+              Rover Expedition
+            </Link>
+            <Link
               to="/ml-terrain-lab"
               className={`rounded-xl font-mono uppercase tracking-wider text-slate-600 dark:text-fog hover:text-slate-950 dark:hover:text-bright hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}`}
               activeProps={{ className: `rounded-xl bg-indigo-500/15 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400 font-mono font-bold border border-indigo-500/35 dark:border-indigo-500/30 shadow-sm ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}` }}
@@ -308,13 +315,6 @@ function SiteLayout({ children }: { children: ReactNode }) {
               activeProps={{ className: `rounded-xl bg-amber-500/15 text-amber-700 dark:bg-amber/15 dark:text-amber font-mono font-bold border border-amber-500/35 dark:border-amber/30 shadow-sm ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}` }}
             >
               3D Regional Lab
-            </Link>
-            <Link
-              to="/rover-game"
-              className={`rounded-xl font-mono uppercase tracking-wider text-slate-600 dark:text-fog hover:text-slate-950 dark:hover:text-bright hover:bg-emerald-50 dark:hover:bg-mint/10 transition-colors ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}`}
-              activeProps={{ className: `rounded-xl bg-emerald-500/15 text-emerald-700 dark:bg-mint/15 dark:text-mint font-mono font-bold border border-emerald-500/35 dark:border-mint/30 shadow-sm ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}` }}
-            >
-              Rover Expedition
             </Link>
             <Link
               to="/sol-by-sol"

@@ -12,6 +12,8 @@ import {
   Gauge,
   Info,
   Layers,
+  Maximize2,
+  Minimize2,
   Navigation,
   Play,
   Radio,
@@ -164,10 +166,17 @@ function RoverGamePage() {
   const [laserActive, setLaserActive] = useState(false);
   const [driveEngaged, setDriveEngaged] = useState(false);
   const [forwardLatched, setForwardLatched] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
 
   // Listen for real-time telemetry stream from 3D physics engine inside iframe
   useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+
     const handleMessage = (event: MessageEvent) => {
       if (!event.data || typeof event.data !== "object") return;
       if (event.data.type === "ROVER_TELEMETRY_UPDATE" && event.data.telemetry) {
@@ -221,12 +230,27 @@ function RoverGamePage() {
     window.addEventListener("blur", handleWindowBlur);
 
     return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
       window.removeEventListener("message", handleMessage);
       window.removeEventListener("keydown", handleKeyForward);
       window.removeEventListener("keyup", handleKeyForward);
       window.removeEventListener("blur", handleWindowBlur);
     };
   }, []);
+
+  const handleToggleFullscreen = () => {
+    const target = viewportRef.current || iframeRef.current;
+    if (!target) return;
+    if (!document.fullscreenElement) {
+      if (target.requestFullscreen) {
+        target.requestFullscreen().catch(() => {});
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+  };
 
   const sendIframeCommand = (type: string, payload?: Record<string, unknown>) => {
     if (iframeRef.current && iframeRef.current.contentWindow) {
@@ -359,6 +383,16 @@ function RoverGamePage() {
           >
             {isMuted ? <VolumeX className="size-4 text-rose-400" /> : <Volume2 className="size-4 text-mint" />}
           </button>
+
+          <button
+            type="button"
+            onClick={handleToggleFullscreen}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-white/90 text-bright hover:bg-slate-100 dark:bg-slate-800/90 dark:hover:bg-slate-700 px-3 py-2 text-xs font-mono font-semibold shadow-sm transition-all"
+            title={isFullscreen ? "Exit Fullscreen Viewport [Esc]" : "Enter Fullscreen Viewport"}
+          >
+            {isFullscreen ? <Minimize2 className="size-4 text-amber" /> : <Maximize2 className="size-4 text-cyan" />}
+            <span className="hidden sm:inline">{isFullscreen ? "Exit Fullscreen" : "Fullscreen"}</span>
+          </button>
         </div>
       </div>
 
@@ -466,28 +500,41 @@ function RoverGamePage() {
             ))}
           </div>
 
-          {/* Region Warp Switcher */}
-          <div className="flex items-center gap-1.5 font-mono text-[11px]">
-            <span className="text-fog text-[10px] uppercase mr-1">Region:</span>
-            {REGIONS.map((reg) => (
-              <button
-                key={reg.id}
-                type="button"
-                onClick={() => handleDeployRegion(reg.id)}
-                className={`px-2.5 py-1 rounded-lg transition-all ${
-                  telemetry.regionId === reg.id
-                    ? "bg-mint text-ink font-bold shadow-sm"
-                    : "bg-panel/60 text-fog hover:text-bright border border-line/60"
-                }`}
-              >
-                {reg.name.split(" ")[0]}
-              </button>
-            ))}
+          {/* Region Warp Switcher & Quick Fullscreen Action */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 font-mono text-[11px]">
+              <span className="text-fog text-[10px] uppercase mr-1">Region:</span>
+              {REGIONS.map((reg) => (
+                <button
+                  key={reg.id}
+                  type="button"
+                  onClick={() => handleDeployRegion(reg.id)}
+                  className={`px-2.5 py-1 rounded-lg transition-all ${
+                    telemetry.regionId === reg.id
+                      ? "bg-mint text-ink font-bold shadow-sm"
+                      : "bg-panel/60 text-fog hover:text-bright border border-line/60"
+                  }`}
+                >
+                  {reg.name.split(" ")[0]}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleToggleFullscreen}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-line/60 bg-panel/60 px-2.5 py-1 font-mono text-[11px] text-fog hover:text-bright hover:border-amber/50 transition-all cursor-pointer shadow-sm"
+              title={isFullscreen ? "Exit Fullscreen Viewport [Esc]" : "Enter Fullscreen Viewport"}
+            >
+              {isFullscreen ? <Minimize2 className="size-3 text-amber" /> : <Maximize2 className="size-3 text-cyan" />}
+              <span className="hidden sm:inline">{isFullscreen ? "Windowed" : "Fullscreen"}</span>
+            </button>
           </div>
         </div>
 
         {/* 3D WebGL Canvas Embedded Frame */}
         <div 
+          ref={viewportRef}
           onClick={() => iframeRef.current?.focus()}
           className="relative overflow-hidden rounded-3xl border border-line/70 bg-[#080d14] shadow-2xl transition-all"
         >
