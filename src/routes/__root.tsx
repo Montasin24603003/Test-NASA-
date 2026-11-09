@@ -246,6 +246,13 @@ function SiteLayout({ children }: { children: ReactNode }) {
             >
               Planetary Map
             </Link>
+            <Link
+              to="/rover-game"
+              className="rounded-xl px-3 py-2 transition-colors hover:bg-amber/10 hover:text-bright"
+              activeProps={{ className: "rounded-xl bg-amber/10 px-3 py-2 font-medium text-bright" }}
+            >
+              Rover Expedition
+            </Link>
             <Link to="/ml-terrain-lab" className="rounded-xl px-3 py-2 transition-colors hover:bg-indigo-500/10 hover:text-bright" activeProps={{ className: "rounded-xl bg-indigo-500/15 px-3 py-2 font-medium text-bright" }}>
               ML Terrain Lab
             </Link>
@@ -277,6 +284,7 @@ function SiteLayout({ children }: { children: ReactNode }) {
       <div className="relative z-10 border-b border-line/70 bg-panel/70 px-5 py-2 backdrop-blur-xl md:hidden">
         <div className="mx-auto flex max-w-7xl gap-1 overflow-x-auto pb-0.5 text-[11px] font-medium whitespace-nowrap">
           <Link to="/planetary-map" activeProps={{ className: "bg-amber/10 text-bright" }} className="rounded-lg px-3 py-1.5 text-fog">Planetary Map</Link>
+          <Link to="/rover-game" activeProps={{ className: "bg-amber/10 text-bright" }} className="rounded-lg px-3 py-1.5 text-fog">Rover 3D</Link>
           <Link to="/ml-terrain-lab" activeProps={{ className: "bg-indigo-500/15 text-bright" }} className="rounded-lg px-3 py-1.5 text-fog">ML Terrain Lab</Link>
           <Link to="/hazard-layers" activeProps={{ className: "bg-rose/10 text-bright" }} className="rounded-lg px-3 py-1.5 text-fog">Hazards</Link>
           <Link to="/resources" activeProps={{ className: "bg-cyan/10 text-bright" }} className="rounded-lg px-3 py-1.5 text-fog">Resources</Link>

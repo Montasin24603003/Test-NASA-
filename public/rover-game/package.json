@@ -1,0 +1,27 @@
+{
+  "name": "mars-rover-traverse-3d",
+  "version": "2.0.0",
+  "description": "ROVER EXPEDITION — Single-Player 3D Mars Rover Exploration Game (Standalone & Martian Map Ready)",
+  "type": "module",
+  "scripts": {
+    "start": "python -m http.server 8888",
+    "serve": "npx serve -p 8888 .",
+    "pipeline:dem": "python pipeline/dem_resample.py",
+    "pipeline:spice": "python pipeline/spice_telemetry_parser.py",
+    "pipeline:mesh": "python pipeline/generate_mars_mesh.py",
+    "pipeline:all": "python pipeline/dem_resample.py && python pipeline/spice_telemetry_parser.py && python pipeline/generate_mars_mesh.py"
+  },
+  "keywords": [
+    "nasa",
+    "space-apps-challenge",
+    "mars-2020",
+    "perseverance",
+    "jezero-crater",
+    "mars-rover-game",
+    "webgl",
+    "threejs",
+    "3d-simulation"
+  ],
+  "author": "NASA Space Apps Team",
+  "license": "MIT"
+}

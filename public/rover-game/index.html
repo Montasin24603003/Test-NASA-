@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ROVER EXPEDITION | 3D Mars Exploration Game — Interplanetary Survival Guide</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Browser-Native ES Module Import Map (Local-First & Offline Ready) -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three.module.js",
+        "three/addons/": "./vendor/addons/"
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <!-- 1. Responsive Loading Screen -->
+  <div id="loading-screen" class="loading-overlay">
+    <div class="loading-box">
+      <div class="loading-badge mono">INTERPLANETARY SURVIVAL GUIDE // MODULE: ROVER EXPEDITION</div>
+      <h1 class="loading-title">MARS ROVER EXPEDITION</h1>
+      <div class="loading-bar-track">
+        <div id="loading-bar-fill" class="loading-bar-fill" style="width: 28%;"></div>
+      </div>
+      <p id="loading-status-text" class="loading-status mono">Initializing WebGL 3D Planetary Terrain &amp; Physics...</p>
+    </div>
+  </div>
+
+  <!-- 2. Full-Viewport 3D WebGL Canvas -->
+  <div id="webgl-container"></div>
+
+  <!-- 3. Cinematic Main Menu (Live 3D Rover Showcase Behind Glass) -->
+  <section id="main-menu-overlay" class="menu-overlay">
+    <div class="menu-top-bar">
+      <div class="brand-lockup">
+        <span class="brand-dot"></span>
+        <div>
+          <div class="brand-kicker mono">INTERPLANETARY SURVIVAL GUIDE: MARTIAN MAP</div>
+          <div class="brand-main">ROVER EXPEDITION // 3D SURFACE SIMULATION</div>
+        </div>
+      </div>
+
+      <div class="menu-stats-strip mono">
+        <div class="stat-chip"><span>CREDITS</span> <strong id="menu-credits-val">0</strong> ◈</div>
+        <div class="stat-chip"><span>MISSIONS</span> <strong id="menu-missions-val">0 / 7</strong></div>
+        <div class="stat-chip"><span>CORE TUBES</span> <strong id="menu-samples-val">0</strong></div>
+        <button id="btn-return-martian-map" class="return-map-btn" style="display:none;">← RETURN TO MARTIAN MAP</button>
+      </div>
+    </div>
+
+    <div class="menu-left-column">
+      <div class="hero-headline">
+        <span class="hero-tag mono">SINGLE-PLAYER 3D PLANETARY EXPLORATION</span>
+        <h1>COMMAND THE<br><span>MARS ROVER</span></h1>
+        <p>Drive a physics-simulated six-wheel Perseverance-class rover across six Martian regions. Climb craters, weather severe dust storms, fire the SuperCam LIBS laser, and cache astrobiological rock cores.</p>
+      </div>
+
+      <nav class="menu-nav-stack">
+        <button id="btn-start-expedition" class="menu-btn primary">
+          <span class="btn-main-text">START EXPEDITION</span>
+          <span class="btn-sub-text mono">Launch Next Campaign Mission</span>
+        </button>
+
+        <button id="btn-continue-expedition" class="menu-btn">
+          <span class="btn-main-text">CONTINUE EXPLORATION</span>
+          <span id="continue-subtitle" class="btn-sub-text mono">Resume Saved Coordinates</span>
+        </button>
+
+        <button id="btn-open-regions" class="menu-btn">
+          <span class="btn-main-text">SELECT REGION</span>
+          <span class="btn-sub-text mono">6 Martian Biomes • Jezero, Delta, Dunes &amp; Rim</span>
+        </button>
+
+        <button id="btn-open-missions" class="menu-btn">
+          <span class="btn-main-text">MISSION SELECTION</span>
+          <span class="btn-sub-text mono">7 Single-Player Operations + Free Roam</span>
+        </button>
+
+        <button id="btn-open-garage" class="menu-btn">
+          <span class="btn-main-text">ROVER GARAGE</span>
+          <span class="btn-sub-text mono">Upgrades, Repairs &amp; Thermal Liveries</span>
+        </button>
+
+        <button id="btn-open-settings" class="menu-btn">
+          <span class="btn-main-text">SETTINGS</span>
+          <span class="btn-sub-text mono">Physics Rates, Gravity, Weather, Audio &amp; Controls</span>
+        </button>
+
+        <button id="btn-resume-driving" class="menu-btn accent-resume" style="display:none;">
+          <span class="btn-main-text">▶ RESUME ACTIVE DRIVE</span>
+          <span class="btn-sub-text mono">Return directly to cockpit (ESC)</span>
+        </button>
+      </nav>
+    </div>
+
+    <div class="menu-bottom-hint mono">
+      <span>MARS GRAVITY: 3.71 m/s² [NASA CONSTANT]</span>
+      <span>•</span>
+      <span>WASD DRIVE • SPACE BRAKE • SHIFT BOOST • X CREEP • T TELEMETRY • V 3D VECTORS • G CHARTS • C CAMERA • E INTERACT</span>
+    </div>
+  </section>
+
+  <!-- 4. Reusable Sub-Menu Modal (Regions, Missions, Garage, Settings, Gallery) -->
+  <section id="modal-panel-backdrop" class="modal-backdrop hidden">
+    <div class="modal-window">
+      <header class="modal-header">
+        <h2 id="modal-panel-title">SELECT REGION</h2>
+        <button id="btn-close-modal" class="close-icon-btn" title="Close (ESC)">✕</button>
+      </header>
+      <div id="modal-panel-body" class="modal-body"></div>
+    </div>
+  </section>
+
+  <!-- 5. Minimal, Immersive Gameplay HUD -->
+  <div id="gameplay-hud" class="hud-layer hidden">
+
+    <!-- Optional Hazcam / Mastcam Engineering Sensor Crosshair Frame -->
+    <div id="camera-sensor-frame" class="sensor-frame hidden">
+      <div class="sensor-corner tl"></div>
+      <div class="sensor-corner tr"></div>
+      <div class="sensor-corner bl"></div>
+      <div class="sensor-corner br"></div>
+      <div class="sensor-crosshair"></div>
+      <div id="sensor-frame-label" class="sensor-caption mono">MASTCAM-Z OPTICS</div>
+    </div>
+
+    <!-- Top Row: Left Mission Tracker | Center Compass | Right Utility Strip -->
+    <header class="hud-top-row">
+      <div id="hud-mission-box" class="hud-glass mission-tracker-box">
+        <div class="region-line">
+          <span id="hud-region-name" class="region-name">JEZERO CRATER FLOOR</span>
+          <span id="hud-data-provenance" class="hud-prov-tag nasa">NASA PDS REF + SIMULATED</span>
+        </div>
+        <div class="mission-heading">
+          <span id="hud-mission-code" class="mission-code mono">MISSION 01</span>
+          <span id="hud-mission-title" class="mission-title">First Drive</span>
+        </div>
+        <div id="hud-mission-obj" class="mission-obj mono">Reach Calibration Alpha (0/3)</div>
+      </div>
+
+      <div class="hud-compass-wrap">
+        <div class="hud-glass compass-pill mono">
+          <span id="hud-compass-cardinal" class="compass-card">S</span>
+          <span id="hud-compass-deg" class="compass-deg">180°</span>
+        </div>
+        <div id="hud-nav-target" class="nav-beacon-pill mono">▲ Calibration Alpha: 26m (180°)</div>
+      </div>
+
+      <div class="hud-glass quick-tools-bar mono">
+        <button id="hud-btn-cam" class="tool-pill" title="Change Camera (C or 1-6)">🎥 <span id="hud-cam-label">3RD CHASE</span></button>
+        <button id="hud-btn-lights" class="tool-pill" title="Toggle LED Headlights (F)">💡</button>
+        <button id="hud-btn-photo" class="tool-pill" title="Capture Rover Photograph (P)">📷</button>
+        <button id="hud-btn-slope" class="tool-pill" title="Toggle Slope Hazard Analysis">▲ SLOPE</button>
+        <button id="hud-btn-nasa-path" class="tool-pill active" title="Toggle NASA Sols 38-44 Reference Path">〰 SPICE</button>
+        <button id="hud-btn-physviz" class="tool-pill" title="Toggle 3D Physics Visualization (V)">⚡ VIZ [V]</button>
+        <button id="hud-btn-telem" class="tool-pill" title="Toggle Engineering Telemetry Drawer (T)">📊 TELEM [T]</button>
+        <button id="hud-btn-engmode" class="tool-pill" title="Full-Screen Engineering Simulation Mode (G)">📈 ENG [G]</button>
+        <button id="hud-btn-gallery" class="tool-pill" title="Open Science &amp; Photo Log">🧪 LOG</button>
+        <button id="hud-btn-audio" class="tool-pill" title="Toggle Martian Acoustic Audio">🔇</button>
+        <span id="hud-fps-val" class="fps-chip">60 FPS</span>
+        <button id="hud-btn-menu" class="tool-pill menu-trigger" title="Main Menu (ESC)">☰ MENU</button>
+      </div>
+    </header>
+
+    <!-- Center Alert & Toast Notifications -->
+    <div id="hud-toast-banner" class="toast-banner hidden"></div>
+    <div id="hud-storm-alert" class="storm-banner mono hidden">⚡ DUST STORM ACTIVE — SOLAR CHARGING REDUCED • USE HEADLIGHTS [F]</div>
+    <div id="hud-tilt-warning" class="warning-banner mono hidden">⚠ CRITICAL SLOPE — ROLLOVER RISK</div>
+
+    <!-- Contextual Science Interaction Prompt -->
+    <div id="hud-interact-prompt" class="interact-prompt hidden">
+      <span id="hud-interact-key" class="key-cap mono">E</span>
+      <span id="hud-interact-text">SCAN TARGET WITH SUPERCAM LASER</span>
+    </div>
+
+    <!-- Contextual Planetary Robotics Tutor Concept Card -->
+    <aside id="physics-concept-toast" class="hud-glass concept-card-toast hidden">
+      <div class="concept-header">
+        <span id="concept-card-title" class="concept-title mono">PLANETARY ROBOTICS INSIGHT</span>
+        <button id="btn-close-concept" class="sci-close">✕</button>
+      </div>
+      <div id="concept-card-eq" class="concept-equation mono"></div>
+      <p id="concept-card-body" class="concept-body"></p>
+    </aside>
+
+    <!-- Expandable Engineering Telemetry Side Drawer ([T] Key) -->
+    <aside id="eng-telemetry-drawer" class="eng-drawer hud-glass hidden">
+      <header class="drawer-header">
+        <div class="drawer-title-lockup">
+          <span class="drawer-dot"></span>
+          <div>
+            <h3 class="drawer-title mono">REAL-TIME ENGINEERING TELEMETRY</h3>
+            <span class="drawer-sub mono">ROVER BUS • BEKKER TERRAMECHANICS • 12 Hz</span>
+          </div>
+        </div>
+        <div class="drawer-actions">
+          <button id="btn-open-eng-fullscreen" class="tool-pill" title="Full-Screen Simulation Mode (G)">📈 CHARTS [G]</button>
+          <button id="btn-close-telem-drawer" class="close-icon-btn" title="Close Drawer (T)">✕</button>
+        </div>
+      </header>
+
+      <div class="drawer-quick-controls">
+        <button id="btn-telem-creep" class="action-btn secondary-btn" title="Toggle Low-Range High-Torque Creep Gear (X)">⚙ CREEP GEAR: OFF [X]</button>
+        <button id="btn-telem-nav-fix" class="action-btn primary-btn" title="Perform Navcam/Sun-Sensor Visual Fix (L)">🎯 NAVCAM FIX [L]</button>
+      </div>
+
+      <div class="drawer-scroll-body mono">
+        <!-- 1. Vehicle Dynamics -->
+        <section class="drawer-section">
+          <div class="section-title">1. VEHICLE DYNAMICS &amp; FORCES</div>
+          <div class="telem-row"><span>Forward Velocity:</span><strong id="td-veh-speed">0.00 m/s</strong></div>
+          <div class="telem-row"><span>Longitudinal Accel:</span><strong id="td-veh-accel">+0.00 m/s²</strong></div>
+          <div class="telem-row"><span>Attitude (H/P/R):</span><strong id="td-veh-attitude">Hdg 0° | P 0° | R 0°</strong></div>
+          <div class="telem-row"><span>Yaw Rate:</span><strong id="td-veh-yawrate">0.0 °/s</strong></div>
+          <div class="telem-row"><span>Belly Clearance:</span><strong id="td-veh-clearance">66.0 cm</strong></div>
+          <div class="telem-row"><span>Turning Radius (ICR):</span><strong id="td-veh-turnrad">∞ (Straight)</strong></div>
+          <div class="telem-row"><span>Mass &amp; CoG:</span><strong id="td-veh-masscog">1025 kg</strong></div>
+          <div class="telem-row"><span>Forces (Long / Lat):</span><strong id="td-veh-flonglat">0 N / 0 N</strong></div>
+          <div class="telem-row"><span>Resistance &amp; Brake:</span><strong id="td-veh-frrbrk">0 N / 0 N</strong></div>
+          <div class="telem-row"><span>Slope Gravity Shear:</span><strong id="td-veh-slopegrav">0 N</strong></div>
+          <div class="telem-row"><span>Traction Limit:</span><strong id="td-veh-traclimit">0 N</strong></div>
+          <div class="telem-row"><span>Stability Margin:</span><strong id="td-veh-stability">100%</strong></div>
+        </section>
+
+        <!-- 2. Six-Wheel Matrix Table -->
+        <section class="drawer-section">
+          <div class="section-title">2. SIX-WHEEL BEKKER–WONG MATRIX</div>
+          <div class="wheel-table-wrap">
+            <table class="wheel-table">
+              <thead>
+                <tr>
+                  <th>W</th>
+                  <th>RPM</th>
+                  <th>rad/s</th>
+                  <th>Nm</th>
+                  <th>Steer</th>
+                  <th>F_N(N)</th>
+                  <th>Slip</th>
+                  <th>Snk(cm)</th>
+                  <th>Trac(N)</th>
+                  <th>Susp(cm)</th>
+                </tr>
+              </thead>
+              <tbody id="td-wheel-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 3. Mars Environment Physics -->
+        <section class="drawer-section">
+          <div class="section-title">3. MARS ENVIRONMENT PHYSICS (SI UNITS)</div>
+          <div class="telem-row"><span>Gravity &amp; Barometer:</span><strong id="td-env-gravpress">g = 3.71 m/s² | P = 745 Pa</strong></div>
+          <div class="telem-row"><span>Temp &amp; CO₂ Density:</span><strong id="td-env-tempdens">T = -24°C | ρ = 0.0156 kg/m³</strong></div>
+          <div class="telem-row"><span>Wind Vector:</span><strong id="td-env-wind">4.8 m/s</strong></div>
+          <div class="telem-row"><span>Irradiance &amp; Dust:</span><strong id="td-env-solardust">365 W/m² | τ=0.44</strong></div>
+          <div class="telem-row"><span>Optics &amp; Elevation:</span><strong id="td-env-viselev">Vis 850m | MOLA -2558m</strong></div>
+          <div class="telem-row"><span>Terramechanics Soil:</span><strong id="td-env-soil">Ferric Regolith</strong></div>
+        </section>
+
+        <!-- 4. Electrical Power & 4-Node Thermal -->
+        <section class="drawer-section">
+          <div class="section-title">4. ELECTRICAL POWER &amp; 4-NODE THERMAL</div>
+          <div class="telem-row"><span>Battery SoC &amp; Voltage:</span><strong id="td-pwr-socvolt">96% | 31.8 V</strong></div>
+          <div class="telem-row"><span>Current &amp; Governance:</span><strong id="td-pwr-currmode">I_bat -2.8 A | NOMINAL</strong></div>
+          <div class="telem-row"><span>Generation (Solar+RTG):</span><strong id="td-pwr-gen">Solar 180W + MMRTG 68W</strong></div>
+          <div class="telem-row"><span>Subsystem Loads:</span><strong id="td-pwr-loads">Total 78W (Drv 0W)</strong></div>
+          <div class="telem-row"><span>Mission Endurance:</span><strong id="td-pwr-endurance">SUSTAINABLE</strong></div>
+          <div class="telem-row"><span>Thermal Nodes:</span><strong id="td-therm-nodes">Bat 14°C | Mot -12°C | WEB 21°C</strong></div>
+          <div class="telem-row"><span>Thermal State:</span><strong id="td-therm-warn">All Nodes Nominal</strong></div>
+        </section>
+
+        <!-- 5. Navigation, IMU & Hazards -->
+        <section class="drawer-section">
+          <div class="section-title">5. LOCALIZATION, 6-AXIS IMU &amp; SAFETY</div>
+          <div class="telem-row"><span>ENU Position:</span><strong id="td-nav-enu">X 0.0m, Y 2.0m, Z 0.0m</strong></div>
+          <div class="telem-row"><span>Planetocentric [SIM]:</span><strong id="td-nav-latlon">18.38470° N, 77.58020° E</strong></div>
+          <div class="telem-row"><span>Traverse vs Odometry:</span><strong id="td-nav-odom">True 0m | Odom 0m</strong></div>
+          <div class="telem-row"><span>Uncertainty &amp; Target:</span><strong id="td-nav-uncert">±0.14 m</strong></div>
+          <div class="telem-row"><span>Body IMU Specific Force:</span><strong id="td-nav-imuacc">(0, 3.71, 0) m/s²</strong></div>
+          <div class="telem-row"><span>Body IMU Gyro Rates:</span><strong id="td-nav-imugyr">(0, 0, 0) °/s</strong></div>
+          <div class="telem-row"><span>Guidance Status:</span><strong id="td-nav-status">VO-LOCK NOMINAL</strong></div>
+        </section>
+
+        <!-- 6. Active Safety Alerts Strip -->
+        <section class="drawer-section">
+          <div class="section-title">6. ENGINEERING SAFETY ALERTS</div>
+          <div id="td-safety-alerts" class="safety-alerts-strip"></div>
+        </section>
+
+        <!-- 7. 3D Physics Visualization Layer Toggles -->
+        <section class="drawer-section">
+          <div class="section-title">7. 3D PHYSICS OVERLAY LAYERS [V]</div>
+          <div class="viz-layers-grid">
+            <label><input type="checkbox" data-physviz-layer="master"> <strong>Master Toggle [V]</strong></label>
+            <label><input type="checkbox" data-physviz-layer="gravity" checked> Gravity &amp; Slope Shear Vectors</label>
+            <label><input type="checkbox" data-physviz-layer="cog" checked> CoG, Stability Plumb &amp; Support Polygon</label>
+            <label><input type="checkbox" data-physviz-layer="contacts" checked> Wheel Contacts &amp; Normal Forces</label>
+            <label><input type="checkbox" data-physviz-layer="traction" checked> Wheel Traction &amp; Slip Vectors</label>
+            <label><input type="checkbox" data-physviz-layer="wheelIndicators" checked> Wheel Ackermann &amp; Rotation Rings</label>
+            <label><input type="checkbox" data-physviz-layer="suspension" checked> Rocker-Bogie Kinematic Skeleton</label>
+            <label><input type="checkbox" data-physviz-layer="terrainProfile" checked> Forward Terrain Elevation Profile</label>
+            <label><input type="checkbox" data-physviz-layer="trajectory" checked> Slip-Colored Traverse Trajectory</label>
+          </div>
+        </section>
+      </div>
+    </aside>
+
+    <!-- Slide-in Scientific Spectroscopy Report Card -->
+    <aside id="science-report-card" class="hud-glass science-card hidden">
+      <div class="sci-card-header">
+        <span id="sci-action-badge" class="sci-badge scan">SUPERCAM LIBS ANALYSIS</span>
+        <button id="btn-close-science" class="sci-close">✕</button>
+      </div>
+      <h3 id="sci-mineral-title" class="sci-title">TGT-ALPHA-01: Smectite Mudstone</h3>
+      <div id="sci-mineral-cat" class="sci-cat mono">Sedimentary • Hydration: 8.9%</div>
+      <div id="sci-chem-grid" class="chem-grid"></div>
+      <div id="sci-bio-val" class="sci-bio mono">Biosignature Potential: Very High (0.89)</div>
+      <p id="sci-advisor-text" class="sci-advisor"></p>
+    </aside>
+
+    <!-- Bottom Row: Left Vehicle Telemetry | Right Mars Environment & Energy -->
+    <footer class="hud-bottom-row">
+      <div class="hud-glass drive-cluster">
+        <div class="speed-block">
+          <div class="speed-main">
+            <span id="hud-speed-val" class="speed-digits mono">0.0</span>
+            <span class="speed-unit mono">m/s</span>
+          </div>
+          <div class="speed-sub">
+            <span id="hud-speed-kmh" class="mono">0.0 km/h</span>
+            <span id="hud-gear-badge" class="gear-pill drive">DRIVE</span>
+          </div>
+        </div>
+
+        <div class="drive-metrics mono">
+          <div class="metric-line">
+            <span>SLOPE</span>
+            <strong id="hud-slope-val">1.2°</strong>
+          </div>
+          <div class="metric-line">
+            <span>SURFACE</span>
+            <strong id="hud-soil-val">Ferric Regolith</strong>
+          </div>
+          <div class="metric-line">
+            <span>SLIP</span>
+            <div class="mini-bar"><div id="hud-slip-fill" class="mini-fill slip" style="width:0%"></div></div>
+          </div>
+          <div class="metric-line">
+            <span>HULL <em id="hud-hull-val">100%</em></span>
+            <div class="mini-bar"><div id="hud-hull-fill" class="mini-fill hull" style="width:100%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-glass env-cluster mono">
+        <div class="power-row">
+          <span>BATTERY</span>
+          <div class="bat-bar"><div id="hud-battery-fill" class="bat-fill" style="width:96%"></div></div>
+          <strong id="hud-battery-val">96%</strong>
+        </div>
+        <div class="env-grid">
+          <div><span>SOLAR</span><strong id="hud-solar-val">180W</strong></div>
+          <div><span>NET PWR</span><strong id="hud-net-power">+162W</strong></div>
+          <div><span>TEMP</span><strong id="hud-temp-val">-24°C</strong></div>
+          <div><span>VISIBILITY</span><strong id="hud-vis-val">850m</strong></div>
+          <div><span>GRAVITY</span><strong id="hud-grav-val">3.71 m/s²</strong></div>
+          <div><span>ODOMETER</span><strong id="hud-dist-val">0 m</strong></div>
+        </div>
+        <div class="sol-footer">
+          <span id="hud-sol-clock">SOL 45 • 13:00:00 LMST</span>
+          <span class="sim-footnote">SIMULATED TELEMETRY</span>
+        </div>
+      </div>
+    </footer>
+
+    <!-- On-Screen Touchscreen Controls (Auto-shown on touch devices or via Settings) -->
+    <div id="touch-controls-layer" class="touch-layer hidden">
+      <div class="touch-left-pad">
+        <button class="touch-btn" data-touch-control="steerLeft">◀</button>
+        <button class="touch-btn" data-touch-control="steerRight">▶</button>
+      </div>
+      <div class="touch-center-actions">
+        <button class="touch-mini" data-touch-action="interact">SCAN [E]</button>
+        <button class="touch-mini" data-touch-action="camera">CAM</button>
+        <button class="touch-mini" data-touch-action="lights">LIGHT</button>
+        <button class="touch-mini" data-touch-action="photo">PHOTO</button>
+        <button class="touch-mini" data-touch-action="reset">RESET</button>
+      </div>
+      <div class="touch-right-pedals">
+        <button class="touch-btn brake-pedal" data-touch-control="brake">BRK</button>
+        <button class="touch-btn rev-pedal" data-touch-control="reverse">REV</button>
+        <button class="touch-btn boost-pedal" data-touch-control="boost">BOOST</button>
+        <button class="touch-btn fwd-pedal" data-touch-control="forward">DRIVE</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 6. Full-Screen Engineering Simulation Mode ([G] Key) -->
+  <section id="eng-fullscreen-modal" class="eng-fullscreen-overlay hidden">
+    <header class="eng-full-header">
+      <div class="eng-header-left">
+        <span class="brand-dot"></span>
+        <div>
+          <h2 class="mono">FULL-SCREEN MARS ROVER ENGINEERING SIMULATION</h2>
+          <span class="mono brand-kicker">REAL-TIME TIME-SERIES TELEMETRY • TERRMECHANICS &amp; ENERGY CHARTS</span>
+        </div>
+      </div>
+      <div class="eng-header-actions mono">
+        <button id="btn-eng-pause" class="tool-pill">⏸ PAUSE SIMULATION</button>
+        <button id="btn-eng-step" class="tool-pill">+1 STEP</button>
+        <button id="btn-eng-export-csv" class="tool-pill primary-pill">⬇ EXPORT CSV</button>
+        <button id="btn-eng-export-json" class="tool-pill">⬇ EXPORT JSON</button>
+        <button id="btn-eng-tab-charts" class="tool-pill active">CHARTS &amp; TELEMETRY</button>
+        <button id="btn-eng-tab-docs" class="tool-pill">PHYSICS &amp; NASA SPECS</button>
+        <button id="btn-eng-close" class="close-icon-btn" title="Close (ESC or G)">✕</button>
+      </div>
+    </header>
+
+    <main class="eng-full-content">
+      <!-- Tab 1: Live Canvas Charts & Mission Summary -->
+      <div id="eng-charts-pane" class="eng-tab-pane">
+        <div id="eng-mission-summary" class="mission-summary-bar mono"></div>
+        <div class="charts-2col-grid">
+          <div class="chart-box">
+            <div class="chart-header mono">SPEED &amp; LONGITUDINAL ACCELERATION (m/s, m/s²)</div>
+            <canvas id="chart-speed-accel" width="560" height="190"></canvas>
+          </div>
+          <div class="chart-box">
+            <div class="chart-header mono">6-WHEEL INSTANTANEOUS LOAD F_N, TRACTION &amp; SINKAGE</div>
+            <canvas id="chart-wheels-compare" width="560" height="190"></canvas>
+          </div>
+          <div class="chart-box">
+            <div class="chart-header mono">ELECTRICAL POWER BALANCE: SOLAR/RTG GENERATION VS LOADS (W)</div>
+            <canvas id="chart-power-balance" width="560" height="190"></canvas>
+          </div>
+          <div class="chart-box">
+            <div class="chart-header mono">DUAL 8S LI-ION BATTERY STATE OF CHARGE (%) &amp; BUS VOLTAGE (V)</div>
+            <canvas id="chart-battery-bus" width="560" height="190"></canvas>
+          </div>
+          <div class="chart-box">
+            <div class="chart-header mono">INDIVIDUAL AXLE WHEEL SLIP RATIO (%) — FRONT, MID &amp; REAR</div>
+            <canvas id="chart-wheel-slip" width="560" height="190"></canvas>
+          </div>
+          <div class="chart-box">
+            <div class="chart-header mono">SLOPE GRAVITY SHEAR VS MOHR–COULOMB TRACTION LIMIT (N)</div>
+            <canvas id="chart-slope-traction" width="560" height="190"></canvas>
+          </div>
+          <div class="chart-box chart-full-width">
+            <div class="chart-header mono">FOUR-NODE THERMAL HISTORY (°C) — ELECTRONICS, BATTERY, MOTORS &amp; AMBIENT</div>
+            <canvas id="chart-thermal-history" width="1140" height="180"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Physics Equations, NASA Mars 2020 Constants & Reference Documentation -->
+      <div id="eng-docs-pane" class="eng-tab-pane hidden mono">
+        <div class="docs-container">
+          <section class="docs-card">
+            <h3>1. BEKKER–WONG RIGID-WHEEL PRESSURE-SINKAGE EQUATION</h3>
+            <p class="docs-eq">z₀ = [ (3 · F_N) / ( b · (3 - n) · (k_c/b + k_φ) · √(2 · r) ) ] ^ ( 2 / (2n + 1) )</p>
+            <p>Calculates radial sinkage <em>z₀</em> of a rigid cylindrical rover wheel under normal load <em>F_N</em>, wheel width <em>b = 0.525 m</em>, radius <em>r = 0.2625 m</em>, cohesive modulus <em>k_c</em>, frictional modulus <em>k_φ</em>, and sinkage exponent <em>n</em>. On Martian regolith (<em>Loose Regolith</em>), nominal static sinkage is ~1.35 cm; in active slip, digging factor <em>(1 + 1.8 · s^1.4)</em> increases sinkage up to 8.5+ cm in fine sand dunes.</p>
+          </section>
+
+          <section class="docs-card">
+            <h3>2. MOHR–COULOMB &amp; JANOSI–HANAMOTO SHEAR STRESS RELATION</h3>
+            <p class="docs-eq">τ(j) = ( c + σ · tan φ ) · ( 1 - exp(-j / K) )</p>
+            <p>Determines maximum soil traction shear envelope where <em>c</em> is soil cohesion, <em>φ</em> is internal friction angle, <em>σ = F_N / A_contact</em> is normal pressure, <em>j = ∫ |v_slip| dt</em> is shear displacement, and <em>K</em> is Janosi shear modulus (0.012–0.038 m). Rolling resistance compaction work is integrated via: <em>R_c = (b · (k_c/b + k_φ) / (n + 1)) · z₀^(n + 1)</em>.</p>
+          </section>
+
+          <section class="docs-card">
+            <h3>3. MARS BAROMETRIC HYDROSTATIC EQUATION &amp; ATMOSPHERIC DENSITY</h3>
+            <p class="docs-eq">P(z) = P_datum · exp( -z_MOLA / H ) ,   where   H = ( R_spec · T ) / g</p>
+            <p class="docs-eq">ρ = P / ( R_spec · T )   [Ideal Gas Law for 95.3% CO₂ Atmosphere]</p>
+            <p>Anchored to mean Martian datum pressure <em>P_datum = 610.0 Pa</em> at MOLA 0 m areoid with <em>R_spec = 191.18 J/(kg·K)</em> and <em>g = 3.71 m/s²</em>. At Jezero Crater floor (-2560 m), atmospheric pressure increases naturally to ~760 Pa with scale height <em>H ≈ 12.8 km</em> and density <em>ρ ≈ 0.0156 kg/m³</em>, matching NASA Mars 2020 MEDA pressure sensor observations.</p>
+          </section>
+
+          <section class="docs-card">
+            <h3>4. BEER–LAMBERT ATMOSPHERIC SOLAR EXTINCTION</h3>
+            <p class="docs-eq">I_surface = S₀ · sin θ_sun · exp( -τ · m_air ) + I_diffuse</p>
+            <p>Mean top-of-atmosphere Martian solar irradiance <em>S₀ = 590.0 W/m²</em> at 1.524 AU is attenuated by atmospheric dust optical depth <em>τ</em> (derived from regional baseline + storm intensity) and optical airmass <em>m_air = 1 / sin θ_sun</em>. Diffuse sky radiation incorporates forward scattering through suspended atmospheric dust.</p>
+          </section>
+
+          <section class="docs-card">
+            <h3>5. FOUR-NODE LUMPED THERMAL CAPACITANCE ODE NETWORK</h3>
+            <p class="docs-eq">C_i · ( dT_i / dt ) = Σ Q_internal - h_conv · A_i · ( T_i - T_mars ) - Q_rad</p>
+            <p>Governs temperature evolution across four nodes: (1) <strong>Battery Pack</strong> inside Warm Electronics Box (WEB) with internal resistance Joule heating <em>I²·R</em> and survival heaters, (2) <strong>Drive Actuator Motors</strong> exposed on wheel hubs cooled by forced convection <em>h_conv ∝ √(ρ·v_wind)</em>, (3) <strong>Rover Compute Element (RCE)</strong> avionics, and (4) <strong>Mast / SuperCam Head</strong> exposed to solar flux and cold ambient air (-125°C to +20°C).</p>
+          </section>
+
+          <section class="docs-card">
+            <h3>6. NASA REFERENCE SOURCES &amp; CONSTANTS USED</h3>
+            <ul class="docs-list">
+              <li><strong>Planetary Constants:</strong> NASA Mars Fact Sheet (IAU 2000 volumetric radius <em>R = 3,389.5 km</em>, gravity <em>g = 3.71 m/s²</em>, solar day <em>1 Sol = 24h 39m 35.244s</em>).</li>
+              <li><strong>Meteorology &amp; Atmosphere:</strong> NASA Mars 2020 MEDA (Mars Environmental Dynamics Analyzer) diurnal temperature and barometric tidal records.</li>
+              <li><strong>Traverse Data:</strong> NASA Planetary Data System (PDS) &amp; NAIF SPICE kernels for Perseverance Sols 38–44 traverse path and waypoint corridor across Jezero crater floor.</li>
+              <li><strong>Terramechanics Models:</strong> M. G. Bekker (1960), J. Y. Wong (2008) <em>Terramechanics and Off-Road Vehicle Engineering</em>, and Janosi &amp; Hanamoto (1961) shear displacement relation.</li>
+            </ul>
+          </section>
+
+          <section class="docs-card">
+            <h3>7. KNOWN SIMULATION APPROXIMATIONS</h3>
+            <ul class="docs-list">
+              <li><strong>Terramechanics:</strong> Rigid-wheel analytical formulation rather than full discrete element method (DEM) granular continuum simulation, calibrated for real-time 120 Hz browser execution.</li>
+              <li><strong>Electrical Pack:</strong> Time-scaled capacity multiplier applied so energy management and night survival gameplay remain engaging within 15–20 minute play sessions while retaining exact Volt-Ampere physics.</li>
+              <li><strong>Atmosphere:</strong> Single-column 1D hydrostatic barometric lapse rate and harmonic diurnal MEDA fit rather than full 3D global circulation model (GCM).</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <!-- Master Game Script -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -475,6 +475,12 @@ function IndexPage() {
                 <Layers className="size-4" /> Open Planetary Map
               </Link>
               <Link
+                to="/rover-game"
+                className="inline-flex items-center gap-2 rounded-xl border border-amber/40 bg-amber/10 px-4 py-3 font-display text-sm font-semibold text-amber shadow-sm backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:bg-amber/20 hover:shadow-md"
+              >
+                <Compass className="size-4 text-amber" /> Rover Expedition 3D
+              </Link>
+              <Link
                 to="/sol-by-sol"
                 className="inline-flex items-center gap-2 rounded-xl border border-line bg-white/80 px-4 py-3 font-display text-sm font-semibold text-bright shadow-sm backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-md"
               >

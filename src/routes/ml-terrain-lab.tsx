@@ -28,29 +28,13 @@ export const Route = createFileRoute("/ml-terrain-lab")({
 });
 
 function MlTerrainLabPage() {
-  const [activeTab, setActiveTab] = useState<"hf-models" | "jezero-surrogate">("hf-models");
+  const [activeTab, setActiveTab] = useState<"jezero-surrogate" | "hf-models">("jezero-surrogate");
 
   return (
     <div className="rise-in space-y-6">
       {/* Top AI System Switcher */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-2 rounded-2xl border border-line/70 bg-white/70 dark:bg-panel/70 shadow-sm backdrop-blur-xl">
         <div className="flex items-center gap-1.5 w-full sm:w-auto">
-          <button
-            type="button"
-            onClick={() => setActiveTab("hf-models")}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all ${
-              activeTab === "hf-models"
-                ? "bg-amber text-ink shadow-md"
-                : "text-fog hover:text-bright hover:bg-ink2"
-            }`}
-          >
-            <BrainCircuit className="size-4" />
-            <span>Hugging Face Mars AI Suite</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-slate-900/20 text-slate-900 font-normal">
-              7 Models
-            </span>
-          </button>
-
           <button
             type="button"
             onClick={() => setActiveTab("jezero-surrogate")}
@@ -66,6 +50,22 @@ function MlTerrainLabPage() {
               1m DTM
             </span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("hf-models")}
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all ${
+              activeTab === "hf-models"
+                ? "bg-amber text-ink shadow-md"
+                : "text-fog hover:text-bright hover:bg-ink2"
+            }`}
+          >
+            <BrainCircuit className="size-4" />
+            <span>Hugging Face Mars AI Suite</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-slate-900/20 text-slate-900 font-normal">
+              7 Models
+            </span>
+          </button>
         </div>
 
         <div className="hidden lg:flex items-center gap-2 text-[11px] font-mono text-fog pr-3">
@@ -75,10 +75,10 @@ function MlTerrainLabPage() {
       </div>
 
       {/* Active Tab View */}
-      {activeTab === "hf-models" ? (
-        <HfAiAnalysisPanel />
-      ) : (
+      {activeTab === "jezero-surrogate" ? (
         <MlTerrainLab />
+      ) : (
+        <HfAiAnalysisPanel />
       )}
     </div>
   );

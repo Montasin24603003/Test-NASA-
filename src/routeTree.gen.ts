@@ -17,6 +17,7 @@ import { Route as MlTerrainLabRouteImport } from './routes/ml-terrain-lab'
 import { Route as PlanetaryMapRouteImport } from './routes/planetary-map'
 import { Route as ProtocolsRouteImport } from './routes/protocols'
 import { Route as ResourcesRouteImport } from './routes/resources'
+import { Route as RoverGameRouteImport } from './routes/rover-game'
 import { Route as SolBySolRouteImport } from './routes/sol-by-sol'
 import { Route as ApiHfInferenceRouteImport } from './routes/api/hf-inference'
 import { Route as ApiMarsAdvisorRouteImport } from './routes/api/mars-advisor'
@@ -61,6 +62,11 @@ const ResourcesRoute = ResourcesRouteImport.update({
   path: '/resources',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RoverGameRoute = RoverGameRouteImport.update({
+  id: '/rover-game',
+  path: '/rover-game',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SolBySolRoute = SolBySolRouteImport.update({
   id: '/sol-by-sol',
   path: '/sol-by-sol',
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/planetary-map': typeof PlanetaryMapRoute
   '/protocols': typeof ProtocolsRoute
   '/resources': typeof ResourcesRoute
+  '/rover-game': typeof RoverGameRoute
   '/sol-by-sol': typeof SolBySolRoute
   '/api/hf-inference': typeof ApiHfInferenceRoute
   '/api/mars-advisor': typeof ApiMarsAdvisorRoute
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/planetary-map': typeof PlanetaryMapRoute
   '/protocols': typeof ProtocolsRoute
   '/resources': typeof ResourcesRoute
+  '/rover-game': typeof RoverGameRoute
   '/sol-by-sol': typeof SolBySolRoute
   '/api/hf-inference': typeof ApiHfInferenceRoute
   '/api/mars-advisor': typeof ApiMarsAdvisorRoute
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/planetary-map': typeof PlanetaryMapRoute
   '/protocols': typeof ProtocolsRoute
   '/resources': typeof ResourcesRoute
+  '/rover-game': typeof RoverGameRoute
   '/sol-by-sol': typeof SolBySolRoute
   '/api/hf-inference': typeof ApiHfInferenceRoute
   '/api/mars-advisor': typeof ApiMarsAdvisorRoute
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/planetary-map'
     | '/protocols'
     | '/resources'
+    | '/rover-game'
     | '/sol-by-sol'
     | '/api/hf-inference'
     | '/api/mars-advisor'
@@ -141,6 +151,7 @@ export interface FileRouteTypes {
     | '/planetary-map'
     | '/protocols'
     | '/resources'
+    | '/rover-game'
     | '/sol-by-sol'
     | '/api/hf-inference'
     | '/api/mars-advisor'
@@ -154,6 +165,7 @@ export interface FileRouteTypes {
     | '/planetary-map'
     | '/protocols'
     | '/resources'
+    | '/rover-game'
     | '/sol-by-sol'
     | '/api/hf-inference'
     | '/api/mars-advisor'
@@ -168,6 +180,7 @@ export interface RootRouteChildren {
   PlanetaryMapRoute: typeof PlanetaryMapRoute
   ProtocolsRoute: typeof ProtocolsRoute
   ResourcesRoute: typeof ResourcesRoute
+  RoverGameRoute: typeof RoverGameRoute
   SolBySolRoute: typeof SolBySolRoute
   ApiHfInferenceRoute: typeof ApiHfInferenceRoute
   ApiMarsAdvisorRoute: typeof ApiMarsAdvisorRoute
@@ -231,6 +244,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rover-game': {
+      id: '/rover-game'
+      path: '/rover-game'
+      fullPath: '/rover-game'
+      preLoaderRoute: typeof RoverGameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sol-by-sol': {
       id: '/sol-by-sol'
       path: '/sol-by-sol'
@@ -264,6 +284,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlanetaryMapRoute: PlanetaryMapRoute,
   ProtocolsRoute: ProtocolsRoute,
   ResourcesRoute: ResourcesRoute,
+  RoverGameRoute: RoverGameRoute,
   SolBySolRoute: SolBySolRoute,
   ApiHfInferenceRoute: ApiHfInferenceRoute,
   ApiMarsAdvisorRoute: ApiMarsAdvisorRoute,
