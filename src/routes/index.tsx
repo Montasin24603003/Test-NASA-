@@ -420,26 +420,26 @@ function IndexPage() {
       {/* =========================================================================
           SECTION B: CINEMATIC HERO SECTION (LEFT HERO / CENTER GLOBE / RIGHT DATA)
          ========================================================================= */}
-      <section className="relative overflow-hidden rounded-[32px] border border-line/80 bg-gradient-to-b from-[#0a0f1d]/90 via-[#060a14]/95 to-[#04070e] p-6 shadow-2xl backdrop-blur-2xl sm:p-8 lg:p-10">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(234,88,12,0.12),transparent_70%)]" />
+      <section className="relative overflow-hidden rounded-[32px] border border-slate-200/90 dark:border-line/80 bg-gradient-to-b from-white via-slate-50/95 to-amber-50/20 dark:from-[#0a0f1d]/90 dark:via-[#060a14]/95 dark:to-[#04070e] p-6 shadow-xl dark:shadow-2xl backdrop-blur-2xl sm:p-8 lg:p-10 transition-colors">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(234,88,12,0.08),transparent_70%)] dark:bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(234,88,12,0.12),transparent_70%)]" />
 
         <div className="relative grid items-center gap-8 lg:grid-cols-[1.1fr_1.1fr_0.8fr] xl:grid-cols-[1.1fr_1.2fr_0.85fr]">
           {/* 1. LEFT SIDE: HERO HEADLINE & CTAS */}
           <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber/30 bg-amber/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-amber shadow-sm">
-              <span className="size-1.5 rounded-full bg-amber animate-pulse" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 dark:border-amber/30 dark:bg-amber/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-amber-700 dark:text-amber shadow-sm">
+              <span className="size-1.5 rounded-full bg-amber-600 dark:bg-amber animate-pulse" />
               EXPLORE // ANALYZE // SURVIVE
             </div>
 
-            <h1 className="font-display text-4xl font-extrabold tracking-tight text-bright sm:text-5xl xl:text-6xl leading-[1.05]">
+            <h1 className="font-display text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-5xl xl:text-6xl leading-[1.05]">
               MARS AWAITS.
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber via-orange-400 to-amber-200">
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-orange-600 to-amber-500 dark:from-amber dark:via-orange-400 dark:to-amber-200">
                 SCIENCE LEADS
               </span>
               THE WAY.
             </h1>
 
-            <p className="text-sm sm:text-base text-fog max-w-xl leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-xl leading-relaxed">
               A mission-critical planetary intelligence and survival decision-support workspace. Fusing real NASA Mars Trek orthomosaics, SWIM 2.0 subsurface ice soundings, calibrated multi-hazard vectors, and autonomous rover robotics.
             </p>
 
@@ -447,7 +447,7 @@ function IndexPage() {
             <div className="flex flex-wrap items-center gap-3 pt-1">
               <Link
                 to="/planetary-map"
-                className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber to-orange-500 hover:from-amber/90 hover:to-orange-500/90 px-6 py-3.5 font-display text-sm font-bold text-ink shadow-lg shadow-amber/20 hover:-translate-y-0.5 transition-all"
+                className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white px-6 py-3.5 font-display text-sm font-bold shadow-lg shadow-amber-500/25 hover:-translate-y-0.5 transition-all"
               >
                 <Layers className="size-4" />
                 <span>Start Exploring</span>
@@ -457,36 +457,36 @@ function IndexPage() {
               <button
                 type="button"
                 onClick={() => setBriefingOpen(true)}
-                className="inline-flex items-center gap-2 rounded-2xl border border-line/80 bg-white/10 dark:bg-panel/70 hover:bg-white/15 px-5 py-3.5 font-display text-sm font-semibold text-bright shadow-sm backdrop-blur-xl hover:-translate-y-0.5 transition-all"
+                className="inline-flex items-center gap-2 rounded-2xl border border-slate-300 dark:border-line/80 bg-white hover:bg-slate-50 dark:bg-panel/70 dark:hover:bg-white/15 px-5 py-3.5 font-display text-sm font-semibold text-slate-800 dark:text-bright shadow-sm backdrop-blur-xl hover:-translate-y-0.5 transition-all"
               >
-                <Play className="size-3.5 fill-current text-amber" />
+                <Play className="size-3.5 fill-current text-amber-600 dark:text-amber" />
                 <span>Watch Overview</span>
               </button>
             </div>
 
             {/* Small Statistics Ribbon */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-4 border-t border-line/60 font-mono">
-              <div className="p-2.5 rounded-xl bg-ink2/40 border border-line/50">
-                <span className="text-[10px] text-fog uppercase block">Portals</span>
-                <strong className="text-sm text-bright font-bold">10+ NASA</strong>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-4 border-t border-slate-200/80 dark:border-line/60 font-mono">
+              <div className="p-2.5 rounded-xl bg-white dark:bg-ink2/40 border border-slate-200/90 dark:border-line/50 shadow-sm">
+                <span className="text-[10px] text-slate-500 dark:text-fog uppercase block">Portals</span>
+                <strong className="text-sm text-slate-900 dark:text-bright font-bold">10+ NASA</strong>
               </div>
-              <div className="p-2.5 rounded-xl bg-ink2/40 border border-line/50">
-                <span className="text-[10px] text-fog uppercase block">AI Suite</span>
-                <strong className="text-sm text-amber font-bold">14 Models</strong>
+              <div className="p-2.5 rounded-xl bg-white dark:bg-ink2/40 border border-slate-200/90 dark:border-line/50 shadow-sm">
+                <span className="text-[10px] text-slate-500 dark:text-fog uppercase block">AI Suite</span>
+                <strong className="text-sm text-amber-600 dark:text-amber font-bold">14 Models</strong>
               </div>
-              <div className="p-2.5 rounded-xl bg-ink2/40 border border-line/50">
-                <span className="text-[10px] text-fog uppercase block">Ground Truth</span>
-                <strong className="text-sm text-mint font-bold">Real Data</strong>
+              <div className="p-2.5 rounded-xl bg-white dark:bg-ink2/40 border border-slate-200/90 dark:border-line/50 shadow-sm">
+                <span className="text-[10px] text-slate-500 dark:text-fog uppercase block">Ground Truth</span>
+                <strong className="text-sm text-emerald-600 dark:text-mint font-bold">Real Data</strong>
               </div>
-              <div className="p-2.5 rounded-xl bg-ink2/40 border border-line/50">
-                <span className="text-[10px] text-fog uppercase block">Mission Goal</span>
-                <strong className="text-sm text-cyan font-bold">Safe Horizon</strong>
+              <div className="p-2.5 rounded-xl bg-white dark:bg-ink2/40 border border-slate-200/90 dark:border-line/50 shadow-sm">
+                <span className="text-[10px] text-slate-500 dark:text-fog uppercase block">Mission Goal</span>
+                <strong className="text-sm text-cyan-600 dark:text-cyan font-bold">Safe Horizon</strong>
               </div>
             </div>
           </div>
 
           {/* 2. CENTER: REALISTIC 3D MARS GLOBE (Three.js WebGL) */}
-          <div className="relative mx-auto aspect-square w-full max-w-[460px] overflow-hidden rounded-[28px] border border-line/80 bg-radial from-[#0d1624] via-[#070d17] to-[#040810] p-2 shadow-2xl">
+          <div className="relative mx-auto aspect-square w-full max-w-[460px] overflow-hidden rounded-[28px] border border-slate-300/90 dark:border-line/80 bg-radial from-[#0d1624] via-[#070d17] to-[#040810] p-2 shadow-2xl">
             <Canvas camera={{ position: [0, 0, 2.85], fov: 45 }} dpr={[1, 2]}>
               <color attach="background" args={["#040810"]} />
 
@@ -586,87 +586,87 @@ function IndexPage() {
           </div>
 
           {/* 3. RIGHT SIDE: MARTIAN ENVIRONMENT LIVE-DATA PANEL */}
-          <div className="rounded-2xl border border-line/80 bg-white/80 dark:bg-[#070c16]/85 p-5 shadow-xl backdrop-blur-2xl space-y-3.5 font-mono text-xs">
-            <div className="flex items-center justify-between border-b border-line/60 pb-2.5">
+          <div className="rounded-2xl border border-slate-200/90 dark:border-line/80 bg-white/95 dark:bg-[#070c16]/85 p-5 shadow-xl backdrop-blur-2xl space-y-3.5 font-mono text-xs">
+            <div className="flex items-center justify-between border-b border-slate-200/70 dark:border-line/60 pb-2.5">
               <div className="flex items-center gap-2">
-                <Radio className="size-3.5 text-mint animate-pulse" />
-                <span className="text-[10px] text-bright font-bold uppercase tracking-wider">
+                <Radio className="size-3.5 text-emerald-600 dark:text-mint animate-pulse" />
+                <span className="text-[10px] text-slate-900 dark:text-bright font-bold uppercase tracking-wider">
                   Martian Environment
                 </span>
               </div>
-              <span className="text-[9px] px-2 py-0.5 rounded-md bg-mint/15 text-mint border border-mint/30 font-semibold">
+              <span className="text-[9px] px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 border border-emerald-500/25 dark:bg-mint/15 dark:text-mint dark:border-mint/30 font-semibold">
                 MEDA Calibrated
               </span>
             </div>
 
             {/* Metric 1: Temperature */}
-            <div className="p-3 rounded-xl bg-ink2/50 border border-line/50 flex items-center justify-between">
+            <div className="p-3 rounded-xl bg-slate-50/90 dark:bg-ink2/50 border border-slate-200/80 dark:border-line/50 hover:border-amber-500/40 transition-colors flex items-center justify-between">
               <div>
-                <div className="flex items-center gap-1.5 text-fog text-[10px] uppercase">
-                  <Thermometer className="size-3 text-rose" />
+                <div className="flex items-center gap-1.5 text-slate-500 dark:text-fog text-[10px] uppercase">
+                  <Thermometer className="size-3 text-rose-500 dark:text-rose" />
                   <span>Surface Temperature</span>
                 </div>
-                <strong className="text-base text-bright font-bold font-display mt-0.5 block">−62°C</strong>
-                <span className="text-[9px] text-fog block">Diurnal: −125°C to +20°C</span>
+                <strong className="text-base text-slate-900 dark:text-bright font-bold font-display mt-0.5 block">−62°C</strong>
+                <span className="text-[9px] text-slate-500 dark:text-fog block">Diurnal: −125°C to +20°C</span>
               </div>
-              <span className="text-[9px] text-fog text-right">NASA MEDA<br />ATS Sensor</span>
+              <span className="text-[9px] text-slate-500 dark:text-fog text-right">NASA MEDA<br />ATS Sensor</span>
             </div>
 
             {/* Metric 2: Atmospheric Pressure */}
-            <div className="p-3 rounded-xl bg-ink2/50 border border-line/50 flex items-center justify-between">
+            <div className="p-3 rounded-xl bg-slate-50/90 dark:bg-ink2/50 border border-slate-200/80 dark:border-line/50 hover:border-amber-500/40 transition-colors flex items-center justify-between">
               <div>
-                <div className="flex items-center gap-1.5 text-fog text-[10px] uppercase">
-                  <Gauge className="size-3 text-cyan" />
+                <div className="flex items-center gap-1.5 text-slate-500 dark:text-fog text-[10px] uppercase">
+                  <Gauge className="size-3 text-cyan-600 dark:text-cyan" />
                   <span>Atmospheric Pressure</span>
                 </div>
-                <strong className="text-base text-bright font-bold font-display mt-0.5 block">760 Pa</strong>
-                <span className="text-[9px] text-fog block">Jezero Floor (−2,560m)</span>
+                <strong className="text-base text-slate-900 dark:text-bright font-bold font-display mt-0.5 block">760 Pa</strong>
+                <span className="text-[9px] text-slate-500 dark:text-fog block">Jezero Floor (−2,560m)</span>
               </div>
-              <span className="text-[9px] text-fog text-right">MEDA PS<br />Barometer</span>
+              <span className="text-[9px] text-slate-500 dark:text-fog text-right">MEDA PS<br />Barometer</span>
             </div>
 
             {/* Metric 3: Solar Radiation */}
-            <div className="p-3 rounded-xl bg-ink2/50 border border-line/50 flex items-center justify-between">
+            <div className="p-3 rounded-xl bg-slate-50/90 dark:bg-ink2/50 border border-slate-200/80 dark:border-line/50 hover:border-amber-500/40 transition-colors flex items-center justify-between">
               <div>
-                <div className="flex items-center gap-1.5 text-fog text-[10px] uppercase">
-                  <Zap className="size-3 text-amber" />
+                <div className="flex items-center gap-1.5 text-slate-500 dark:text-fog text-[10px] uppercase">
+                  <Zap className="size-3 text-amber-600 dark:text-amber" />
                   <span>Ionizing Radiation</span>
                 </div>
-                <strong className="text-base text-bright font-bold font-display mt-0.5 block">0.64 mSv/d</strong>
-                <span className="text-[9px] text-fog block">GCR Baseline Dose</span>
+                <strong className="text-base text-slate-900 dark:text-bright font-bold font-display mt-0.5 block">0.64 mSv/d</strong>
+                <span className="text-[9px] text-slate-500 dark:text-fog block">GCR Baseline Dose</span>
               </div>
-              <span className="text-[9px] text-fog text-right">MSL RAD<br />Detector</span>
+              <span className="text-[9px] text-slate-500 dark:text-fog text-right">MSL RAD<br />Detector</span>
             </div>
 
             {/* Metric 4: Wind Speed */}
-            <div className="p-3 rounded-xl bg-ink2/50 border border-line/50 flex items-center justify-between">
+            <div className="p-3 rounded-xl bg-slate-50/90 dark:bg-ink2/50 border border-slate-200/80 dark:border-line/50 hover:border-amber-500/40 transition-colors flex items-center justify-between">
               <div>
-                <div className="flex items-center gap-1.5 text-fog text-[10px] uppercase">
-                  <Wind className="size-3 text-indigo-400" />
+                <div className="flex items-center gap-1.5 text-slate-500 dark:text-fog text-[10px] uppercase">
+                  <Wind className="size-3 text-indigo-500 dark:text-indigo-400" />
                   <span>Surface Wind Speed</span>
                 </div>
-                <strong className="text-base text-bright font-bold font-display mt-0.5 block">4.2 m/s</strong>
-                <span className="text-[9px] text-fog block">Gusts up to 14.5 m/s</span>
+                <strong className="text-base text-slate-900 dark:text-bright font-bold font-display mt-0.5 block">4.2 m/s</strong>
+                <span className="text-[9px] text-slate-500 dark:text-fog block">Gusts up to 14.5 m/s</span>
               </div>
-              <span className="text-[9px] text-fog text-right">WS1 &amp; WS2<br />Anemometer</span>
+              <span className="text-[9px] text-slate-500 dark:text-fog text-right">WS1 &amp; WS2<br />Anemometer</span>
             </div>
 
             {/* Metric 5: Water Ice Potential */}
-            <div className="p-3 rounded-xl bg-ink2/50 border border-line/50 flex items-center justify-between">
+            <div className="p-3 rounded-xl bg-slate-50/90 dark:bg-ink2/50 border border-slate-200/80 dark:border-line/50 hover:border-amber-500/40 transition-colors flex items-center justify-between">
               <div>
-                <div className="flex items-center gap-1.5 text-fog text-[10px] uppercase">
-                  <Sparkles className="size-3 text-mint" />
+                <div className="flex items-center gap-1.5 text-slate-500 dark:text-fog text-[10px] uppercase">
+                  <Sparkles className="size-3 text-emerald-600 dark:text-mint" />
                   <span>Water Ice Potential</span>
                 </div>
-                <strong className="text-base text-mint font-bold font-display mt-0.5 block">SWIM Depth 0–1m</strong>
-                <span className="text-[9px] text-mint/80 block">84% Consistency Index</span>
+                <strong className="text-base text-emerald-600 dark:text-mint font-bold font-display mt-0.5 block">SWIM Depth 0–1m</strong>
+                <span className="text-[9px] text-emerald-700/80 dark:text-mint/80 block">84% Consistency Index</span>
               </div>
-              <span className="text-[9px] text-fog text-right">SWIM 2.0<br />SHARAD Radar</span>
+              <span className="text-[9px] text-slate-500 dark:text-fog text-right">SWIM 2.0<br />SHARAD Radar</span>
             </div>
 
-            <div className="pt-1 text-[9px] text-fog flex items-center justify-between">
+            <div className="pt-1 text-[9px] text-slate-500 dark:text-fog flex items-center justify-between">
               <span>Timestamp: Sol 142 · 14:18 LMST</span>
-              <span className="text-amber">PDS Synchronized</span>
+              <span className="text-amber-600 dark:text-amber font-semibold">PDS Synchronized</span>
             </div>
           </div>
         </div>
@@ -700,7 +700,7 @@ function IndexPage() {
               <Link
                 key={mod.id}
                 to={mod.to}
-                className={`group relative overflow-hidden rounded-3xl border border-line/80 bg-white/80 dark:bg-[#070c16]/80 p-5 shadow-xl backdrop-blur-2xl transition-all hover:-translate-y-1 hover:shadow-2xl flex flex-col justify-between ${mod.accentBorder}`}
+                className={`group relative overflow-hidden rounded-3xl border border-slate-200/90 dark:border-line/80 bg-white/90 dark:bg-[#070c16]/80 p-5 shadow-lg backdrop-blur-2xl transition-all hover:-translate-y-1 hover:shadow-2xl flex flex-col justify-between ${mod.accentBorder}`}
               >
                 {/* Background Terrain Silhouette */}
                 <div className="absolute inset-0 opacity-15 group-hover:opacity-25 transition-opacity">
@@ -710,36 +710,36 @@ function IndexPage() {
                     className="size-full object-cover grayscale contrast-125"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#070c16] via-[#070c16]/80 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent dark:from-[#070c16] dark:via-[#070c16]/80 dark:to-transparent" />
                 </div>
 
                 <div className="relative z-10 space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="p-2.5 rounded-2xl bg-ink2/70 border border-line/60 shrink-0">
+                    <div className="p-2.5 rounded-2xl bg-slate-100/90 dark:bg-ink2/70 border border-slate-200/90 dark:border-line/60 shrink-0">
                       <Icon className={`size-5 ${mod.color}`} />
                     </div>
-                    <span className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-ink2/80 text-fog border border-line/60">
+                    <span className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-ink2/80 text-slate-600 dark:text-fog border border-slate-200 dark:border-line/60">
                       {mod.stat}
                     </span>
                   </div>
 
                   <div>
-                    <span className="font-mono text-[10px] text-fog uppercase block">{mod.category}</span>
-                    <h3 className="font-display text-lg font-bold text-bright group-hover:text-amber transition-colors">
+                    <span className="font-mono text-[10px] text-slate-500 dark:text-fog uppercase block">{mod.category}</span>
+                    <h3 className="font-display text-lg font-bold text-slate-900 dark:text-bright group-hover:text-amber-600 dark:group-hover:text-amber transition-colors">
                       {mod.title}
                     </h3>
                   </div>
 
-                  <p className="text-xs text-fog leading-relaxed font-mono">
+                  <p className="text-xs text-slate-600 dark:text-fog leading-relaxed font-mono">
                     {mod.description}
                   </p>
                 </div>
 
-                <div className="relative z-10 mt-5 pt-3 border-t border-line/50 flex items-center justify-between font-mono text-[11px]">
-                  <span className="text-amber font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                <div className="relative z-10 mt-5 pt-3 border-t border-slate-200/70 dark:border-line/50 flex items-center justify-between font-mono text-[11px]">
+                  <span className="text-amber-600 dark:text-amber font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
                     Launch Module <ArrowRight className="size-3.5" />
                   </span>
-                  <span className="text-fog text-[10px]">Route Active</span>
+                  <span className="text-slate-500 dark:text-fog text-[10px]">Route Active</span>
                 </div>
               </Link>
             );
@@ -750,10 +750,10 @@ function IndexPage() {
       {/* =========================================================================
           SECTION D: FEATURED DATA INSIGHT (Cinematic Spotlight on Jezero Crater)
          ========================================================================= */}
-      <section className="relative overflow-hidden rounded-[32px] border border-line/80 bg-gradient-to-br from-[#0c1322] via-[#070c16] to-[#040810] p-6 shadow-2xl backdrop-blur-2xl sm:p-8 lg:p-10">
+      <section className="relative overflow-hidden rounded-[32px] border border-slate-200/90 dark:border-line/80 bg-gradient-to-br from-white via-slate-50 to-orange-50/20 dark:from-[#0c1322] dark:via-[#070c16] dark:to-[#040810] p-6 shadow-xl dark:shadow-2xl backdrop-blur-2xl sm:p-8 lg:p-10 transition-colors">
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] items-center">
           {/* Scientific Imagery & Overlay */}
-          <div className="relative overflow-hidden rounded-2xl border border-line/70 shadow-2xl group">
+          <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-line/70 shadow-2xl group">
             <img
               src="/mars-jezero-map.jpg"
               alt="Jezero Crater HiRISE Scientific Terrain Mosaic"
@@ -773,46 +773,46 @@ function IndexPage() {
 
           {/* Scientific Data & Provenance Information */}
           <div className="space-y-5">
-            <div className="inline-flex items-center gap-1.5 rounded-lg bg-amber/15 px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-amber border border-amber/30">
+            <div className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/10 text-amber-700 border border-amber-500/25 dark:bg-amber/15 dark:text-amber dark:border-amber/30 px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider">
               <Compass className="size-3.5" />
               Featured Scientific Insight · Candidate Sector
             </div>
 
-            <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-bright tracking-tight">
+            <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-bright tracking-tight">
               Jezero Crater Delta Complex
             </h2>
 
-            <p className="text-xs sm:text-sm text-fog leading-relaxed font-mono">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-fog leading-relaxed font-mono">
               Ancient lacustrine lake system fed by Neretva Vallis. Preserves layered clay smectites, deltaic cross-bedded mudstones, and shoreline carbonate precipitates with the highest biosignature potential on Mars.
             </p>
 
             <div className="grid grid-cols-2 gap-3 font-mono text-xs">
-              <div className="p-3 rounded-xl bg-ink2/50 border border-line/60">
-                <span className="text-[10px] text-fog uppercase block">Landing Site</span>
-                <strong className="text-bright block mt-0.5">Octavia E. Butler</strong>
-                <span className="text-[10px] text-fog">18.38°N, 77.58°E · −2,560m</span>
+              <div className="p-3 rounded-xl bg-white dark:bg-ink2/50 border border-slate-200/90 dark:border-line/60 shadow-sm">
+                <span className="text-[10px] text-slate-500 dark:text-fog uppercase block">Landing Site</span>
+                <strong className="text-slate-900 dark:text-bright block mt-0.5">Octavia E. Butler</strong>
+                <span className="text-[10px] text-slate-500 dark:text-fog">18.38°N, 77.58°E · −2,560m</span>
               </div>
-              <div className="p-3 rounded-xl bg-ink2/50 border border-line/60">
-                <span className="text-[10px] text-fog uppercase block">Water Ice &amp; Clay</span>
-                <strong className="text-mint block mt-0.5">Hydrated Smectite</strong>
-                <span className="text-[10px] text-mint">Bound Mineral Water</span>
+              <div className="p-3 rounded-xl bg-white dark:bg-ink2/50 border border-slate-200/90 dark:border-line/60 shadow-sm">
+                <span className="text-[10px] text-slate-500 dark:text-fog uppercase block">Water Ice &amp; Clay</span>
+                <strong className="text-emerald-600 dark:text-mint block mt-0.5">Hydrated Smectite</strong>
+                <span className="text-[10px] text-emerald-700/80 dark:text-mint">Bound Mineral Water</span>
               </div>
-              <div className="p-3 rounded-xl bg-ink2/50 border border-line/60">
-                <span className="text-[10px] text-fog uppercase block">Radiation Environment</span>
-                <strong className="text-bright block mt-0.5">0.62 mSv/day</strong>
-                <span className="text-[10px] text-fog">Delta scarp shadow protection</span>
+              <div className="p-3 rounded-xl bg-white dark:bg-ink2/50 border border-slate-200/90 dark:border-line/60 shadow-sm">
+                <span className="text-[10px] text-slate-500 dark:text-fog uppercase block">Radiation Environment</span>
+                <strong className="text-slate-900 dark:text-bright block mt-0.5">0.62 mSv/day</strong>
+                <span className="text-[10px] text-slate-500 dark:text-fog">Delta scarp shadow protection</span>
               </div>
-              <div className="p-3 rounded-xl bg-ink2/50 border border-line/60">
-                <span className="text-[10px] text-fog uppercase block">Rover Expedition</span>
-                <strong className="text-amber block mt-0.5">Perseverance</strong>
-                <span className="text-[10px] text-amber">43 Sample Tubes Cached</span>
+              <div className="p-3 rounded-xl bg-white dark:bg-ink2/50 border border-slate-200/90 dark:border-line/60 shadow-sm">
+                <span className="text-[10px] text-slate-500 dark:text-fog uppercase block">Rover Expedition</span>
+                <strong className="text-amber-600 dark:text-amber block mt-0.5">Perseverance</strong>
+                <span className="text-[10px] text-amber-700 dark:text-amber">43 Sample Tubes Cached</span>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <Link
                 to="/planetary-map"
-                className="inline-flex items-center gap-2 rounded-xl bg-amber hover:bg-amber/90 px-5 py-3 font-display text-xs font-bold text-ink shadow-sm transition-all"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white px-5 py-3 font-display text-xs font-bold shadow-md shadow-amber-500/20 transition-all"
               >
                 <Layers className="size-4" />
                 <span>View on Planetary Map</span>
@@ -821,9 +821,9 @@ function IndexPage() {
               <button
                 type="button"
                 onClick={() => setBriefingOpen(true)}
-                className="inline-flex items-center gap-2 rounded-xl border border-line bg-panel px-4 py-3 font-display text-xs font-semibold text-bright hover:bg-ink2 shadow-sm transition-all"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-300 dark:border-line bg-white dark:bg-panel px-4 py-3 font-display text-xs font-semibold text-slate-800 dark:text-bright hover:bg-slate-50 dark:hover:bg-ink2 shadow-sm transition-all"
               >
-                <Info className="size-4 text-cyan" />
+                <Info className="size-4 text-cyan-600 dark:text-cyan" />
                 <span>Learn More (Briefing)</span>
               </button>
             </div>
@@ -853,28 +853,28 @@ function IndexPage() {
           {marsSites.slice(0, 3).map((site) => (
             <div
               key={site.id}
-              className="rounded-3xl border border-line/80 bg-white/80 dark:bg-[#070c16]/80 p-5 shadow-xl backdrop-blur-2xl flex flex-col justify-between"
+              className="rounded-3xl border border-slate-200/90 dark:border-line/80 bg-white/90 dark:bg-[#070c16]/80 p-5 shadow-lg backdrop-blur-2xl flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-amber/15 text-amber border border-amber/30 font-bold uppercase">
+                  <span className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 border border-amber-500/25 dark:bg-amber/15 dark:text-amber dark:border-amber/30 font-bold uppercase">
                     {site.region}
                   </span>
-                  <span className="font-mono text-[10px] text-fog">
+                  <span className="font-mono text-[10px] text-slate-500 dark:text-fog">
                     {site.latitude.toFixed(1)}°N, {site.longitude.toFixed(1)}°E
                   </span>
                 </div>
-                <h3 className="mt-3 font-display text-lg font-bold text-bright">{site.name}</h3>
-                <p className="mt-2 text-xs text-fog leading-relaxed font-mono">
+                <h3 className="mt-3 font-display text-lg font-bold text-slate-900 dark:text-bright">{site.name}</h3>
+                <p className="mt-2 text-xs text-slate-600 dark:text-fog leading-relaxed font-mono">
                   {site.significance}
                 </p>
               </div>
 
-              <div className="mt-5 pt-3 border-t border-line/50 flex items-center justify-between font-mono text-[11px]">
-                <span className="text-fog">Elevation: {site.elevation}</span>
+              <div className="mt-5 pt-3 border-t border-slate-200/70 dark:border-line/50 flex items-center justify-between font-mono text-[11px]">
+                <span className="text-slate-500 dark:text-fog">Elevation: {site.elevation}</span>
                 <Link
                   to="/planetary-map"
-                  className="text-amber font-semibold hover:underline inline-flex items-center gap-1"
+                  className="text-amber-600 dark:text-amber font-semibold hover:underline inline-flex items-center gap-1"
                 >
                   Inspect Site <ArrowRight className="size-3" />
                 </Link>

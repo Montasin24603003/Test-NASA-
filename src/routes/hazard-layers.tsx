@@ -222,27 +222,27 @@ export function HazardLayersPage() {
       </div>
 
       {/* 2. INTERACTIVE MERI (MARS EXPLORATION RISK INDEX) CALCULATOR */}
-      <div className="rounded-3xl border border-line/80 bg-gradient-to-br from-[#0c1322] via-[#070c16] to-[#040810] p-6 shadow-2xl backdrop-blur-2xl sm:p-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line/60 pb-4">
+      <div className="rounded-3xl border border-slate-200/90 dark:border-line/80 bg-gradient-to-br from-white via-slate-50 to-rose-50/20 dark:from-[#0c1322] dark:via-[#070c16] dark:to-[#040810] p-6 shadow-xl dark:shadow-2xl backdrop-blur-2xl sm:p-8 space-y-6 transition-colors">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/70 dark:border-line/60 pb-4">
           <div>
             <div className="flex items-center gap-2">
-              <Gauge className="size-4 text-amber" />
-              <h2 className="font-display text-xl font-bold text-bright">
+              <Gauge className="size-4 text-amber-600 dark:text-amber" />
+              <h2 className="font-display text-xl font-bold text-slate-900 dark:text-bright">
                 Interactive MERI (Mars Exploration Risk Index) Calculator
               </h2>
             </div>
-            <p className="text-xs text-fog font-mono mt-1">
+            <p className="text-xs text-slate-600 dark:text-fog font-mono mt-1">
               Adjust mission parameters to model composite risk thresholds for robotic rovers vs crewed EVAs.
             </p>
           </div>
 
           {/* Mode Switcher */}
-          <div className="flex items-center gap-1 p-1 rounded-xl bg-ink2/60 border border-line/60 font-mono text-xs">
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-ink2/60 border border-slate-200 dark:border-line/60 font-mono text-xs">
             <button
               type="button"
               onClick={() => setMissionTargetType("rover")}
               className={`px-3 py-1.5 rounded-lg transition-all ${
-                missionTargetType === "rover" ? "bg-amber text-ink font-bold shadow-sm" : "text-fog hover:text-bright"
+                missionTargetType === "rover" ? "bg-amber-500 text-white dark:bg-amber dark:text-ink font-bold shadow-sm" : "text-slate-600 dark:text-fog hover:text-slate-900 dark:hover:text-bright"
               }`}
             >
               Rover Traversability
@@ -251,7 +251,7 @@ export function HazardLayersPage() {
               type="button"
               onClick={() => setMissionTargetType("astronaut")}
               className={`px-3 py-1.5 rounded-lg transition-all ${
-                missionTargetType === "astronaut" ? "bg-amber text-ink font-bold shadow-sm" : "text-fog hover:text-bright"
+                missionTargetType === "astronaut" ? "bg-amber-500 text-white dark:bg-amber dark:text-ink font-bold shadow-sm" : "text-slate-600 dark:text-fog hover:text-slate-900 dark:hover:text-bright"
               }`}
             >
               Astronaut Crew EVA
@@ -265,8 +265,8 @@ export function HazardLayersPage() {
             {/* Control 1: Terrain Slope */}
             <div className="space-y-1.5">
               <div className="flex justify-between">
-                <span className="text-fog uppercase">Terrain Slope (MOLA DEM):</span>
-                <strong className="text-bright">{slopeAngle}° / 25° Max</strong>
+                <span className="text-slate-600 dark:text-fog uppercase">Terrain Slope (MOLA DEM):</span>
+                <strong className="text-slate-900 dark:text-bright">{slopeAngle}° / 25° Max</strong>
               </div>
               <input
                 type="range"
@@ -275,16 +275,16 @@ export function HazardLayersPage() {
                 step="1"
                 value={slopeAngle}
                 onChange={(e) => setSlopeAngle(+e.target.value)}
-                className="w-full accent-amber bg-ink2 rounded-lg cursor-pointer h-2"
+                className="w-full accent-amber-600 dark:accent-amber bg-slate-200 dark:bg-ink2 rounded-lg cursor-pointer h-2"
               />
-              <span className="text-[10px] text-fog">Trafficability: &lt;5° Flat, 5–15° Rolling, &gt;15° Severe Wheel Slip</span>
+              <span className="text-[10px] text-slate-500 dark:text-fog">Trafficability: &lt;5° Flat, 5–15° Rolling, &gt;15° Severe Wheel Slip</span>
             </div>
 
             {/* Control 2: Dust Storm Opacity */}
             <div className="space-y-1.5">
               <div className="flex justify-between">
-                <span className="text-fog uppercase">Dust Optical Depth Tau:</span>
-                <strong className="text-amber">Tau {dustStormIntensity.toFixed(2)}</strong>
+                <span className="text-slate-600 dark:text-fog uppercase">Dust Optical Depth Tau:</span>
+                <strong className="text-amber-600 dark:text-amber">Tau {dustStormIntensity.toFixed(2)}</strong>
               </div>
               <input
                 type="range"
@@ -293,16 +293,16 @@ export function HazardLayersPage() {
                 step="0.05"
                 value={dustStormIntensity}
                 onChange={(e) => setDustStormIntensity(+e.target.value)}
-                className="w-full accent-amber bg-ink2 rounded-lg cursor-pointer h-2"
+                className="w-full accent-amber-600 dark:accent-amber bg-slate-200 dark:bg-ink2 rounded-lg cursor-pointer h-2"
               />
-              <span className="text-[10px] text-fog">MEDA Solar Extinction: 0.15 Clear, 0.8 Alert, &gt;1.2 Regional Storm</span>
+              <span className="text-[10px] text-slate-500 dark:text-fog">MEDA Solar Extinction: 0.15 Clear, 0.8 Alert, &gt;1.2 Regional Storm</span>
             </div>
 
             {/* Control 3: Boulder Obstacle Density */}
             <div className="space-y-1.5">
               <div className="flex justify-between">
-                <span className="text-fog uppercase">Boulder Density (&gt;0.5m blocks):</span>
-                <strong className="text-mint">{boulderFieldDensity} blocks / 100m²</strong>
+                <span className="text-slate-600 dark:text-fog uppercase">Boulder Density (&gt;0.5m blocks):</span>
+                <strong className="text-emerald-600 dark:text-mint">{boulderFieldDensity} blocks / 100m²</strong>
               </div>
               <input
                 type="range"
@@ -311,21 +311,21 @@ export function HazardLayersPage() {
                 step="1"
                 value={boulderFieldDensity}
                 onChange={(e) => setBoulderFieldDensity(+e.target.value)}
-                className="w-full accent-mint bg-ink2 rounded-lg cursor-pointer h-2"
+                className="w-full accent-emerald-600 dark:accent-mint bg-slate-200 dark:bg-ink2 rounded-lg cursor-pointer h-2"
               />
             </div>
 
             {/* Control 4: Solar Particle Event Toggle */}
-            <div className="pt-2 flex items-center justify-between p-3 rounded-xl bg-ink2/50 border border-line/60">
+            <div className="pt-2 flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-ink2/50 border border-slate-200/80 dark:border-line/60">
               <div>
-                <span className="text-bright font-bold block">Solar Particle Event (SPE) Active</span>
-                <span className="text-[10px] text-fog">Simulates high-flux proton outburst from solar coronal mass ejection.</span>
+                <span className="text-slate-900 dark:text-bright font-bold block">Solar Particle Event (SPE) Active</span>
+                <span className="text-[10px] text-slate-500 dark:text-fog">Simulates high-flux proton outburst from solar coronal mass ejection.</span>
               </div>
               <button
                 type="button"
                 onClick={() => setSpeEventActive(!speEventActive)}
                 className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all ${
-                  speEventActive ? "bg-rose text-white shadow-lg shadow-rose/30" : "bg-ink2 text-fog border border-line"
+                  speEventActive ? "bg-rose text-white shadow-lg shadow-rose/30" : "bg-slate-200 dark:bg-ink2 text-slate-700 dark:text-fog border border-slate-300 dark:border-line"
                 }`}
               >
                 {speEventActive ? "ACTIVE (+2.5 mSv)" : "INACTIVE (Nominal)"}
@@ -334,16 +334,16 @@ export function HazardLayersPage() {
           </div>
 
           {/* Unified Score Output Gauges */}
-          <div className="rounded-2xl border border-line/70 bg-[#070c16]/90 p-6 space-y-4 text-center font-mono">
-            <span className="text-[10px] uppercase tracking-widest text-fog block">
+          <div className="rounded-2xl border border-slate-200/90 dark:border-line/70 bg-white dark:bg-[#070c16]/90 p-6 space-y-4 text-center font-mono shadow-md">
+            <span className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-fog block">
               Calculated MERI Composite Risk Score
             </span>
 
             <div className="flex items-center justify-center gap-3">
-              <span className="font-display text-5xl font-extrabold text-bright">
+              <span className="font-display text-5xl font-extrabold text-slate-900 dark:text-bright">
                 {compositeRiskScore}
               </span>
-              <span className="text-base text-fog">/ 100</span>
+              <span className="text-base text-slate-400 dark:text-fog">/ 100</span>
             </div>
 
             <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-bold ${riskColor}`}>
@@ -357,22 +357,22 @@ export function HazardLayersPage() {
               <span>CLASSIFICATION: {riskTier}</span>
             </div>
 
-            <div className="text-left text-xs text-fog space-y-2 pt-3 border-t border-line/60">
+            <div className="text-left text-xs text-slate-600 dark:text-fog space-y-2 pt-3 border-t border-slate-200/80 dark:border-line/60">
               <div className="flex justify-between">
                 <span>Slope Mobility Risk:</span>
-                <strong className="text-bright">{Math.round(slopeRisk)}%</strong>
+                <strong className="text-slate-900 dark:text-bright">{Math.round(slopeRisk)}%</strong>
               </div>
               <div className="flex justify-between">
                 <span>Radiation Exposure:</span>
-                <strong className={speEventActive ? "text-rose" : "text-mint"}>{radiationRisk}%</strong>
+                <strong className={speEventActive ? "text-rose" : "text-emerald-600 dark:text-mint"}>{radiationRisk}%</strong>
               </div>
               <div className="flex justify-between">
                 <span>Dust Environmental Opacity:</span>
-                <strong className="text-amber">{Math.round(dustRisk)}%</strong>
+                <strong className="text-amber-600 dark:text-amber">{Math.round(dustRisk)}%</strong>
               </div>
               <div className="flex justify-between">
                 <span>Boulder Field Impassability:</span>
-                <strong className="text-bright">{Math.round(boulderRisk)}%</strong>
+                <strong className="text-slate-900 dark:text-bright">{Math.round(boulderRisk)}%</strong>
               </div>
             </div>
           </div>
@@ -394,43 +394,43 @@ export function HazardLayersPage() {
           {HAZARD_REGISTRY.map((h) => (
             <div
               key={h.id}
-              className="rounded-3xl border border-line/80 bg-white/80 dark:bg-[#070c16]/80 p-5 shadow-xl backdrop-blur-2xl flex flex-col justify-between space-y-4 font-mono text-xs"
+              className="rounded-3xl border border-slate-200/90 dark:border-line/80 bg-white/90 dark:bg-[#070c16]/80 p-5 shadow-md dark:shadow-xl backdrop-blur-2xl flex flex-col justify-between space-y-4 font-mono text-xs"
             >
               <div>
                 <div className="flex items-center justify-between">
                   <span className={`px-2 py-0.5 rounded-md border text-[10px] font-bold uppercase ${h.badgeBg} ${h.badgeBorder} ${h.severityColor}`}>
                     {h.severity}
                   </span>
-                  <span className="text-[10px] text-fog">{h.source}</span>
+                  <span className="text-[10px] text-slate-500 dark:text-fog">{h.source}</span>
                 </div>
 
-                <h3 className="mt-3 font-display text-base font-bold text-bright">{h.name}</h3>
+                <h3 className="mt-3 font-display text-base font-bold text-slate-900 dark:text-bright">{h.name}</h3>
 
-                <div className="mt-2 p-2.5 rounded-xl bg-ink2/50 border border-line/50 flex items-baseline justify-between">
+                <div className="mt-2 p-2.5 rounded-xl bg-slate-50 dark:bg-ink2/50 border border-slate-200/90 dark:border-line/50 flex items-baseline justify-between">
                   <div>
-                    <span className="text-[9px] text-fog uppercase block">Observed Baseline</span>
-                    <strong className="text-base text-bright font-bold font-display">{h.value}</strong>
+                    <span className="text-[9px] text-slate-500 dark:text-fog uppercase block">Observed Baseline</span>
+                    <strong className="text-base text-slate-900 dark:text-bright font-bold font-display">{h.value}</strong>
                   </div>
-                  <span className="text-[10px] text-fog">{h.range}</span>
+                  <span className="text-[10px] text-slate-500 dark:text-fog">{h.range}</span>
                 </div>
 
-                <p className="mt-3 text-fog leading-relaxed text-[11px]">{h.description}</p>
+                <p className="mt-3 text-slate-600 dark:text-fog leading-relaxed text-[11px]">{h.description}</p>
               </div>
 
-              <div className="pt-3 border-t border-line/50 space-y-2">
+              <div className="pt-3 border-t border-slate-200/70 dark:border-line/50 space-y-2">
                 <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-fog">Rover Safe:</span>
-                  <span className={h.roverSafe ? "text-mint font-bold" : "text-rose font-bold"}>
+                  <span className="text-slate-500 dark:text-fog">Rover Safe:</span>
+                  <span className={h.roverSafe ? "text-emerald-600 dark:text-mint font-bold" : "text-rose-600 dark:text-rose font-bold"}>
                     {h.roverSafe ? "✓ YES" : "✗ EXCEEDED"}
                   </span>
-                  <span className="text-fog ml-3">Astronaut EVA:</span>
-                  <span className={h.astronautSafe ? "text-mint font-bold" : "text-rose font-bold"}>
+                  <span className="text-slate-500 dark:text-fog ml-3">Astronaut EVA:</span>
+                  <span className={h.astronautSafe ? "text-emerald-600 dark:text-mint font-bold" : "text-rose-600 dark:text-rose font-bold"}>
                     {h.astronautSafe ? "✓ SAFE" : "⚠ PROTOCOL"}
                   </span>
                 </div>
 
-                <div className="p-2 rounded-lg bg-ink2/30 text-[10px] text-fog">
-                  <strong className="text-amber block mb-0.5">Mitigation:</strong>
+                <div className="p-2 rounded-lg bg-slate-100/80 dark:bg-ink2/30 border border-slate-200/70 dark:border-transparent text-[10px] text-slate-600 dark:text-fog">
+                  <strong className="text-amber-600 dark:text-amber block mb-0.5">Mitigation:</strong>
                   {h.mitigation}
                 </div>
               </div>

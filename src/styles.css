@@ -50,16 +50,16 @@
 
  :root {
   --radius: 0.85rem;
-  --ink: oklch(0.985 0.006 250);
-  --ink2: oklch(0.965 0.012 250);
-  --panel: oklch(1 0 0);
-  --line: oklch(0.89 0.018 250);
-  --fog: oklch(0.49 0.035 250);
-  --bright: oklch(0.17 0.025 250);
-  --amber: oklch(0.62 0.16 55);
-  --cyan: oklch(0.58 0.12 200);
-  --rose: oklch(0.60 0.17 22);
-  --mint: oklch(0.52 0.13 160);
+  --ink: #f8fafc;
+  --ink2: #f1f5f9;
+  --panel: #ffffff;
+  --line: #cbd5e1;
+  --fog: #475569;
+  --bright: #0f172a;
+  --amber: #c2410c;
+  --cyan: #0284c7;
+  --rose: #dc2626;
+  --mint: #059669;
 }
 
 html.dark {
