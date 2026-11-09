@@ -553,7 +553,7 @@ export class RoverPhysicsEngine {
         w.tractionVecWorld.copy(tireForce);
 
         const tireLever = this._tmpR.clone();
-        tireLever.subScaledVector(this._upWorld, tireLever.dot(this._upWorld) * 0.55);
+        tireLever.addScaledVector(this._upWorld, -tireLever.dot(this._upWorld) * 0.55);
         this._torqueAccum.add(tireLever.cross(tireForce));
 
         // Visual wheel rotation & rpm

@@ -48,7 +48,10 @@ export class RoverExpeditionGame {
   _boot() {
     try {
       // 1. Graphics & WebGL Renderer
-      this.graphics = new GraphicsManager(this.container, 'high');
+      // Medium is the reliable default for an embedded game viewport. High
+      // used a 7x7 terrain ring and oversampled the canvas on HiDPI displays,
+      // which made startup and input feel frozen on typical laptops.
+      this.graphics = new GraphicsManager(this.container, 'medium');
 
       // 2. Mars Open-World Chunked Terrain & GPU Instanced Rocks
       this.world = new MarsWorld(this.graphics.scene, this.graphics.preset, this.currentRegionId);
@@ -313,7 +316,10 @@ export class RoverExpeditionGame {
       this.applyLivery(saved.livery, false);
     }
     if (saved.graphicsPreset) {
-      this.setGraphicsPreset(saved.graphicsPreset, false);
+      // Migrate older saves that selected the expensive high preset to the
+      // medium default; keep explicit low/medium choices intact.
+      const savedPreset = saved.graphicsPreset === 'high' ? 'medium' : saved.graphicsPreset;
+      this.setGraphicsPreset(savedPreset, false);
     }
     if (saved.regionId && MARS_REGIONS[saved.regionId]) {
       this.currentRegionId = saved.regionId;

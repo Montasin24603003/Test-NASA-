@@ -23,7 +23,7 @@ export const GRAPHICS_PRESETS = {
   medium: {
     id: 'medium',
     label: 'Medium (Balanced)',
-    pixelRatioCap: 1.15,
+    pixelRatioCap: 1.0,
     shadows: true,
     shadowMapSize: 1024,
     shadowRadius: 55,

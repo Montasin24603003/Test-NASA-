@@ -203,8 +203,20 @@ function SiteLayout({ children }: { children: ReactNode }) {
   const isFullBleed = isMissionLab;
   const [searchOpen, setSearchOpen] = useState(false);
 
-  // On Planetary Map and Sol by Sol, provide a 100% full-bleed mission workspace with no global site header or footer
-  if (isPlanetaryMap || isSolBySol) {
+  // Global ⌘K / Ctrl+K keyboard shortcut
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // On Planetary Map, provide a full-bleed mission workspace with no global site header or footer
+  if (isPlanetaryMap) {
     return (
       <div className="relative w-screen h-screen overflow-hidden bg-[#05080f] text-slate-200">
         <main className="w-full h-full overflow-hidden p-0 m-0">
@@ -228,26 +240,28 @@ function SiteLayout({ children }: { children: ReactNode }) {
         }}
       />
 
-      {/* A. PREMIUM NASA NAVIGATION BAR */}
-      <header className="sticky top-0 z-40 border-b border-line/70 bg-white/90 dark:bg-[#070c16]/90 shadow-xl backdrop-blur-2xl">
-        <div className="mx-auto flex max-w-[1480px] items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
+      {/* A. PREMIUM NASA NAVIGATION BAR (Slightly small / compact on Sol by Sol) */}
+      <header className={`sticky top-0 z-40 border-b border-line/70 bg-white/90 dark:bg-[#070c16]/90 shadow-xl backdrop-blur-2xl transition-all ${isSolBySol ? "py-1" : "py-2.5"}`}>
+        <div className={`mx-auto flex items-center justify-between gap-3 ${isSolBySol ? "max-w-full px-3 sm:px-4" : "max-w-[1480px] px-4 sm:px-6"}`}>
           {/* Logo & NASA Space Apps Badge */}
-          <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
-            <div className="grid size-8 place-items-center rounded-xl border border-amber/40 bg-amber/15 shadow-sm group-hover:scale-105 transition-transform">
-              <span className="beacon-dot size-2.5 rounded-full bg-amber shadow-lg shadow-amber/50" />
+          <Link to="/" className="flex items-center gap-2 shrink-0 group">
+            <div className={`grid place-items-center rounded-xl border border-amber/40 bg-amber/15 shadow-sm group-hover:scale-105 transition-transform ${isSolBySol ? "size-6" : "size-8"}`}>
+              <span className={`beacon-dot rounded-full bg-amber shadow-lg shadow-amber/50 ${isSolBySol ? "size-2" : "size-2.5"}`} />
             </div>
             <div className="leading-tight">
               <div className="flex items-center gap-1.5">
-                <p className="font-display text-sm font-bold tracking-tight text-bright group-hover:text-amber transition-colors">
+                <p className={`font-display font-bold tracking-tight text-bright group-hover:text-amber transition-colors ${isSolBySol ? "text-xs" : "text-sm"}`}>
                   MARS // SURVIVE
                 </p>
-                <span className="hidden sm:inline-flex items-center gap-1 rounded-md bg-amber/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-amber border border-amber/30">
+                <span className={`hidden sm:inline-flex items-center gap-1 rounded-md bg-amber/15 font-mono font-semibold text-amber border border-amber/30 ${isSolBySol ? "px-1 py-0.2 text-[8px]" : "px-1.5 py-0.5 text-[9px]"}`}>
                   NASA 2026
                 </span>
               </div>
-              <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-fog">
-                Interplanetary Survival Guide
-              </p>
+              {!isSolBySol && (
+                <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-fog">
+                  Interplanetary Survival Guide
+                </p>
+              )}
             </div>
           </Link>
 
@@ -255,80 +269,66 @@ function SiteLayout({ children }: { children: ReactNode }) {
           <nav className="hidden items-center gap-0.5 rounded-2xl border border-line/80 bg-panel/80 p-1 shadow-sm backdrop-blur-xl lg:flex">
             <Link
               to="/"
-              className="rounded-xl px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider text-fog hover:text-bright hover:bg-ink2 transition-colors"
-              activeProps={{ className: "rounded-xl bg-amber/15 px-2.5 py-1.5 font-mono text-[11px] font-bold text-amber border border-amber/30" }}
+              className={`rounded-xl font-mono uppercase tracking-wider text-fog hover:text-bright hover:bg-ink2 transition-colors ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}`}
+              activeProps={{ className: `rounded-xl bg-amber/15 font-mono font-bold text-amber border border-amber/30 ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}` }}
             >
               Home
             </Link>
             <Link
               to="/planetary-map"
-              className="rounded-xl px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider text-fog hover:text-bright hover:bg-ink2 transition-colors"
-              activeProps={{ className: "rounded-xl bg-amber/15 px-2.5 py-1.5 font-mono text-[11px] font-bold text-amber border border-amber/30" }}
+              className={`rounded-xl font-mono uppercase tracking-wider text-fog hover:text-bright hover:bg-ink2 transition-colors ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}`}
+              activeProps={{ className: `rounded-xl bg-amber/15 font-mono font-bold text-amber border border-amber/30 ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}` }}
             >
               Planetary Map
             </Link>
             <Link
               to="/ml-terrain-lab"
-              className="rounded-xl px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider text-fog hover:text-bright hover:bg-indigo-500/10 transition-colors"
-              activeProps={{ className: "rounded-xl bg-indigo-500/15 px-2.5 py-1.5 font-mono text-[11px] font-bold text-indigo-400 border border-indigo-500/30" }}
+              className={`rounded-xl font-mono uppercase tracking-wider text-fog hover:text-bright hover:bg-indigo-500/10 transition-colors ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}`}
+              activeProps={{ className: `rounded-xl bg-indigo-500/15 font-mono font-bold text-indigo-400 border border-indigo-500/30 ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}` }}
             >
               ML Terrain Lab
             </Link>
             <Link
               to="/hazard-layers"
-              className="rounded-xl px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider text-fog hover:text-bright hover:bg-rose/10 transition-colors"
-              activeProps={{ className: "rounded-xl bg-rose/15 px-2.5 py-1.5 font-mono text-[11px] font-bold text-rose border border-rose/30" }}
+              className={`rounded-xl font-mono uppercase tracking-wider text-fog hover:text-bright hover:bg-rose/10 transition-colors ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}`}
+              activeProps={{ className: `rounded-xl bg-rose/15 font-mono font-bold text-rose border border-rose/30 ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}` }}
             >
               Hazard Analysis
             </Link>
             <Link
               to="/resources"
-              className="rounded-xl px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider text-fog hover:text-bright hover:bg-cyan/10 transition-colors"
-              activeProps={{ className: "rounded-xl bg-cyan/15 px-2.5 py-1.5 font-mono text-[11px] font-bold text-cyan border border-cyan/30" }}
+              className={`rounded-xl font-mono uppercase tracking-wider text-fog hover:text-bright hover:bg-cyan/10 transition-colors ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}`}
+              activeProps={{ className: `rounded-xl bg-cyan/15 font-mono font-bold text-cyan border border-cyan/30 ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}` }}
             >
               Resource Explorer
             </Link>
             <Link
               to="/mission-lab"
-              className="rounded-xl px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider text-fog hover:text-bright hover:bg-amber/10 transition-colors"
-              activeProps={{ className: "rounded-xl bg-amber/15 px-2.5 py-1.5 font-mono text-[11px] font-bold text-amber border border-amber/30" }}
+              className={`rounded-xl font-mono uppercase tracking-wider text-fog hover:text-bright hover:bg-amber/10 transition-colors ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}`}
+              activeProps={{ className: `rounded-xl bg-amber/15 font-mono font-bold text-amber border border-amber/30 ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}` }}
             >
               3D Regional Lab
             </Link>
             <Link
               to="/rover-game"
-              className="rounded-xl px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider text-fog hover:text-bright hover:bg-mint/10 transition-colors"
-              activeProps={{ className: "rounded-xl bg-mint/15 px-2.5 py-1.5 font-mono text-[11px] font-bold text-mint border border-mint/30" }}
+              className={`rounded-xl font-mono uppercase tracking-wider text-fog hover:text-bright hover:bg-mint/10 transition-colors ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}`}
+              activeProps={{ className: `rounded-xl bg-mint/15 font-mono font-bold text-mint border border-mint/30 ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}` }}
             >
               Rover Expedition
             </Link>
             <Link
               to="/sol-by-sol"
-              className="rounded-xl px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider text-fog hover:text-bright hover:bg-mint/10 transition-colors"
-              activeProps={{ className: "rounded-xl bg-mint/15 px-2.5 py-1.5 font-mono text-[11px] font-bold text-mint border border-mint/30" }}
+              className={`rounded-xl font-mono uppercase tracking-wider text-fog hover:text-bright hover:bg-mint/10 transition-colors ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}`}
+              activeProps={{ className: `rounded-xl bg-mint/15 font-mono font-bold text-mint border border-mint/30 ${isSolBySol ? "px-2 py-1 text-[10px]" : "px-2.5 py-1.5 text-[11px]"}` }}
             >
               Sol by Sol
             </Link>
           </nav>
 
-          {/* Right Action Cluster */}
+          {/* Right Action Cluster (No duplicate buttons, no search button in navbar) */}
           <div className="flex items-center gap-2">
-            {/* Quick Search Trigger */}
-            <button
-              type="button"
-              onClick={() => setSearchOpen(true)}
-              className="inline-flex items-center gap-2 rounded-xl border border-line/80 bg-panel/80 px-2.5 py-1.5 font-mono text-[10px] text-fog hover:text-bright hover:border-amber/40 transition-all shadow-sm backdrop-blur-xl"
-              title="Search Mars Platform (⌘K / Ctrl+K)"
-            >
-              <Search className="size-3.5 text-amber" />
-              <span className="hidden md:inline">Search</span>
-              <kbd className="hidden sm:inline-flex items-center rounded bg-ink2/60 px-1.5 py-0.2 font-mono text-[9px] text-fog border border-line/60">
-                ⌘K
-              </kbd>
-            </button>
-
             {/* NASA Data Attribution Badge */}
-            <span className="hidden xl:inline-flex items-center gap-1.5 rounded-xl border border-mint/30 bg-mint/10 px-2.5 py-1.5 font-mono text-[10px] font-semibold text-mint">
+            <span className="hidden xl:inline-flex items-center gap-1.5 rounded-xl border border-mint/30 bg-mint/10 px-2.5 py-1 font-mono text-[10px] font-semibold text-mint">
               <span className="size-1.5 rounded-full bg-mint animate-pulse" />
               NASA PDS &amp; Trek
             </span>
@@ -338,20 +338,12 @@ function SiteLayout({ children }: { children: ReactNode }) {
 
             {/* Theme Toggle */}
             <ThemeToggle />
-
-            {/* Direct Planetary Map CTA */}
-            <Link
-              to="/planetary-map"
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-amber hover:bg-amber/90 px-3.5 py-1.5 font-display text-xs font-bold text-ink shadow-sm transition-all"
-            >
-              <span>Open Map</span>
-            </Link>
           </div>
         </div>
       </header>
 
       {/* Mobile Drawer Links */}
-      <div className="sticky top-[53px] z-30 border-b border-line/70 bg-panel/85 px-4 py-1.5 backdrop-blur-xl lg:hidden">
+      <div className={`sticky ${isSolBySol ? "top-[41px]" : "top-[53px]"} z-30 border-b border-line/70 bg-panel/85 px-4 py-1.5 backdrop-blur-xl lg:hidden`}>
         <div className="flex items-center gap-1 overflow-x-auto text-[11px] font-medium whitespace-nowrap scrollbar-none">
           <Link to="/" activeProps={{ className: "bg-amber/15 text-amber font-bold" }} className="rounded-lg px-2.5 py-1 text-fog hover:text-bright">Home</Link>
           <Link to="/planetary-map" activeProps={{ className: "bg-amber/15 text-amber font-bold" }} className="rounded-lg px-2.5 py-1 text-fog hover:text-bright">Planetary Map</Link>
@@ -365,30 +357,32 @@ function SiteLayout({ children }: { children: ReactNode }) {
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <main className={`relative z-10 ${isFullBleed ? "w-full" : "mx-auto max-w-[1480px] px-4 py-8 sm:px-6"}`}>
+      {/* Main Content Area: Takes 100% of remaining viewport on Sol by Sol */}
+      <main className={isSolBySol ? "relative z-10 w-full h-[calc(100vh-45px)] overflow-hidden p-0 m-0" : isFullBleed ? "relative z-10 w-full" : "relative z-10 mx-auto max-w-[1480px] px-4 py-8 sm:px-6"}>
         {children}
       </main>
 
-      {/* Interactive Global Search Palette */}
+      {/* Interactive Global Search Palette (⌘K) */}
       <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
 
-      {/* NASA Platform Aerospace Footer */}
-      <footer className="relative z-10 border-t border-line/70 bg-white/90 dark:bg-[#070c16]/90 backdrop-blur-2xl">
-        <div className="mx-auto flex max-w-[1480px] flex-col items-center justify-between gap-3 px-4 py-5 sm:flex-row sm:px-6">
-          <div className="flex items-center gap-2 font-mono text-[11px] text-fog">
-            <span className="size-2 rounded-full bg-amber" />
-            <strong className="text-bright font-bold">MARS // SURVIVE</strong>
-            <span>· NASA Space Apps Challenge 2026</span>
+      {/* NASA Platform Aerospace Footer (Omitted on Sol by Sol for 100% viewport simulation space) */}
+      {!isSolBySol && (
+        <footer className="relative z-10 border-t border-line/70 bg-white/90 dark:bg-[#070c16]/90 backdrop-blur-2xl">
+          <div className="mx-auto flex max-w-[1480px] flex-col items-center justify-between gap-3 px-4 py-5 sm:flex-row sm:px-6">
+            <div className="flex items-center gap-2 font-mono text-[11px] text-fog">
+              <span className="size-2 rounded-full bg-amber" />
+              <strong className="text-bright font-bold">MARS // SURVIVE</strong>
+              <span>· NASA Space Apps Challenge 2026</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-4 font-mono text-[10px] text-fog">
+              <span>NASA Planetary Data System (PDS)</span>
+              <span>Mars Trek WMTS</span>
+              <span>SWIM 2.0 Subsurface Ice</span>
+              <span>MSL RAD &amp; MEDA Calibrated</span>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-4 font-mono text-[10px] text-fog">
-            <span>NASA Planetary Data System (PDS)</span>
-            <span>Mars Trek WMTS</span>
-            <span>SWIM 2.0 Subsurface Ice</span>
-            <span>MSL RAD &amp; MEDA Calibrated</span>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 }

@@ -27,8 +27,10 @@ export class CameraManager {
 
     // Chase cam orbital angles & distance
     this.chaseYawOffset = 0;
-    this.chasePitch = 0.28;
-    this.chaseDistance = 6.8;
+    // Start far enough back and above the chassis to keep the rover out of
+    // the center of the view on wide embedded game canvases.
+    this.chasePitch = 0.42;
+    this.chaseDistance = 11.5;
     this._idleRecenterTimer = 0;
 
     // Mastcam / 1st-person look offsets & telephoto zoom
@@ -187,7 +189,7 @@ export class CameraManager {
       }
 
       if (lookInput.wheel !== 0) {
-        this.chaseDistance = THREE.MathUtils.clamp(this.chaseDistance + lookInput.wheel * 0.75, 3.6, 15.5);
+        this.chaseDistance = THREE.MathUtils.clamp(this.chaseDistance + lookInput.wheel * 0.75, 5.5, 20.0);
       }
 
       // Rover heading yaw
