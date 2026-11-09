@@ -212,7 +212,10 @@ export class RoverPhysicsEngine {
       ? this.world.getNormalAt(x, z, new THREE.Vector3())
       : new THREE.Vector3(0, 1, 0);
 
-    this.position.set(x, groundY + 0.68, z);
+    if (surfNormal.y < 0.25) surfNormal.set(0, 1, 0);
+
+    // Spawn high enough so wheels touch at rest length without ground snag
+    this.position.set(x, groundY + 0.85, z);
 
     const yawQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), headingYaw);
     const upDefault = new THREE.Vector3(0, 1, 0);
@@ -227,6 +230,7 @@ export class RoverPhysicsEngine {
     this._accumulator = 0.0;
     this.isImmobilized = false;
     this.immobilizedReason = '';
+    this._immobilizedTimer = 0.0;
 
     for (const w of this.wheels) {
       w.suspensionLength = this.restLength - 0.11;
@@ -244,8 +248,10 @@ export class RoverPhysicsEngine {
   }
 
   recoverUpright() {
-    const euler = new THREE.Euler().setFromQuaternion(this.quaternion, 'YXZ');
-    this.spawnAt(this.position.x, this.position.z, euler.y);
+    // Extract true horizontal heading yaw, clearing any inverted pitch or roll flip
+    const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(this.quaternion);
+    const yaw = Math.atan2(-fwd.x, -fwd.z);
+    this.spawnAt(this.position.x, this.position.z, yaw);
   }
 
   step(dt, controls, lowPowerLimp = false, extraColliders = null) {

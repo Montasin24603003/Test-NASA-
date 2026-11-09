@@ -178,13 +178,48 @@ function RoverGamePage() {
       }
     };
     window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
+
+    // Forward keyboard events directly to iframe so typing W/A/S/D works seamlessly from parent window
+    const handleKeyForward = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      const validCodes = [
+        "KeyW", "KeyS", "KeyA", "KeyD",
+        "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
+        "Space", "ShiftLeft", "ShiftRight",
+        "KeyC", "KeyE", "KeyR", "KeyF", "KeyX", "KeyV", "KeyM", "KeyT", "KeyL",
+        "Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6"
+      ];
+      if (validCodes.includes(e.code)) {
+        if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) {
+          e.preventDefault();
+        }
+        if (iframeRef.current && iframeRef.current.contentWindow) {
+          iframeRef.current.contentWindow.postMessage({
+            type: "MARS_INPUT_EVENT",
+            payload: { code: e.code, type: e.type }
+          }, "*");
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyForward);
+    window.addEventListener("keyup", handleKeyForward);
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+      window.removeEventListener("keydown", handleKeyForward);
+      window.removeEventListener("keyup", handleKeyForward);
+    };
   }, []);
 
   const sendIframeCommand = (type: string, payload?: Record<string, unknown>) => {
     if (iframeRef.current && iframeRef.current.contentWindow) {
       iframeRef.current.contentWindow.postMessage({ type, payload }, "*");
+      iframeRef.current.focus();
     }
+  };
+
+  const handleDriveThrottle = (params: { forward?: number; reverse?: number; steerLeft?: number; steerRight?: number; boost?: boolean; brake?: boolean }) => {
+    sendIframeCommand("MARS_DRIVE_THROTTLE", params);
   };
 
   const handleEngageDrive = () => {
@@ -377,19 +412,21 @@ function RoverGamePage() {
         {/* Quick Camera & Region HUD Selector Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 px-2">
           {/* Camera View Switcher */}
-          <div className="flex items-center gap-1.5 font-mono text-[11px]">
+          <div className="flex flex-wrap items-center gap-1.5 font-mono text-[11px]">
             <span className="text-fog text-[10px] uppercase mr-1">Camera:</span>
             {[
-              { id: "chase", label: "Chase Cam" },
-              { id: "cockpit", label: "Driver Hazcam" },
-              { id: "mastcam", label: "Mastcam-Z Stereo" },
-              { id: "topdown", label: "Orbit Drone" },
+              { id: "chase", label: "3rd Chase" },
+              { id: "first_person", label: "1st Deck" },
+              { id: "front_hazcam", label: "F-Hazcam" },
+              { id: "rear_hazcam", label: "R-Hazcam" },
+              { id: "mastcam", label: "Mastcam-Z" },
+              { id: "free", label: "Free Cam" },
             ].map((cam) => (
               <button
                 key={cam.id}
                 type="button"
                 onClick={() => handleSetCamera(cam.id)}
-                className={`px-2.5 py-1 rounded-lg transition-all ${
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                   telemetry.cameraMode === cam.id
                     ? "bg-amber text-ink font-bold shadow-sm"
                     : "bg-panel/60 text-fog hover:text-bright border border-line/60"
@@ -401,7 +438,7 @@ function RoverGamePage() {
             <button
               type="button"
               onClick={handleCycleCamera}
-              className="px-2 py-1 rounded-lg border border-line/60 text-fog hover:text-bright text-[10px]"
+              className="px-2 py-1 rounded-lg border border-line/60 text-fog hover:text-bright text-[10px] cursor-pointer"
               title="Cycle Next Camera [Key: C]"
             >
               [C] Cycle
@@ -429,7 +466,10 @@ function RoverGamePage() {
         </div>
 
         {/* 3D WebGL Canvas Embedded Frame */}
-        <div className="relative overflow-hidden rounded-3xl border border-line/70 bg-[#080d14] shadow-2xl transition-all">
+        <div 
+          onClick={() => iframeRef.current?.focus()}
+          className="relative overflow-hidden rounded-3xl border border-line/70 bg-[#080d14] shadow-2xl transition-all"
+        >
           <iframe
             ref={iframeRef}
             title="3D Mars Rover Expedition Simulation"
@@ -439,6 +479,97 @@ function RoverGamePage() {
             allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; gamepad"
             allowFullScreen
           />
+        </div>
+
+        {/* Real-Time Flight Deck Direct Drive & Recovery Dock */}
+        <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl border border-amber/30 bg-[#070c16]/90 shadow-xl backdrop-blur-2xl">
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-xl bg-amber/15 border border-amber/30 flex items-center justify-center text-amber">
+              <Compass className="size-5" />
+            </div>
+            <div>
+              <h4 className="font-display text-xs sm:text-sm font-bold text-bright">Flight Deck Direct Drive Controls</h4>
+              <p className="font-mono text-[10px] text-fog">Click &amp; hold or use W/A/S/D &amp; Arrow keys anytime</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Steering Left */}
+            <button
+              type="button"
+              onMouseDown={() => handleDriveThrottle({ steerLeft: 1 })}
+              onMouseUp={() => handleDriveThrottle({ steerLeft: 0 })}
+              onTouchStart={(e) => { e.preventDefault(); handleDriveThrottle({ steerLeft: 1 }); }}
+              onTouchEnd={(e) => { e.preventDefault(); handleDriveThrottle({ steerLeft: 0 }); }}
+              className="px-3 py-2 rounded-xl border border-line bg-panel/80 hover:bg-amber hover:text-ink font-mono text-xs font-bold transition-all select-none active:scale-95"
+              title="Steer Left [A / ←]"
+            >
+              ◀ Left [A]
+            </button>
+
+            {/* Throttle Forward */}
+            <button
+              type="button"
+              onMouseDown={() => handleDriveThrottle({ forward: 1 })}
+              onMouseUp={() => handleDriveThrottle({ forward: 0 })}
+              onTouchStart={(e) => { e.preventDefault(); handleDriveThrottle({ forward: 1 }); }}
+              onTouchEnd={(e) => { e.preventDefault(); handleDriveThrottle({ forward: 0 }); }}
+              className="px-4 py-2 rounded-xl border border-amber/40 bg-amber/20 hover:bg-amber text-amber hover:text-ink font-mono text-xs font-bold transition-all select-none active:scale-95"
+              title="Drive Forward [W / ↑]"
+            >
+              ▲ Drive [W]
+            </button>
+
+            {/* Throttle Reverse */}
+            <button
+              type="button"
+              onMouseDown={() => handleDriveThrottle({ reverse: 1 })}
+              onMouseUp={() => handleDriveThrottle({ reverse: 0 })}
+              onTouchStart={(e) => { e.preventDefault(); handleDriveThrottle({ reverse: 1 }); }}
+              onTouchEnd={(e) => { e.preventDefault(); handleDriveThrottle({ reverse: 0 }); }}
+              className="px-3.5 py-2 rounded-xl border border-line bg-panel/80 hover:bg-amber hover:text-ink font-mono text-xs font-bold transition-all select-none active:scale-95"
+              title="Reverse [S / ↓]"
+            >
+              ▼ Reverse [S]
+            </button>
+
+            {/* Steering Right */}
+            <button
+              type="button"
+              onMouseDown={() => handleDriveThrottle({ steerRight: 1 })}
+              onMouseUp={() => handleDriveThrottle({ steerRight: 0 })}
+              onTouchStart={(e) => { e.preventDefault(); handleDriveThrottle({ steerRight: 1 }); }}
+              onTouchEnd={(e) => { e.preventDefault(); handleDriveThrottle({ steerRight: 0 }); }}
+              className="px-3 py-2 rounded-xl border border-line bg-panel/80 hover:bg-amber hover:text-ink font-mono text-xs font-bold transition-all select-none active:scale-95"
+              title="Steer Right [D / →]"
+            >
+              Right [D] ▶
+            </button>
+
+            {/* Brake */}
+            <button
+              type="button"
+              onMouseDown={() => handleDriveThrottle({ brake: true })}
+              onMouseUp={() => handleDriveThrottle({ brake: false })}
+              onTouchStart={(e) => { e.preventDefault(); handleDriveThrottle({ brake: true }); }}
+              onTouchEnd={(e) => { e.preventDefault(); handleDriveThrottle({ brake: false }); }}
+              className="px-3 py-2 rounded-xl border border-rose-500/40 bg-rose-500/15 text-rose-400 hover:bg-rose-500 hover:text-white font-mono text-xs font-bold transition-all select-none active:scale-95"
+              title="Emergency Dynamic Brake [Space]"
+            >
+              🛑 Brake
+            </button>
+
+            {/* Unstuck / Level Rover */}
+            <button
+              type="button"
+              onClick={handleResetRover}
+              className="px-3 py-2 rounded-xl border border-mint/40 bg-mint/15 text-mint hover:bg-mint hover:text-ink font-mono text-xs font-bold transition-all select-none active:scale-95 flex items-center gap-1.5"
+              title="Unstuck / Level Rover Upright [R]"
+            >
+              <RotateCcw className="size-3.5" />
+              <span>↺ Unstuck [R]</span>
+            </button>
+          </div>
         </div>
 
         {/* Flight Controls Cheat Sheet */}

@@ -160,6 +160,27 @@ export class RoverExpeditionGame {
               this.audio.toggleAudio();
             }
             break;
+          case 'MARS_INPUT_EVENT':
+            if (payload && payload.code) {
+              if (payload.type === 'keydown') {
+                this.input.keys.add(payload.code);
+              } else if (payload.type === 'keyup') {
+                this.input.keys.delete(payload.code);
+              }
+              this.input._syncState();
+            }
+            break;
+          case 'MARS_DRIVE_THROTTLE':
+            if (payload) {
+              if (typeof payload.forward === 'number') this.input.touchState.forward = payload.forward;
+              if (typeof payload.reverse === 'number') this.input.touchState.reverse = payload.reverse;
+              if (typeof payload.steerLeft === 'number') this.input.touchState.steerLeft = payload.steerLeft;
+              if (typeof payload.steerRight === 'number') this.input.touchState.steerRight = payload.steerRight;
+              if (typeof payload.boost === 'boolean') this.input.touchState.boost = payload.boost;
+              if (typeof payload.brake === 'boolean') this.input.touchState.brake = payload.brake;
+              this.input._syncState();
+            }
+            break;
         }
       });
 

@@ -562,9 +562,9 @@ export class MarsRover {
     this.frontHazcamAnchor.position.set(0, 0.08, -1.16);
     this.group.add(this.frontHazcamAnchor);
 
-    // 4. Rear Hazcam (aft bumper wide-angle looking behind rover)
+    // 4. Rear Hazcam (aft bumper wide-angle looking behind rover, clear of MMRTG)
     this.rearHazcamAnchor = new THREE.Object3D();
-    this.rearHazcamAnchor.position.set(0, 0.08, 1.16);
+    this.rearHazcamAnchor.position.set(0, 0.28, 1.72);
     this.group.add(this.rearHazcamAnchor);
 
     // 5. Mastcam-Z & SuperCam optical origin (high 1.55m above CoM = ~2.3m above ground)

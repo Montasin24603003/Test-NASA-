@@ -199,11 +199,12 @@ function SiteLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const isMissionLab = location.pathname === "/mission-lab";
   const isPlanetaryMap = location.pathname === "/planetary-map";
+  const isSolBySol = location.pathname === "/sol-by-sol";
   const isFullBleed = isMissionLab;
   const [searchOpen, setSearchOpen] = useState(false);
 
-  // On Planetary Map, provide a full-bleed mission workspace with no global site header or footer
-  if (isPlanetaryMap) {
+  // On Planetary Map and Sol by Sol, provide a 100% full-bleed mission workspace with no global site header or footer
+  if (isPlanetaryMap || isSolBySol) {
     return (
       <div className="relative w-screen h-screen overflow-hidden bg-[#05080f] text-slate-200">
         <main className="w-full h-full overflow-hidden p-0 m-0">

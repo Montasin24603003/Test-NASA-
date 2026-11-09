@@ -274,6 +274,11 @@ export class GameUI {
     this.el.hudRoot.classList.remove('hidden');
     this.game.setGameplayActive(true, 'none');
     this.game.audio.ensureUnlocked();
+    // Ensure default chase cam if previously stuck in rear hazcam
+    if (this.game.cameraManager.mode === 'rear_hazcam') {
+      const cfg = this.game.cameraManager.setMode('chase');
+      this.updateCameraBadge(cfg, this.game.cameraManager.mastcamFov);
+    }
   }
 
   openModal(type) {

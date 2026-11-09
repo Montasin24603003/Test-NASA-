@@ -112,6 +112,15 @@ export class CameraManager {
     this.lookYaw = 0;
     this.lookPitch = -0.04;
 
+    // Set near clip plane to prevent chassis clipping in tight bumper views
+    if (modeId === 'rear_hazcam' || modeId === 'front_hazcam') {
+      this.camera.near = 0.05;
+      this.camera.updateProjectionMatrix();
+    } else if (this.camera.near !== 0.12) {
+      this.camera.near = 0.12;
+      this.camera.updateProjectionMatrix();
+    }
+
     return this.getCurrentConfig();
   }
 
