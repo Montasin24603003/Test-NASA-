@@ -111,7 +111,57 @@ export class RoverExpeditionGame {
       // Compile shaders once to eliminate first-drive frame hitch
       this.graphics.renderer.compile(this.graphics.scene, this.graphics.camera);
       this.ui.setLoadingProgress(100, 'Telemetry Nominal — Ready for Mars Surface Operations');
-      setTimeout(() => this.ui.hideLoadingScreen(), 280);
+      setTimeout(() => {
+        this.ui.hideLoadingScreen();
+        // If launched via iframe with ?autostart=1, engage expedition immediately
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('autostart') === '1' || params.get('drive') === '1') {
+          this.startNextOrFirstMission();
+        }
+      }, 280);
+
+      // Parent window command bridge (React Rover Page Integration)
+      window.addEventListener('message', (event) => {
+        if (!event.data || typeof event.data !== 'object') return;
+        const { type, payload } = event.data;
+        switch (type) {
+          case 'MARS_START_EXPEDITION':
+            this.startNextOrFirstMission();
+            break;
+          case 'MARS_CONTINUE_DRIVE':
+            this.continueSavedExploration();
+            break;
+          case 'MARS_SET_CAMERA':
+            if (payload && payload.mode) {
+              const cfg = this.cameraManager.setMode(payload.mode);
+              this.ui.updateCameraBadge(cfg, this.cameraManager.mastcamFov);
+            }
+            break;
+          case 'MARS_CYCLE_CAMERA':
+            this.cycleCamera();
+            break;
+          case 'MARS_RESET_ROVER':
+            this.resetRoverUpright();
+            break;
+          case 'MARS_FIRE_LASER':
+            this.triggerInteract();
+            break;
+          case 'MARS_TOGGLE_LIGHTS':
+            this.toggleHeadlights();
+            break;
+          case 'MARS_DEPLOY_REGION':
+            if (payload && payload.regionId) {
+              this.deployToRegion(payload.regionId, true);
+              this.ui.enterGameplayHUD();
+            }
+            break;
+          case 'MARS_TOGGLE_AUDIO':
+            if (this.audio) {
+              this.audio.toggleAudio();
+            }
+            break;
+        }
+      });
 
       // Start 60 FPS Simulation Loop
       this.graphics.renderer.setAnimationLoop(this._tick.bind(this));
@@ -635,6 +685,37 @@ export class RoverExpeditionGame {
         this.graphics.fps,
         this.navigation
       );
+
+      // 12. Dispatch real-time telemetry back to React Flight Deck (5 Hz throttled)
+      if (this.isGameplayActive && window.parent && window.parent !== window) {
+        this._parentTelemetryTimer = (this._parentTelemetryTimer || 0) + dt;
+        if (this._parentTelemetryTimer >= 0.2) {
+          this._parentTelemetryTimer = 0;
+          try {
+            window.parent.postMessage({
+              type: 'ROVER_TELEMETRY_UPDATE',
+              telemetry: {
+                speedKmh: +(this.physics.linearVelocity.length() * 3.6).toFixed(1),
+                speedCms: +(this.physics.linearVelocity.length() * 100).toFixed(1),
+                batteryPct: Math.round(this.simulation.batteryPct),
+                headingDeg: Math.round(this.physics.headingDeg),
+                pitchDeg: +this.physics.pitchDeg.toFixed(1),
+                rollDeg: +this.physics.rollDeg.toFixed(1),
+                distanceM: Math.round(this.simulation.totalDistanceM),
+                samplesCount: this.science.samplesCollected.length,
+                credits: this.science.scienceCredits,
+                regionId: this.currentRegionId,
+                regionName: MARS_REGIONS[this.currentRegionId]?.name ?? 'Jezero Crater',
+                cameraMode: this.cameraManager.mode,
+                hullIntegrity: Math.round(this.physics.hullIntegrity),
+                slipRatio: +(this.physics.averageSlipRatio || 0).toFixed(2),
+              }
+            }, '*');
+          } catch {
+            // Non-fatal if parent is cross-origin
+          }
+        }
+      }
     }
 
     // Atmosphere, Particles & Camera always update smoothly (including on Main Menu & Garage!)
@@ -646,8 +727,15 @@ export class RoverExpeditionGame {
   }
 }
 
-// Auto-mount standalone browser game
-window.addEventListener('DOMContentLoaded', () => {
+// Auto-mount standalone browser game (resilient to DOM load timing)
+function bootRoverExpedition() {
+  if (window.roverExpedition) return;
   window.roverExpedition = new RoverExpeditionGame();
   checkAndRunInBrowserTests();
-});
+}
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  bootRoverExpedition();
+} else {
+  window.addEventListener('DOMContentLoaded', bootRoverExpedition);
+}

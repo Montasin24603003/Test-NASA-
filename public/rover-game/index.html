@@ -9,14 +9,26 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
+  <base href="/rover-game/">
   <!-- Browser-Native ES Module Import Map (Local-First & Offline Ready) -->
   <script type="importmap">
     {
       "imports": {
         "three": "./vendor/three.module.js",
+        "three/": "./vendor/",
         "three/addons/": "./vendor/addons/"
       }
     }
+  </script>
+  <script>
+    window.addEventListener('error', function(e) {
+      console.error('[RoverGame Module Error]', e);
+      var status = document.getElementById('loading-status-text');
+      if (status) {
+        status.textContent = 'System Notice: ' + (e.message || 'Initializing 3D modules...');
+        status.style.color = '#ff9800';
+      }
+    });
   </script>
 </head>
 <body>
