@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Activity,
   ArrowDownRight,
@@ -164,21 +164,23 @@ function MissionLab() {
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = page === item.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setPage(item.id)}
-              aria-current={active ? "page" : undefined}
-              className={`group inline-flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2.5 text-left transition sm:px-4 ${
+          const className = `group inline-flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2.5 text-left transition sm:px-4 ${
                 active
                   ? "border-amber/35 bg-amber/10 text-bright shadow-sm"
                   : "border-transparent text-fog hover:border-line hover:bg-panel/70 hover:text-bright"
-              }`}
-            >
-              <Icon className={`size-4 ${active ? "text-amber" : "text-fog group-hover:text-cyan"}`} />
-              <span className="font-display text-xs font-semibold">{item.label}</span>
-              <span className={`hidden font-mono text-[8px] tracking-[.12em] xl:inline ${active ? "text-amber" : "text-fog/70"}`}>{item.short}</span>
+              }`;
+          const contents = <>
+            <Icon className={`size-4 ${active ? "text-amber" : "text-fog group-hover:text-cyan"}`} />
+            <span className="font-display text-xs font-semibold">{item.label}</span>
+            <span className={`hidden font-mono text-[8px] tracking-[.12em] xl:inline ${active ? "text-amber" : "text-fog/70"}`}>{item.short}</span>
+          </>;
+          return item.id === "ml-lab" ? (
+            <Link key={item.id} to="/ml-terrain-lab" className={className} aria-current={active ? "page" : undefined}>
+              {contents}
+            </Link>
+          ) : (
+            <button key={item.id} type="button" onClick={() => setPage(item.id)} aria-current={active ? "page" : undefined} className={className}>
+              {contents}
             </button>
           );
         })}
@@ -204,7 +206,7 @@ function Eyebrow({ children }: { children: ReactNode }) {
 
 function Overview({ onNavigate }: { onNavigate: (page: LabPage) => void }) {
   const cards: { id: LabPage; title: string; description: string; icon: typeof Globe2; accent: string; meta: string }[] = [
-    { id: "ml-lab", title: "ML Terrain & Risk Lab", description: "HistGradientBoosting hazard surrogate, K-Means 4-class terrain clustering, and Dijkstra/A* risk-aware rover routes for Jezero Crater.", icon: BrainCircuit, accent: "cyan", meta: "SCIKIT-LEARN ML PIPELINE" },
+    { id: "ml-lab", title: "ML Terrain & Risk Lab", description: "Explore stored Jezero terrain metrics, route comparisons, and Mars image-analysis models.", icon: BrainCircuit, accent: "cyan", meta: "EXPLORATORY TERRAIN DEMO" },
     { id: "terrain", title: "3D Terrain Explorer", description: "Inspect regional terrain models, volcanic provinces, basins, polar surfaces, and global maps.", icon: Globe2, accent: "cyan", meta: "12 3D PLANETARY MODELS" },
     { id: "simulation", title: "Survival Simulator", description: "Run a mission scenario and monitor crew resources, system health and risk.", icon: Activity, accent: "amber", meta: "SOL-BY-SOL OPERATIONS" },
     { id: "regions", title: "Geology Library", description: "Browse the core terrain collection and compare geological environments.", icon: Mountain, accent: "rose", meta: "PLANETARY GEOLOGY" },
@@ -242,7 +244,7 @@ function Overview({ onNavigate }: { onNavigate: (page: LabPage) => void }) {
             <div className="mission-hero-orbit-line" />
             <div className="absolute left-0 top-[23%] rounded-xl border border-line bg-panel/90 px-3 py-2 shadow-xl backdrop-blur">
               <p className="font-mono text-[9px] uppercase tracking-[.15em] text-fog">Planetary body</p>
-              <p className="mt-1 font-display text-sm font-bold text-bright">MARS · SOL 214</p>
+              <p className="mt-1 font-display text-sm font-bold text-bright">MISSION SCENARIO · SOL 214</p>
             </div>
             <div className="absolute bottom-[16%] right-0 rounded-xl border border-mint/25 bg-panel/90 px-3 py-2 shadow-xl backdrop-blur">
               <p className="font-mono text-[9px] uppercase tracking-[.15em] text-fog">Workspace status</p>
@@ -266,7 +268,20 @@ function Overview({ onNavigate }: { onNavigate: (page: LabPage) => void }) {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {cards.map((card, index) => {
             const Icon = card.icon;
-            return (
+            return card.id === "ml-lab" ? (
+              <Link key={card.id} to="/ml-terrain-lab" className="mission-module-card group relative flex min-h-[215px] flex-col rounded-2xl border border-line bg-panel p-5 text-left transition duration-300 hover:-translate-y-1 hover:border-amber/40 hover:shadow-xl hover:shadow-black/5 sm:p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className={`grid size-11 place-items-center rounded-xl border ${accentClasses(card.accent)}`}><Icon className="size-5" /></div>
+                  <span className="font-mono text-[9px] text-fog/70">0{index + 1}</span>
+                </div>
+                <h3 className="mt-5 font-display text-lg font-bold text-bright">{card.title}</h3>
+                <p className="mt-2 max-w-sm text-sm leading-6 text-fog">{card.description}</p>
+                <div className="mt-auto flex items-center justify-between gap-2 pt-5">
+                  <span className="font-mono text-[9px] tracking-[.13em] text-fog">{card.meta}</span>
+                  <ArrowRight className="size-4 text-fog transition group-hover:translate-x-1 group-hover:text-amber" />
+                </div>
+              </Link>
+              ) : (
               <button key={card.id} onClick={() => onNavigate(card.id)} className="mission-module-card group relative flex min-h-[215px] flex-col rounded-2xl border border-line bg-panel p-5 text-left transition duration-300 hover:-translate-y-1 hover:border-amber/40 hover:shadow-xl hover:shadow-black/5 sm:p-6">
                 <div className="flex items-start justify-between gap-4">
                   <div className={`grid size-11 place-items-center rounded-xl border ${accentClasses(card.accent)}`}><Icon className="size-5" /></div>
@@ -279,7 +294,7 @@ function Overview({ onNavigate }: { onNavigate: (page: LabPage) => void }) {
                   <ArrowRight className="size-4 text-fog transition group-hover:translate-x-1 group-hover:text-amber" />
                 </div>
               </button>
-            );
+              );
           })}
         </div>
       </section>

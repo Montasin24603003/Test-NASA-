@@ -3,7 +3,7 @@
  * 
  * Sources:
  * - NASA Mars Global Surveyor (MGS) MOLA MEGDR 128 px/deg & 4 px/deg
- * - NASA Mars Reconnaissance Orbiter (MRO) HiRISE 1m DTM (Jezero Crater DTM)
+ * - Bundled 128×128 Jezero elevation patch (nominal ~240 m mean grid spacing)
  * - Projection: Equirectangular / Areocentric IAU2000:49900
  * - Algorithm: Horn's 8-neighbor weighted finite difference gradient for true metric surface slope
  */
@@ -17,7 +17,7 @@ export interface MarsElevationProfile {
   roughnessM: number;
   topographicPositionIndex: number; // TPI > 0 ridge/peak, ~0 plain/uniform slope, < 0 depression/crater
   terrainClassification: 'Flat Plains' | 'Gentle Undulation' | 'Moderate Slope' | 'Steep Escarpment' | 'Hazardous Cliff / Chasma';
-  provenance: 'NASA MRO HiRISE 1m DTM' | 'NASA MGS MOLA MEGDR';
+  provenance: 'Jezero DEM patch (128×128)' | 'NASA MGS MOLA MEGDR';
   resolutionM: number;
 }
 
@@ -54,7 +54,7 @@ const MARS_RADIUS_M = 3389500;
 /**
  * Returns surface elevation in meters relative to MOLA datum.
  */
-export function getMarsElevation(lat: number, lon: number): { elevationM: number; provenance: 'NASA MRO HiRISE 1m DTM' | 'NASA MGS MOLA MEGDR'; resolutionM: number } {
+export function getMarsElevation(lat: number, lon: number): { elevationM: number; provenance: 'Jezero DEM patch (128×128)' | 'NASA MGS MOLA MEGDR'; resolutionM: number } {
   // Check if inside Jezero Crater HiRISE coverage
   if (
     lat >= JEZERO_BOUNDS.latMin &&
@@ -71,8 +71,14 @@ export function getMarsElevation(lat: number, lon: number): { elevationM: number
     const val = dem[r * n + c] ?? 0;
     return {
       elevationM: Math.round(val),
-      provenance: 'NASA MRO HiRISE 1m DTM',
-      resolutionM: 1.0,
+      provenance: 'Jezero DEM patch (128×128)',
+      // Report mean north/south and east/west cell spacing on Mars.
+      resolutionM: Math.round(
+        (MARS_RADIUS_M * (Math.PI / 180) *
+          ((JEZERO_BOUNDS.latMax - JEZERO_BOUNDS.latMin) +
+            (JEZERO_BOUNDS.lonMax - JEZERO_BOUNDS.lonMin) * Math.cos((lat * Math.PI) / 180))) /
+          (2 * n),
+      ),
     };
   }
 
@@ -92,7 +98,7 @@ export function getMarsTopography(lat: number, lon: number): MarsElevationProfil
   const zCenter = centerElevData.elevationM;
 
   // Small differential offset (0.015° ~ 880m on Mars)
-  const dDeg = centerElevData.provenance === 'NASA MRO HiRISE 1m DTM' ? 0.003 : 0.015;
+  const dDeg = centerElevData.provenance === 'Jezero DEM patch (128×128)' ? 0.003 : 0.015;
   const dLatRad = (dDeg * Math.PI) / 180;
   const latRad = (lat * Math.PI) / 180;
 

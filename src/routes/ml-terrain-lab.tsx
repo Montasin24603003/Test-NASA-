@@ -12,13 +12,13 @@ export const Route = createFileRoute("/ml-terrain-lab")({
       {
         name: "description",
         content:
-          "Modular Mars AI system featuring Hugging Face models: MOMO multi-sensor foundation model, Mars-Bench crater and boulder segmentation, surface classification, SegFormer traversability, and Jezero HiRISE gradient-boosted hazard surrogate.",
+          "Mars terrain risk demo built from a precomputed Jezero elevation patch, with a separate suite of Hugging Face image-analysis models.",
       },
       { property: "og:title", content: "Planetary AI Lab — Hugging Face Mars Models" },
       {
         property: "og:description",
         content:
-          "Inspect NASA HiRISE, CTX, and THEMIS imagery with Mars-specific Hugging Face models, prediction masks, bounding boxes, and scientific ground-truth cross-checks.",
+          "Explore Mars imagery with Hugging Face models and view their prediction masks and bounding boxes. Outputs are exploratory and require scientific review.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -45,9 +45,9 @@ function MlTerrainLabPage() {
             }`}
           >
             <Cpu className="size-4" />
-            <span>Jezero HiRISE ML Surrogate</span>
+            <span>Jezero Terrain Risk Demo</span>
             <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-slate-900/20 text-slate-900 font-normal">
-              1m DTM
+              128×128 DEM Patch
             </span>
           </button>
 

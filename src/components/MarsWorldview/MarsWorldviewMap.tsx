@@ -30,6 +30,7 @@ import { getMarsTopography } from '@/lib/mars-dem-engine';
 import { calculateMeri } from '@/lib/mars-meri';
 import { getMarsRadiationDose, getMarsDustOpacity, getMarsEnergyAndComms } from '@/lib/mars-environment';
 import { Canvas, useFrame } from '@react-three/fiber';
+import { ThreeSceneBoundary } from '@/components/ThreeSceneBoundary';
 import { OrbitControls, useGLTF, Html } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -1021,6 +1022,7 @@ export function MarsWorldviewMap({
       ) : (
         /* 3D Interactive Mars Globe View */
         <div className="w-full h-full">
+          <ThreeSceneBoundary label="3D Mars globe" className="h-full w-full">
           <Canvas camera={{ position: [0, 0, 6], fov: 45 }}>
             <MarsGlobe3DView 
               selectedLocation={selectedLocation} 
@@ -1029,6 +1031,7 @@ export function MarsWorldviewMap({
             />
             <OrbitControls enablePan enableZoom enableRotate maxDistance={12} minDistance={3.2} />
           </Canvas>
+          </ThreeSceneBoundary>
         </div>
       )}
 

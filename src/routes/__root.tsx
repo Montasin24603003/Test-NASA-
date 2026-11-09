@@ -39,7 +39,7 @@ function MarsClockNavButton() {
     >
       <span className="beacon-dot size-1.5 rounded-full bg-emerald-600 dark:bg-mint" />
       <span className="font-mono text-[11px] text-slate-600 dark:text-fog transition-colors hover:text-slate-900 dark:hover:text-bright">
-        {solTime ? `SOL ${solTime.sol} · ${solTime.lst} LST` : "SOL 214 · 06:42 LST"}
+        {solTime ? `CURRENT MARS SOL ${solTime.sol} · ${solTime.lst} LST` : "MARS CLOCK · LOADING"}
       </span>
     </Link>
   );
@@ -354,6 +354,7 @@ function SiteLayout({ children }: { children: ReactNode }) {
           <Link to="/mission-lab" activeProps={{ className: "bg-amber/15 text-amber font-bold" }} className="rounded-lg px-2.5 py-1 text-fog hover:text-bright">3D Lab</Link>
           <Link to="/sol-by-sol" activeProps={{ className: "bg-mint/15 text-mint font-bold" }} className="rounded-lg px-2.5 py-1 text-fog hover:text-bright">Sol by Sol</Link>
           <Link to="/mars-clock" activeProps={{ className: "bg-amber/15 text-amber font-bold" }} className="rounded-lg px-2.5 py-1 text-fog hover:text-bright">Clock</Link>
+          <Link to="/team" activeProps={{ className: "bg-cyan/15 text-cyan font-bold" }} className="rounded-lg px-2.5 py-1 text-fog hover:text-bright">Team</Link>
         </div>
       </div>
 
@@ -378,6 +379,7 @@ function SiteLayout({ children }: { children: ReactNode }) {
               <span>NASA Planetary Data System (PDS)</span>
               <span>Mars Trek WMTS</span>
               <span>SWIM 2.0 Subsurface Ice</span>
+              <Link to="/team" className="hover:text-bright">Team</Link>
               <span>MSL RAD &amp; MEDA Calibrated</span>
             </div>
           </div>

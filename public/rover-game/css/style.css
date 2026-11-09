@@ -675,7 +675,8 @@ html, body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 14px 18px;
+  padding: clamp(8px, 1.6vh, 16px) clamp(10px, 1.8vw, 20px);
+  box-sizing: border-box;
 }
 
 .hud-glass {
@@ -798,6 +799,9 @@ html, body {
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: max(0px, env(safe-area-inset-bottom));
 }
 
 .drive-cluster {
@@ -1073,6 +1077,17 @@ html, body {
   .menu-overlay { padding: 16px; background: rgba(8, 11, 18, 0.82); overflow-y: auto; }
   .hud-top-row { flex-wrap: wrap; }
   .env-cluster { display: none; }
+}
+
+@media (max-height: 760px) {
+  .hud-layer { padding: 6px 12px; }
+  .drive-cluster { padding: 6px 12px; gap: 10px; }
+  .speed-digits { font-size: 26px; }
+  .env-cluster { padding: 6px 10px; gap: 4px; }
+  .hud-top-row { gap: 6px; }
+  .mission-tracker-box { padding: 6px 10px; }
+  .compass-pill { padding: 4px 12px; }
+  .quick-tools-bar { padding: 3px 6px; }
 }
 
 /* ==========================================================================

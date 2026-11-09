@@ -151,10 +151,10 @@ const STEERING_MODES = [
 ];
 
 const REGIONS = [
-  { id: "jezero", name: "Jezero Crater Floor", dtm: "HiRISE 1m", terrain: "Clay & Basalt Pavements" },
-  { id: "delta", name: "Western Delta Fan", dtm: "HiRISE 1m", terrain: "Cross-Bedded Scarps" },
-  { id: "dunes", name: "Séítah Sand Ripples", dtm: "CTX 6m", terrain: "High-Sinkage Aeolian Dunes" },
-  { id: "rim", name: "Crater Rim Highlands", dtm: "MOLA 463m", terrain: "Steep Boulder Benches" },
+  { id: "jezero", name: "Jezero Crater Floor", dtm: "Simulated terrain", terrain: "Clay & Basalt Pavements" },
+  { id: "delta", name: "Western Delta Fan", dtm: "Simulated terrain", terrain: "Cross-Bedded Scarps" },
+  { id: "dunes", name: "Séítah Sand Ripples", dtm: "Simulated terrain", terrain: "High-Sinkage Aeolian Dunes" },
+  { id: "rim", name: "Crater Rim Highlands", dtm: "Simulated terrain", terrain: "Steep Boulder Benches" },
 ];
 
 function RoverGamePage() {
@@ -173,9 +173,36 @@ function RoverGamePage() {
   // Listen for real-time telemetry stream from 3D physics engine inside iframe
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const isFs = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+      setIsFullscreen(isFs);
+      setTimeout(() => {
+        try {
+          if (iframeRef.current?.contentWindow) {
+            iframeRef.current.contentWindow.dispatchEvent(new Event("resize"));
+          }
+        } catch {}
+      }, 60);
     };
+
     document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("mozfullscreenchange", handleFullscreenChange);
+    document.addEventListener("MSFullscreenChange", handleFullscreenChange);
+
+    const handleEscExit = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isFullscreen) {
+        if (document.fullscreenElement && document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener("keydown", handleEscExit);
 
     const handleMessage = (event: MessageEvent) => {
       if (!event.data || typeof event.data !== "object") return;
@@ -231,25 +258,60 @@ function RoverGamePage() {
 
     return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
+      window.removeEventListener("keydown", handleEscExit);
       window.removeEventListener("message", handleMessage);
       window.removeEventListener("keydown", handleKeyForward);
       window.removeEventListener("keyup", handleKeyForward);
       window.removeEventListener("blur", handleWindowBlur);
     };
-  }, []);
+  }, [isFullscreen]);
 
   const handleToggleFullscreen = () => {
-    const target = viewportRef.current || iframeRef.current;
-    if (!target) return;
-    if (!document.fullscreenElement) {
-      if (target.requestFullscreen) {
-        target.requestFullscreen().catch(() => {});
+    const target = viewportRef.current;
+    const isCurrentlyFullscreen = !!(
+      document.fullscreenElement ||
+      (document as any).webkitFullscreenElement ||
+      (document as any).mozFullScreenElement ||
+      (document as any).msFullscreenElement ||
+      isFullscreen
+    );
+
+    if (!isCurrentlyFullscreen) {
+      setIsFullscreen(true);
+      if (target) {
+        if (target.requestFullscreen) {
+          target.requestFullscreen().catch(() => {});
+        } else if ((target as any).webkitRequestFullscreen) {
+          (target as any).webkitRequestFullscreen();
+        } else if ((target as any).mozRequestFullScreen) {
+          (target as any).mozRequestFullScreen();
+        } else if ((target as any).msRequestFullscreen) {
+          (target as any).msRequestFullscreen();
+        }
       }
     } else {
-      if (document.exitFullscreen) {
+      setIsFullscreen(false);
+      if (document.fullscreenElement && document.exitFullscreen) {
         document.exitFullscreen().catch(() => {});
+      } else if ((document as any).webkitFullscreenElement && (document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      } else if ((document as any).mozFullScreenElement && (document as any).mozCancelFullScreen) {
+        (document as any).mozCancelFullScreen();
+      } else if ((document as any).msFullscreenElement && (document as any).msExitFullscreen) {
+        (document as any).msExitFullscreen();
       }
     }
+
+    setTimeout(() => {
+      try {
+        if (iframeRef.current?.contentWindow) {
+          iframeRef.current.contentWindow.dispatchEvent(new Event("resize"));
+        }
+      } catch {}
+    }, 120);
   };
 
   const sendIframeCommand = (type: string, payload?: Record<string, unknown>) => {
@@ -334,7 +396,7 @@ function RoverGamePage() {
               Direct Telemetry Link Active (DSN 70m)
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-lg bg-cyan/15 px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-cyan border border-cyan/30">
-              Sol 142 · 14:18 LMST
+              MISSION SOL 142 · 14:18 LMST
             </span>
           </div>
           <h1 className="mt-2 font-display text-2xl sm:text-3xl font-bold tracking-tight text-bright">
@@ -536,13 +598,40 @@ function RoverGamePage() {
         <div 
           ref={viewportRef}
           onClick={() => iframeRef.current?.focus()}
-          className="relative overflow-hidden rounded-3xl border border-line/70 bg-[#080d14] shadow-2xl transition-all"
+          className={
+            isFullscreen
+              ? "rover-fullscreen-active fixed inset-0 z-[999999] w-screen h-screen m-0 p-0 rounded-none border-none bg-[#05080f] overflow-hidden flex flex-col"
+              : "relative overflow-hidden rounded-3xl border border-line/70 bg-[#080d14] shadow-2xl transition-all"
+          }
         >
+          {isFullscreen && (
+            <div className="absolute top-4 right-4 z-[1000000] pointer-events-auto">
+              <button
+                type="button"
+                onClick={handleToggleFullscreen}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-amber/60 bg-[#070c16]/95 px-3.5 py-2 font-mono text-xs font-bold text-amber hover:bg-amber hover:text-black shadow-2xl backdrop-blur-2xl transition-all cursor-pointer"
+                title="Exit Fullscreen Mode [Esc]"
+              >
+                <Minimize2 className="size-4" />
+                <span>Exit Fullscreen [Esc]</span>
+              </button>
+            </div>
+          )}
+
           <iframe
             ref={iframeRef}
             title="3D Mars Rover Expedition Simulation"
             src="/rover-game/index.html?autostart=1"
-            className="block h-[min(900px,calc(100vh-220px))] min-h-[700px] w-full border-0"
+            className={
+              isFullscreen
+                ? "w-screen h-screen block border-0 m-0 p-0 flex-1"
+                : "block h-[min(880px,calc(100vh-200px))] min-h-[680px] w-full border-0"
+            }
+            style={
+              isFullscreen
+                ? { width: "100vw", height: "100vh", minHeight: "100vh", maxHeight: "100vh", border: 0, margin: 0, padding: 0 }
+                : undefined
+            }
             loading="eager"
             allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; gamepad"
             allowFullScreen

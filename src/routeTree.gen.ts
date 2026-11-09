@@ -19,6 +19,7 @@ import { Route as ProtocolsRouteImport } from './routes/protocols'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as RoverGameRouteImport } from './routes/rover-game'
 import { Route as SolBySolRouteImport } from './routes/sol-by-sol'
+import { Route as TeamRouteImport } from './routes/team'
 import { Route as ApiHfInferenceRouteImport } from './routes/api/hf-inference'
 import { Route as ApiMarsAdvisorRouteImport } from './routes/api/mars-advisor'
 
@@ -72,6 +73,11 @@ const SolBySolRoute = SolBySolRouteImport.update({
   path: '/sol-by-sol',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TeamRoute = TeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiHfInferenceRoute = ApiHfInferenceRouteImport.update({
   id: '/api/hf-inference',
   path: '/api/hf-inference',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/resources': typeof ResourcesRoute
   '/rover-game': typeof RoverGameRoute
   '/sol-by-sol': typeof SolBySolRoute
+  '/team': typeof TeamRoute
   '/api/hf-inference': typeof ApiHfInferenceRoute
   '/api/mars-advisor': typeof ApiMarsAdvisorRoute
 }
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/resources': typeof ResourcesRoute
   '/rover-game': typeof RoverGameRoute
   '/sol-by-sol': typeof SolBySolRoute
+  '/team': typeof TeamRoute
   '/api/hf-inference': typeof ApiHfInferenceRoute
   '/api/mars-advisor': typeof ApiMarsAdvisorRoute
 }
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   '/resources': typeof ResourcesRoute
   '/rover-game': typeof RoverGameRoute
   '/sol-by-sol': typeof SolBySolRoute
+  '/team': typeof TeamRoute
   '/api/hf-inference': typeof ApiHfInferenceRoute
   '/api/mars-advisor': typeof ApiMarsAdvisorRoute
 }
@@ -139,6 +148,7 @@ export interface FileRouteTypes {
     | '/resources'
     | '/rover-game'
     | '/sol-by-sol'
+    | '/team'
     | '/api/hf-inference'
     | '/api/mars-advisor'
   fileRoutesByTo: FileRoutesByTo
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
     | '/resources'
     | '/rover-game'
     | '/sol-by-sol'
+    | '/team'
     | '/api/hf-inference'
     | '/api/mars-advisor'
   id:
@@ -167,6 +178,7 @@ export interface FileRouteTypes {
     | '/resources'
     | '/rover-game'
     | '/sol-by-sol'
+    | '/team'
     | '/api/hf-inference'
     | '/api/mars-advisor'
   fileRoutesById: FileRoutesById
@@ -182,6 +194,7 @@ export interface RootRouteChildren {
   ResourcesRoute: typeof ResourcesRoute
   RoverGameRoute: typeof RoverGameRoute
   SolBySolRoute: typeof SolBySolRoute
+  TeamRoute: typeof TeamRoute
   ApiHfInferenceRoute: typeof ApiHfInferenceRoute
   ApiMarsAdvisorRoute: typeof ApiMarsAdvisorRoute
 }
@@ -258,6 +271,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolBySolRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/team': {
+      id: '/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/hf-inference': {
       id: '/api/hf-inference'
       path: '/api/hf-inference'
@@ -286,6 +306,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResourcesRoute: ResourcesRoute,
   RoverGameRoute: RoverGameRoute,
   SolBySolRoute: SolBySolRoute,
+  TeamRoute: TeamRoute,
   ApiHfInferenceRoute: ApiHfInferenceRoute,
   ApiMarsAdvisorRoute: ApiMarsAdvisorRoute,
 }

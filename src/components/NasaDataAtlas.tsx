@@ -96,25 +96,24 @@ export function NasaDataAtlas() {
       {/* ML Pipeline Callout Banner */}
       <div className="mb-6 rounded-2xl border border-cyan/30 bg-gradient-to-r from-cyan/[0.08] via-white to-amber/[0.05] p-5 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
+          <div className="flex min-w-0 items-start gap-3">
             <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-cyan/15 text-cyan">
               <Zap className="size-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-cyan">
                   ML Model Integration
                 </span>
                 <span className="rounded-full bg-mint/15 px-2 py-0.5 font-mono text-[9px] font-semibold text-mint">
-                  R² = 0.998 · 98.3% Accuracy
+                  Prototype benchmark · exploratory
                 </span>
               </div>
               <h3 className="mt-0.5 font-display text-base font-bold text-bright">
-                Trained Gradient-Boosted Terrain Hazard Surrogate
+                Jezero Terrain Risk Demo
               </h3>
-              <p className="mt-1 text-xs text-fog max-w-2xl">
-                Trained on NASA PDS HiRISE 1m DTMs of Jezero Crater to predict surface rover traversal
-                hazards directly from multi-scale elevation derivatives, avoiding 28.6% of traversal risk.
+              <p className="mt-1 break-words text-xs text-fog max-w-2xl">
+                Uses a precomputed Jezero elevation-patch demo to visualize hazard estimates and route trade-offs. The repository does not include an independently reproducible held-out evaluation, so these outputs are exploratory and are not validated NASA predictions.
               </p>
             </div>
           </div>
@@ -236,7 +235,7 @@ export function NasaDataAtlas() {
                     <div className="grid size-10 shrink-0 place-items-center rounded-xl border border-cyan/25 bg-cyan/10">
                       <Icon className="size-5 text-cyan" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-amber font-semibold">
                           {dataset.category}
@@ -247,7 +246,7 @@ export function NasaDataAtlas() {
                           </span>
                         )}
                       </div>
-                      <h3 className="mt-1 font-display text-base font-bold text-bright leading-snug">
+                      <h3 className="mt-1 break-words font-display text-base font-bold text-bright leading-snug">
                         {dataset.title}
                       </h3>
                     </div>
@@ -266,10 +265,10 @@ export function NasaDataAtlas() {
 
                 <div className="mt-3 rounded-lg border border-line/60 bg-ink2/50 px-3 py-1.5 font-mono text-[10px]">
                   <span className="text-fog">Mission Application: </span>
-                  <strong className="text-bright">{dataset.missionApplication}</strong>
+                  <strong className="break-words text-bright">{dataset.missionApplication}</strong>
                 </div>
 
-                <p className="mt-3 text-xs leading-relaxed text-fog">{dataset.description}</p>
+                <p className="mt-3 break-words text-xs leading-relaxed text-fog">{dataset.description}</p>
               </div>
 
               <div className="mt-4 flex items-center justify-between border-t border-line/60 pt-3 font-mono text-[10px] text-fog">

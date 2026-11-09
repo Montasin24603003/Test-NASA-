@@ -414,7 +414,7 @@ export function MarsExplorer({ initialModelView = "globe", immersive = false }: 
             <span className="inline-flex items-center gap-1.5 rounded-full border border-mint/20 bg-mint/10 px-2.5 py-1 text-mint">
               <span className="beacon-dot size-1.5 rounded-full bg-mint" /> Mission systems nominal
             </span>
-            <span className="text-fog">ARES-01 · SOL 214</span>
+            <span className="text-fog">ARES-01 SCENARIO · MISSION SOL 214</span>
           </div>
           <h1 id="mars-explorer-heading" className="mt-3 max-w-4xl font-display text-4xl font-bold leading-[1.02] sm:text-5xl lg:text-6xl">
             Interplanetary Survival Guide<span className="text-amber">.</span>

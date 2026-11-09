@@ -53,15 +53,15 @@ export const nasaDatasets: NasaDataset[] = [
   // 2. pds.nasa.gov (NASA Planetary Data System)
   {
     id: "pds-hirise-jezero-crater-dem",
-    title: "NASA Planetary Data System (PDS): HiRISE Jezero Crater 1m DTM",
+    title: "NASA PDS reference: HiRISE Jezero stereo terrain archive",
     source: "NASA Planetary Data System (PDS)",
     sourceUrl: "https://pds.nasa.gov",
     portal: "pds.nasa.gov",
     category: "Terrain / ML",
-    missionApplication: "High-resolution DEM generation for the Jezero ML terrain hazard surrogate model",
-    description: "Meter-scale Digital Terrain Models (DTM) derived from Mars Reconnaissance Orbiter (MRO) HiRISE stereo pairs, covering the Perseverance rover delta front, river valleys, and crater floor.",
+    missionApplication: "Reference archive for high-resolution Jezero terrain products",
+    description: "NASA PDS archive reference for HiRISE stereo-derived terrain products. The terrain demo in this app uses a separate 128×128 Jezero elevation patch; it does not load a meter-scale HiRISE DTM.",
     url: "https://pds.nasa.gov",
-    badge: "HiRISE 1m DEM",
+    badge: "PDS archive reference",
   },
   {
     id: "pds-mola-megdr-topography",
@@ -202,7 +202,7 @@ export const nasaDatasets: NasaDataset[] = [
 ];
 
 export const pipelineLayers = [
-  { key: "terrain", label: "Terrain Classification & ML Hazards", source: "HiRISE 1m DTM + HistGradientBoosting", effect: "Landing safety, boulder avoidance, and risk-aware route planning" },
+  { key: "terrain", label: "Terrain Risk Demo", source: "Stored Jezero 128×128 DEM patch", effect: "Exploratory slope visualization and route comparisons" },
   { key: "thermal", label: "Thermal Environment & Night Shift", source: "Viking IRTM + NASA FIRMS Analogs", effect: "Thermal mass retention, habitat insulation, and nighttime heating cycles" },
   { key: "radiation", label: "Radiation Dosimetry & Atmospheric Tau", source: "Mars Odyssey MARIE + NASA Giovanni", effect: "GCR/SPE exposure limits, regolith shielding depth, and dust storm alerts" },
   { key: "minerals", label: "Mineralogy, Hydrated Clays & ISRU", source: "MRO CRISM + NASA Exoplanet Data", effect: "Water ice extraction feasibility, oxygen generation, and biosignature targets" },

@@ -129,7 +129,7 @@ export function MarsLocationInspector({
             </h3>
           </div>
           <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold uppercase">
-            {topo.provenance === 'NASA MRO HiRISE 1m DTM' ? 'HiRISE 1m DTM' : 'MOLA MEGDR'}
+            {topo.provenance === 'Jezero DEM patch (128×128)' ? 'Jezero DEM · 128×128' : 'MOLA MEGDR'}
           </span>
         </div>
 
@@ -166,9 +166,9 @@ export function MarsLocationInspector({
 
           <div className="grid grid-cols-2 gap-2 text-[10px] font-mono text-slate-400 pt-1">
             <div className="p-1.5 rounded bg-slate-950/80 border border-slate-800">
-              <span className="text-slate-500 block">Metric Surface Slope</span>
+              <span className="text-slate-500 block">Estimated Slope · {Math.round(topo.resolutionM)} m grid</span>
               <span className={`font-bold ${topo.slopeDeg > 15 ? 'text-rose-400' : topo.slopeDeg > 8 ? 'text-amber-400' : 'text-emerald-400'}`}>
-                {topo.slopeDeg}° ({topo.terrainClassification})
+                {topo.slopeDeg === 0 ? '<0.1°' : `${topo.slopeDeg}°`} ({topo.terrainClassification})
               </span>
             </div>
             <div className="p-1.5 rounded bg-slate-950/80 border border-slate-800">
@@ -183,7 +183,7 @@ export function MarsLocationInspector({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase font-bold text-indigo-400">
               <Activity className="size-3.5 text-indigo-400" />
-              <span>Exploration Risk Index (MERI)</span>
+              <span>Composite Risk Index (MERI)</span>
             </div>
             <span className={`text-[9px] font-mono px-2 py-0.5 rounded font-bold border ${
               meri.classification === 'SAFE' 
@@ -212,7 +212,7 @@ export function MarsLocationInspector({
             </div>
             <div className="p-1 rounded bg-slate-950/80 border border-slate-800">
               <span className="text-slate-500 block">Thermal</span>
-              <span className="font-bold text-slate-200">{meri.breakdown.thermalScore}</span>
+              <span className="font-bold text-slate-200">{meri.breakdown.thermalScore}/100 risk</span>
             </div>
             <div className="p-1 rounded bg-slate-950/80 border border-slate-800">
               <span className="text-slate-500 block">Radiation</span>
@@ -223,6 +223,9 @@ export function MarsLocationInspector({
               <span className="font-bold text-slate-200">{meri.breakdown.communicationScore}</span>
             </div>
           </div>
+          <p className="text-[9px] leading-relaxed text-slate-500">
+            Component scores run 0–100 (higher means more risk); MERI is a weighted composite on the same 0–100 scale. A high single component can coexist with a lower overall score.
+          </p>
         </div>
 
         {/* SECTION 3: DUAL TERRAIN HAZARD (ROVER VS ASTRONAUT EVA) */}

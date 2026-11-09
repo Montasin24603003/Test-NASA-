@@ -65,8 +65,8 @@ export function MarsScientificBottomBar({
       {/* 2. Mission Timeline Sol Scrubber */}
       <div className="flex-1 w-full max-w-xl px-2">
         <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
-          <span className="font-semibold text-slate-300">Mission Operational Timeline:</span>
-          <span className="text-amber-400 font-bold">Current Horizon: Sol {selectedSol}</span>
+          <span className="font-semibold text-slate-300">Mission Scenario Timeline:</span>
+          <span className="text-amber-400 font-bold">Mission Sol {selectedSol}</span>
         </div>
         <div className="relative">
           <input
@@ -103,7 +103,7 @@ export function MarsScientificBottomBar({
               {scaleBarKm} km
             </span>
           </div>
-          <span className="text-[8px] text-slate-500 mt-0.5">Mars Mean Scale</span>
+          <span className="text-[8px] text-slate-500 mt-0.5">Map distance scale</span>
         </div>
       </div>
 

@@ -39,6 +39,7 @@ import * as THREE from "three";
 
 import { marsSites } from "@/data/marsSites";
 import { NasaDataAtlas } from "@/components/NasaDataAtlas";
+import { ThreeSceneBoundary } from "@/components/ThreeSceneBoundary";
 import { SurvivalSimulator } from "@/components/SurvivalSimulator";
 
 export const Route = createFileRoute("/")({
@@ -333,7 +334,7 @@ const MISSION_MODULES = [
     id: "ml-terrain-lab",
     title: "ML Terrain Lab",
     category: "AI & Neural Vision",
-    description: "1m Jezero HiRISE ML surrogate and 7 Hugging Face foundation models for semantic segmentation and boulder detection.",
+    description: "Jezero terrain risk demo and 7 Hugging Face models for image analysis and boulder detection.",
     to: "/ml-terrain-lab",
     icon: Cpu,
     color: "text-indigo-400",
@@ -487,7 +488,8 @@ function IndexPage() {
 
           {/* 2. CENTER: REALISTIC 3D MARS GLOBE (Three.js WebGL) */}
           <div className="relative mx-auto aspect-square w-full max-w-[460px] overflow-hidden rounded-[28px] border border-slate-300/90 dark:border-line/80 bg-radial from-[#0d1624] via-[#070d17] to-[#040810] p-2 shadow-2xl">
-            <Canvas camera={{ position: [0, 0, 2.85], fov: 45 }} dpr={[1, 2]}>
+            <ThreeSceneBoundary label="Mars globe">
+            <Canvas camera={{ position: [0, 0, 2.85], fov: 45 }} dpr={[1, 1.5]}>
               <color attach="background" args={["#040810"]} />
 
               {/* Space Lighting */}
@@ -527,6 +529,7 @@ function IndexPage() {
                 rotateSpeed={0.8}
               />
             </Canvas>
+            </ThreeSceneBoundary>
 
             {/* Top Globe Toolbar */}
             <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
@@ -930,7 +933,7 @@ function IndexPage() {
                 </div>
                 <div className="p-3 rounded-xl bg-ink2/50 border border-line/60">
                   <span className="text-indigo-400 font-bold uppercase block text-[10px]">2. Planetary AI Suite</span>
-                  <p className="mt-1">7 Hugging Face models + 1m DTM gradient-boosted hazard surrogate for semantic terrain analysis.</p>
+                  <p className="mt-1">7 Hugging Face models plus an exploratory Jezero elevation-patch visualization for terrain analysis.</p>
                 </div>
                 <div className="p-3 rounded-xl bg-ink2/50 border border-line/60">
                   <span className="text-cyan font-bold uppercase block text-[10px]">3. SWIM 2.0 Subsurface Ice</span>

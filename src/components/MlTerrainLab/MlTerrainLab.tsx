@@ -3,16 +3,13 @@ import {
   Activity,
   ArrowRight,
   BarChart3,
-  Box,
   BrainCircuit,
   CheckCircle2,
   ChevronRight,
   Database,
-  ExternalLink,
   Eye,
   Layers,
   MapPin,
-  Maximize2,
   Route as RouteIcon,
   ShieldAlert,
   Sparkles,
@@ -28,7 +25,6 @@ export function MlTerrainLab() {
   const [showTrueRoute, setShowTrueRoute] = useState(true);
   const [showMlRoute, setShowMlRoute] = useState(true);
   const [hoverPixel, setHoverPixel] = useState<{ r: number; c: number } | null>(null);
-  const [showEmbedded3D, setShowEmbedded3D] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -224,63 +220,21 @@ export function MlTerrainLab() {
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan/25 bg-cyan/10 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan">
-              <BrainCircuit className="size-3" /> HistGradientBoosting + K-Means
+              <BrainCircuit className="size-3" /> Stored Metrics + Route Comparison
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-mint/25 bg-mint/10 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-mint">
-              <span className="size-1.5 rounded-full bg-mint animate-pulse" /> HiRISE 1m DTM
+              <span className="size-1.5 rounded-full bg-mint animate-pulse" /> Jezero DEM patch · 128×128
             </span>
           </div>
           <h1 className="mt-2 font-display text-2xl font-bold tracking-tight text-bright sm:text-3xl">
-            Jezero Crater ML Terrain &amp; Hazard Model
+            Jezero Crater Terrain &amp; Route Demo
           </h1>
           <p className="mt-1 text-xs text-fog max-w-2xl">
-            Trained gradient-boosted regression surrogate predicting surface traversal hazards directly
-            from elevation derivatives, paired with unsupervised K-Means terrain clustering and Dijkstra route optimization.
+            Stored terrain metrics and precomputed route comparisons illustrate how elevation patterns can inform planning. These demo outputs are not independently validated hazard predictions.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <a
-            href="/ml-terrain-lab/index.html"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl bg-amber px-4 py-2.5 font-display text-xs font-semibold text-white shadow-sm transition-transform hover:-translate-y-0.5 hover:bg-amber/90"
-          >
-            <Maximize2 className="size-3.5" /> Launch Full 3D Lab
-          </a>
-          <button
-            type="button"
-            onClick={() => setShowEmbedded3D(!showEmbedded3D)}
-            className="inline-flex items-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 font-display text-xs font-semibold text-bright shadow-xs transition-colors hover:bg-ink2"
-          >
-            <Box className="size-3.5 text-cyan" />
-            {showEmbedded3D ? "Hide 3D View" : "Embed 3D View"}
-          </button>
-        </div>
       </div>
-
-      {/* Embedded 3D View (If toggled) */}
-      {showEmbedded3D && (
-        <div className="overflow-hidden rounded-2xl border border-line/80 bg-[#0b0807] shadow-xl">
-          <div className="flex items-center justify-between border-b border-white/10 px-4 py-2 text-xs text-white/80">
-            <span className="font-mono text-[10px] uppercase tracking-wider text-amber">
-              WebGL 3D Jezero Elevation Mesh &amp; Rover Traversal
-            </span>
-            <button
-              type="button"
-              onClick={() => setShowEmbedded3D(false)}
-              className="text-white/60 hover:text-white"
-            >
-              ✕
-            </button>
-          </div>
-          <iframe
-            src="/ml-terrain-lab/index.html"
-            title="3D Jezero Terrain Lab"
-            className="h-[540px] w-full border-0"
-          />
-        </div>
-      )}
 
       {/* Main Grid: Interactive Raster View & Model Metrics */}
       <div className="grid gap-6 lg:grid-cols-12">
@@ -338,7 +292,7 @@ export function MlTerrainLab() {
 
                 {/* Canvas Overlay Legend */}
                 <div className="absolute left-2 top-2 rounded-lg border border-black/40 bg-black/60 px-2 py-1 font-mono text-[9px] text-white/90 backdrop-blur-md">
-                  Active: <strong className="text-amber uppercase">{activeLayer}</strong> · 1m HiRISE
+                  Active: <strong className="text-amber uppercase">{activeLayer}</strong> · Jezero patch demo
                 </div>
 
                 <div className="absolute right-2 top-2 rounded-lg border border-black/40 bg-black/60 px-2 py-1 font-mono text-[9px] text-white/90 backdrop-blur-md">
@@ -422,9 +376,7 @@ export function MlTerrainLab() {
           </div>
 
           <div className="mt-4 rounded-xl border border-mint/20 bg-mint/[0.05] p-3 text-[11px] leading-relaxed text-fog">
-            <strong className="text-mint">Key ML Route Finding:</strong> Planning on the ML hazard surrogate
-            yields a path with virtually identical safety (<strong className="text-bright">559.8</strong> vs <strong className="text-bright">559.0</strong>),
-            saving <strong>28.6% of risk-weighted cost</strong> compared to standard shortest-distance Dijkstra.
+            <strong className="text-mint">Stored demo comparison:</strong> The displayed route costs come from a precomputed Jezero patch example. They illustrate how distance and modeled hazard can change the chosen path; they are not a measured safety improvement or independently validated model result.
           </div>
         </div>
 
@@ -437,8 +389,8 @@ export function MlTerrainLab() {
                 <Activity className="size-4" />
               </span>
               <div>
-                <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-cyan">Cross-Validation</p>
-                <h3 className="font-display text-base font-bold text-bright">Model Performance</h3>
+                <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-cyan">Stored Demo Metrics</p>
+                <h3 className="font-display text-base font-bold text-bright">Exploratory Benchmark</h3>
               </div>
             </div>
 
@@ -468,11 +420,14 @@ export function MlTerrainLab() {
               </div>
 
               <div className="rounded-xl border border-line bg-ink2/50 p-3">
-                <p className="text-[9px] uppercase tracking-wider text-fog">Validation Scheme</p>
-                <p className="mt-1 text-base font-bold text-amber">4 Folds</p>
-                <p className="text-[9px] text-fog">16 Spatial Blocks (No leakage)</p>
+                <p className="text-[9px] uppercase tracking-wider text-fog">Stored Fold Summary</p>
+                <p className="mt-1 text-base font-bold text-amber">4 Records</p>
+                  <p className="text-[9px] text-fog">Precomputed summary; not reproducible here</p>
               </div>
             </div>
+            <p className="mt-3 text-[10px] leading-relaxed text-fog">
+              These values are stored in the demo data file. This project does not include the raw train/test splits or an evaluation script, so treat them as illustrative—not verified held-out accuracy.
+            </p>
           </div>
 
           {/* Permutation Feature Importances Card */}

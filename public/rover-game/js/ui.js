@@ -250,7 +250,7 @@ export class GameUI {
     this.el.btnContinue.disabled = !hasSave;
     if (hasSave) {
       const reg = MARS_REGIONS[g.currentRegionId]?.name || 'Jezero Crater';
-      this.el.continueSub.textContent = `Resume in ${reg} • Sol ${g.atmosphere.solNumber}`;
+      this.el.continueSub.textContent = `Resume in ${reg} • Mission Sol ${g.atmosphere.solNumber}`;
     } else {
       this.el.continueSub.textContent = 'No prior expedition save found';
     }
@@ -969,7 +969,7 @@ export class GameUI {
     if (this.el.hudGravVal) {
       this.el.hudGravVal.textContent = `${simulation.gravity.toFixed(2)} m/s²`;
     }
-    this.el.solClock.textContent = `SOL ${atmosphere.solNumber} • ${atmosphere.getLMSTString()}`;
+    this.el.solClock.textContent = `MISSION SOL ${atmosphere.solNumber} • ${atmosphere.getLMSTString()}`;
     this.el.distVal.textContent = simulation.totalDistanceM >= 1000
       ? `${(simulation.totalDistanceM / 1000).toFixed(2)} km`
       : `${Math.floor(simulation.totalDistanceM)} m`;

@@ -113,7 +113,7 @@ export class RoverExpeditionGame {
 
       // Compile shaders once to eliminate first-drive frame hitch
       this.graphics.renderer.compile(this.graphics.scene, this.graphics.camera);
-      this.ui.setLoadingProgress(100, 'Telemetry Nominal — Ready for Mars Surface Operations');
+    this.ui.setLoadingProgress(100, 'Telemetry Nominal — Ready for Mars Surface Operations');
       setTimeout(() => {
         this.ui.hideLoadingScreen();
         // If launched via iframe with ?autostart=1, engage expedition immediately
@@ -193,9 +193,11 @@ export class RoverExpeditionGame {
       console.error('RoverExpeditionGame initialization failed:', err);
       const statusEl = document.getElementById('loading-status-text');
       if (statusEl) {
-        statusEl.textContent = `Initialization Error: ${err.message}. Please ensure WebGL hardware acceleration is enabled.`;
+        statusEl.textContent = `The rover could not start: ${err.message}. Check WebGL support, then retry.`;
         statusEl.style.color = '#ff5252';
       }
+      const retryButton = document.getElementById('loading-retry');
+      if (retryButton) retryButton.classList.remove('hidden');
     }
   }
 

@@ -21,14 +21,30 @@
     }
   </script>
   <script>
+    function showBootError(message) {
+      var status = document.getElementById('loading-status-text');
+      var retry = document.getElementById('loading-retry');
+      if (status) {
+        status.textContent = message || 'The rover could not start. Check WebGL support and reload the game.';
+        status.style.color = '#ff8b80';
+      }
+      if (retry) retry.classList.remove('hidden');
+    }
+
     window.addEventListener('error', function(e) {
       console.error('[RoverGame Module Error]', e);
-      var status = document.getElementById('loading-status-text');
-      if (status) {
-        status.textContent = 'System Notice: ' + (e.message || 'Initializing 3D modules...');
-        status.style.color = '#ff9800';
-      }
+      showBootError('The 3D game failed to start. ' + (e.message || 'Check WebGL support and reload.'));
     });
+    window.addEventListener('unhandledrejection', function(e) {
+      console.error('[RoverGame Module Rejection]', e.reason);
+      showBootError('A game module failed to load. Check your connection and reload.');
+    });
+    window.setTimeout(function() {
+      var screen = document.getElementById('loading-screen');
+      if (screen && !screen.classList.contains('hidden')) {
+        showBootError('Startup is taking longer than expected. Retry loading the game.');
+      }
+    }, 15000);
   </script>
 </head>
 <body>
@@ -42,6 +58,7 @@
         <div id="loading-bar-fill" class="loading-bar-fill" style="width: 28%;"></div>
       </div>
       <p id="loading-status-text" class="loading-status mono">Initializing WebGL 3D Planetary Terrain &amp; Physics...</p>
+      <button id="loading-retry" class="hidden" type="button" style="margin-top:12px;padding:10px 16px;border:1px solid #ff8b80;border-radius:8px;background:#351b20;color:#fff;font:600 12px monospace;cursor:pointer" onclick="window.location.reload()">Retry loading</button>
     </div>
   </div>
 
